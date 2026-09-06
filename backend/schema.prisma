@@ -1,0 +1,303 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                   String                @id @default(cuid())
+  email                String                @unique
+  name                 String
+  passwordHash         String
+  role                 String                @default("USER")
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  authSessions         AuthSession[]
+  blacklistAddresses   BlacklistAddress[]
+  inheritanceProtocols InheritanceProtocol[]
+  guardianProfile      GuardianProfile?
+  notifications        Notification[]
+  payments             Payment[]
+  priceAlerts          PriceAlert[]
+  securityAlerts       SecurityAlert[]
+  securityEvents       SecurityEvent[]
+  subscription         Subscription?
+  wallets              Wallet[]
+  whaleWatches         WhaleWatch[]
+  whitelistAddresses   WhitelistAddress[]
+}
+
+model GuardianProfile {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
+  enabled                 Boolean  @default(false)
+  alertThresholdUsd       Float    @default(500)
+  minimumRiskScore        Int      @default(60)
+  blockKnownScam          Boolean  @default(true)
+  warnUnknownCounterparty Boolean  @default(true)
+  monitorBehavior         Boolean  @default(true)
+  monitorScamDna          Boolean  @default(true)
+  monitorSecurityGraph    Boolean  @default(true)
+  monitorEarlyWarning     Boolean  @default(true)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([enabled])
+}
+
+model Subscription {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  plan      String
+  status    String
+  txid      String?  @unique
+  startsAt  DateTime @default(now())
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Wallet {
+  id                   String                @id @default(cuid())
+  userId               String
+  network              String
+  address              String
+  label                String?
+  inheritanceProtocols InheritanceProtocol[]
+  securityAlerts       SecurityAlert[]
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, network, address])
+}
+
+model Payment {
+  id             String   @id @default(cuid())
+  userId         String
+  plan           String
+  expectedAmount Float
+  txid           String?  @unique
+  status         String   @default("PENDING")
+  createdAt      DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ScamAddress {
+  id             String          @id @default(cuid())
+  network        String
+  address        String
+  category       String
+  label          String?
+  description    String?
+  source         String?
+  confidence     Int             @default(50)
+  severity       Int             @default(50)
+  active         Boolean         @default(true)
+  firstSeenAt    DateTime?
+  lastSeenAt     DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  evidences      ScamEvidence[]
+  securityAlerts SecurityAlert[]
+
+  @@unique([network, address])
+  @@index([network, address])
+  @@index([category])
+  @@index([active])
+}
+
+model ScamEvidence {
+  id              String      @id @default(cuid())
+  scamAddressId   String
+  network         String
+  observedAddress String
+  relation        String
+  txid            String?
+  category        String
+  description     String?
+  confidence      Int         @default(50)
+  createdAt       DateTime    @default(now())
+  scamAddress     ScamAddress @relation(fields: [scamAddressId], references: [id], onDelete: Cascade)
+
+  @@index([observedAddress])
+  @@index([network, observedAddress])
+  @@index([txid])
+}
+
+model SecurityAlert {
+  id            String       @id @default(cuid())
+  userId        String
+  walletId      String?
+  type          String
+  severity      String
+  title         String
+  body          String
+  network       String
+  walletAddress String
+  transactionId String
+  direction     String
+  amount        Float?
+  token         String?
+  counterparty  String
+  scamAddressId String?
+  acknowledged  Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  scamAddress   ScamAddress? @relation(fields: [scamAddressId], references: [id])
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet        Wallet?      @relation(fields: [walletId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([walletId, createdAt])
+  @@index([network, walletAddress])
+  @@index([transactionId])
+  @@index([counterparty])
+}
+
+model AuthSession {
+  id        String    @id @default(cuid())
+  jti       String    @unique
+  userId    String
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  revokedAt DateTime?
+  ipAddress String?
+  userAgent String?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+}
+
+model SecurityEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  eventType String
+  severity  String   @default("INFO")
+  ipAddress String?
+  userAgent String?
+  endpoint  String?
+  method    String?
+  success   Boolean  @default(true)
+  details   String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([eventType, createdAt])
+  @@index([severity, createdAt])
+  @@index([ipAddress, createdAt])
+}
+
+model WhitelistAddress {
+  id        String   @id @default(cuid())
+  userId    String
+  address   String
+  label     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  network   String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, network, address])
+  @@index([userId, createdAt])
+}
+
+model BlacklistAddress {
+  id        String   @id @default(cuid())
+  userId    String
+  address   String
+  label     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  network   String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, network, address])
+  @@index([userId, createdAt])
+}
+
+model WhaleWatch {
+  id           String    @id @default(cuid())
+  userId       String
+  network      String
+  address      String
+  label        String?
+  lastSeenTxid String?
+  lastSeenAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, network, address])
+  @@index([userId, createdAt])
+  @@index([network, address])
+}
+
+model InheritanceProtocol {
+  id                 String    @id @default(cuid())
+  userId             String
+  walletId           String?
+  network            String
+  walletAddress      String
+  beneficiaryAddress String
+  inactivityDays     Int
+  lastHeartbeatAt    DateTime  @default(now())
+  activatedAt        DateTime?
+  expiresAt          DateTime?
+  status             String    @default("DRAFT")
+  executionStatus    String    @default("NOT_READY")
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet             Wallet?   @relation(fields: [walletId], references: [id])
+
+  @@index([userId, status])
+  @@index([walletAddress, network])
+  @@index([beneficiaryAddress, network])
+  @@index([status, expiresAt])
+}
+
+model PriceAlert {
+  id          String    @id @default(cuid())
+  userId      String
+  network     String
+  asset       String
+  targetPrice Float
+  direction   String    @default("ABOVE")
+  enabled     Boolean   @default(true)
+  triggered   Boolean   @default(false)
+  triggeredAt DateTime?
+  lastPrice   Float?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, enabled])
+  @@index([network, asset, enabled])
+  @@index([userId, createdAt])
+}
+
+model Notification {
+  id         String    @id @default(cuid())
+  userId     String
+  type       String
+  severity   String    @default("INFO")
+  title      String
+  body       String
+  eventKey   String?   @unique
+  asset      String?
+  network    String?
+  resourceId String?
+  read       Boolean   @default(false)
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, read, createdAt])
+  @@index([userId, type, createdAt])
+}

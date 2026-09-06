@@ -1,0 +1,41 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "Set EXPO_PUBLIC_BACKEND_URL to the deployed backend HTTPS URL. Store only JWT/session tokens in expo-secure-store. Do not ship backend provider secrets in the mobile app.",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-community/netinfo": "12.0.1",
+    "@reown/appkit-ethers-react-native": "^2.0.6",
+    "@reown/appkit-react-native": "^2.0.6",
+    "@walletconnect/react-native-compat": "^2.24.0",
+    "axios": "^1.19.0",
+    "ethers": "^6.17.0",
+    "expo": "~57.0.19",
+    "expo-application": "~57.0.2",
+    "expo-clipboard": "~57.0.1",
+    "expo-dev-client": "~57.0.18",
+    "expo-linear-gradient": "~57.0.1",
+    "expo-notifications": "~57.0.16",
+    "expo-secure-store": "~57.0.3",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-get-random-values": "~1.11.0",
+    "react-native-gifted-charts": "^1.4.78",
+    "react-native-qrcode-svg": "^6.3.21",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-svg": "15.15.4",
+    "react-native-web": "^0.21.2"
+  }
+}

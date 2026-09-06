@@ -1,9 +1,0 @@
-{
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "safe-sentinel-pro-api",
-  "main": "src/index.js",
-  "compatibility_date": "2026-08-24",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ]
-}
