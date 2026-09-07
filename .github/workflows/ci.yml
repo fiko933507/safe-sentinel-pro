@@ -80,10 +80,9 @@ jobs:
         run: npm test
 
       - name: Babel parse production App.js
-        run: npx babel App.js --out-file /tmp/safe-sentinel-app.js
+        run: node -e "require('@babel/core').transformFileSync('App.js',{configFile:'./babel.config.js'}); console.log('BABEL PARSE PASSED')"
         env:
           EXPO_PUBLIC_BACKEND_URL: https://example.invalid
 
       - name: Expo dependency check
         run: npx expo-doctor
-        continue-on-error: false
