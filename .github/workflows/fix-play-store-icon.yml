@@ -25,8 +25,8 @@ jobs:
         run: |
           set -euo pipefail
           cp assets/yenilogo.png assets/yenilogo.original.png
-          bg=$(magick assets/yenilogo.original.png -resize 1x1! -format '%[pixel:p{0,0}]' info:)
-          magick assets/yenilogo.original.png \
+          bg=$(convert assets/yenilogo.original.png -resize 1x1! -format '%[pixel:p{0,0}]' info:)
+          convert assets/yenilogo.original.png \
             -resize '820x820>' \
             -background "$bg" \
             -gravity center \
