@@ -8,6 +8,8 @@ const gradle = read('android/app/build.gradle');
 const source = read('App.js');
 const babelConfig = read('babel.config.js');
 const productionUiPlugin = read('scripts/babel-supported-languages.cjs');
+const playStorePlugin = read('scripts/babel-play-store-policy.cjs');
+const structuralPlugin = read('scripts/babel-structural-fixes.cjs');
 const failures = [];
 
 const check = (condition, message) => {
@@ -18,6 +20,7 @@ check(app.android?.package === 'com.fiko93.safesentinel', 'Android package kimli
 check(Number.isInteger(app.android?.versionCode), 'android.versionCode eksik.');
 check(eas.build?.production?.android?.buildType === 'app-bundle', 'Production build AAB üretmiyor.');
 check(eas.build?.production?.android?.credentialsSource === 'remote', 'Production imzalama kaynağı EAS remote değil.');
+check(eas.build?.production?.env?.EXPO_PUBLIC_PLAY_STORE_BUILD === 'true', 'Production EAS profili Play Store policy build olarak işaretlenmemiş.');
 check(!manifest.includes('SYSTEM_ALERT_WINDOW'), 'SYSTEM_ALERT_WINDOW izni kaldırılmamış.');
 check(!manifest.includes('READ_EXTERNAL_STORAGE'), 'READ_EXTERNAL_STORAGE izni kaldırılmamış.');
 check(!manifest.includes('WRITE_EXTERNAL_STORAGE'), 'WRITE_EXTERNAL_STORAGE izni kaldırılmamış.');
@@ -29,8 +32,15 @@ check(!/https?:\/\/(localhost|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01]))/.test(sou
 check(source.includes('EXPO_PUBLIC_BACKEND_URL'), 'Production backend ortam değişkeni kullanılmıyor.');
 
 check(
-  babelConfig.includes('./scripts/babel-supported-languages.cjs'),
-  'Production UI/i18n hardening Babel plugin etkin değil.'
+  babelConfig.includes('./scripts/babel-structural-fixes.cjs') &&
+    babelConfig.includes('./scripts/babel-supported-languages.cjs') &&
+    babelConfig.includes('./scripts/babel-play-store-policy.cjs'),
+  'Production Babel hardening zinciri tam etkin değil.'
+);
+check(
+  structuralPlugin.includes("name: 'removeSecurityAddress'") &&
+    structuralPlugin.includes("name: 'syncSecurityAddressLists'"),
+  'Security address delete handler için structural hoist düzeltmesi eksik.'
 );
 check(
   productionUiPlugin.includes("new Set(['tr', 'en'])"),
@@ -49,6 +59,13 @@ check(
 check(
   !source.includes('Share.share') || productionUiPlugin.includes("name: 'Share'"),
   'Mobil portfolio export Share import koruması eksik.'
+);
+check(
+  playStorePlugin.includes('EXPO_PUBLIC_PLAY_STORE_BUILD') &&
+    playStorePlugin.includes("name === 'VIP_PAYMENT_USDT_ADDRESS'") &&
+    playStorePlugin.includes("value: 'vipView'") &&
+    playStorePlugin.includes("path.node.test = t.booleanLiteral(false)"),
+  'Play Store build doğrudan crypto VIP satın alma/paywall akışını yeterince izole etmiyor.'
 );
 
 if (failures.length) {
