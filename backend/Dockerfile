@@ -4,7 +4,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 COPY package*.json ./
-RUN npm ci --include=dev
+RUN npm install --include=dev --legacy-peer-deps --no-audit --no-fund
 
 COPY . .
 RUN npm run prisma:generate
