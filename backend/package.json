@@ -6,6 +6,7 @@
                     "dev":  "node --watch src/server.js",
                     "start":  "node src/server.js",
                     "db:push":  "prisma db push",
+                    "prisma:migrate:deploy":  "prisma migrate deploy",
                     "prisma:generate":  "prisma generate",
                     "test":  "node --test tests/*.test.js"
                 },

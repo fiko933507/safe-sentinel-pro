@@ -2,10 +2,11 @@
 
 ## Quick start
 1. Provision PostgreSQL.
-2. Configure backend/.env from .env.example.
-3. cd backend && npm install && npx prisma generate && npx prisma db push && npm start
-4. Deploy behind HTTPS.
-5. Set EXPO_PUBLIC_API_URL in Expo and build with EAS.
+2. Configure backend environment variables from backend/.env.production.example.
+3. For local development: cd backend && npm install && npx prisma generate && npm start.
+4. For production deployment: run npm run prisma:migrate:deploy before npm start. Never use prisma db push or reset against production.
+5. Deploy behind HTTPS.
+6. Set EXPO_PUBLIC_BACKEND_URL in the EAS production environment and build with EAS.
 
 ## Security model
 - Passwords: bcrypt (12 rounds)

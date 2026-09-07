@@ -184,7 +184,7 @@ model SecurityEvent {
   success   Boolean  @default(true)
   details   String?
   createdAt DateTime @default(now())
-  user      User?    @relation(fields: [userId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
   @@index([eventType, createdAt])

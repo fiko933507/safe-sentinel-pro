@@ -183,16 +183,16 @@ const V26_GLOBAL_I18N = {
     nativeName: '中文',
   },
   ja: {
-    name: 'æ—¥æœ¬èª',
-    nativeName: 'æ—¥æœ¬èª',
+    name: '日本語',
+    nativeName: '日本語',
   },
   ko: {
-    name: 'í•œêµ­ì–´',
+    name: '한국어',
     nativeName: '한국어',
   },
   ar: {
-    name: 'Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©',
-    nativeName: 'Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©',
+    name: 'العربية',
+    nativeName: 'العربية',
   }
 };
 
@@ -248,8 +248,15 @@ const V26_TRANSLATIONS = {
     unreadNotifications: 'Okunmamış Bildirim',
     preferencesTitle: 'Cüzdan Tercihleri ve Güvenlik',
     preferencesDescription: 'Güvenlik profilinizi ve uygulama tercihinizi kişiselleştirin.',
-    autoScamBlock: 'Otomatik Scam Engelleme',
-    autoScamBlockDescription: 'Tehlikeli havuzdaki cüzdanlarla etkileşimi bloke et.',
+    autoScamBlock: 'Scam Risk Uyarıları',
+    autoScamBlockDescription: 'Bilinen riskli adresleri analiz sonuçlarında uyarı olarak gösterir.',
+    deleteAccount: 'Hesabı Kalıcı Olarak Sil',
+    deleteAccountDescription: 'Hesabınızı ve hesabınıza bağlı kayıtları kalıcı olarak siler. Bu işlem geri alınamaz.',
+    deleteAccountTitle: 'Hesabı Sil',
+    deleteAccountConfirm: 'Hesabınızı ve ilişkili verilerinizi kalıcı olarak silmek istediğinizden emin misiniz?',
+    deleteAccountCancel: 'Vazgeç',
+    deleteAccountAction: 'Kalıcı Olarak Sil',
+    deleteAccountFailed: 'Hesap silinemedi. Lütfen tekrar deneyin.',
     loginDescription: 'Yeni Nesil Kripto Güvenlik ve İstihbarat Asistanı',
     emailAddress: 'E-posta Adresi',
     loginPassword: 'Şifre',
@@ -262,7 +269,388 @@ const V26_TRANSLATIONS = {
     exampleFirstName: 'Örn: Fikret',
     exampleLastName: 'Örn: Bulat',
     completeRegistration: 'Hesabı Oluştur',
-    backToLogin: 'Zaten hesabın var mı? Giriş Yap'
+    backToLogin: 'Zaten hesabın var mı? Giriş Yap',
+    dashboardActive: 'AKTİF',
+    dashboardReady: 'HAZIR',
+    dashboardWalletsMonitored: 'cüzdan izleniyor',
+    dashboardNetworkStatus: 'AĞ DURUMU',
+    dashboardLastBlock: 'Son blok',
+    dashboardTotalPortfolio: 'TOPLAM PORTFÖY DEĞERİ',
+    dashboardOpenPortfolio: 'PORTFÖYÜ AÇ',
+    dashboardQuickScan: 'Hızlı Cüzdan Güvenlik Taraması',
+    dashboardQuickScanDescription: 'Cüzdanı sorgula ve güvenlik kontrollerini başlat',
+    dashboardLiveScan: 'LIVE SCAN',
+    dashboardWalletAddress: 'CÜZDAN ADRESİ',
+    dashboardWalletPlaceholder: 'cüzdan adresi...',
+    dashboardQuerying: 'SORGULANIYOR...',
+    dashboardQueryWallet: 'CÜZDANI SORGULA',
+    dashboardWhitelist: 'WHITELIST',
+    dashboardBlacklist: 'BLACKLIST',
+    dashboardVault: 'KASA',
+    dashboardSecurityStatus: 'Aktif Güvenlik Durumu',
+    dashboardSecurityDescription: 'Kasanız ve güvenlik servislerinden gelen son durum',
+    dashboardSecurityLog: 'GÜVENLİK GÜNLÜĞÜ',
+    dashboardAnalysisWaiting: 'ANALİZ BEKLENİYOR',
+    dashboardAnalysisAvailable: 'ANALİZ MEVCUT',
+    dashboardWaiting: 'BEKLENİYOR',
+    dashboardThreatIntelStatus: 'Tehdit istihbaratı durumu',
+    dashboardVaultMonitoring: 'KASA İZLEME',
+    dashboardLogout: 'ÇIKIŞ',
+    dashboardWalletSecurityScore: 'CÜZDAN GÜVENLİK SKORU',
+    dashboardSafeAddresses: 'GÜVENLİ ADRESLER',
+    dashboardOpenSecurityAlerts: 'AÇIK GÜVENLİK BİLDİRİMLERİ',
+    dashboardRevokeRecords: 'REVOKE KAYITLARI',
+    dashboardBlockedAddresses: 'ENGELLENEN ADRESLER',
+    dashboardSecurityCenter: 'Güvenlik Merkezi',
+    dashboardSecurityCenterDescription: 'İşlem, bağlantı, davranış ve sözleşme güvenliği',
+    dashboardTransferShield: 'Transfer Kalkanı',
+    dashboardAnalyzeOutgoing: 'Giden işlemleri analiz et',
+    dashboardPhishingShield: 'Phishing Kalkanı',
+    dashboardScanSuspiciousLinks: 'Şüpheli bağlantıları tara',
+    dashboardAiBehavior: 'AI Davranış',
+    dashboardAnalyzeWalletBehavior: 'Cüzdan davranışını analiz et',
+    dashboardSmartContract: 'Akıllı Sözleşme',
+    dashboardInspectContractRisk: 'Kontrat riskini incele',
+    dashboardRevokeCenter: 'Revoke Merkezi',
+    dashboardCheckTokenPermissions: 'Token yetkilerini kontrol et',
+    dashboardAvailable: 'MEVCUT',
+    dashboardPlanned: 'PLANLANDI',
+    dashboardWalletProtection: 'Cüzdan Koruma',
+    dashboardWalletProtectionDescription: 'Adres, kasa ve acil durum güvenliği',
+    dashboardSafeAddressesTitle: 'Güvenli Adresler',
+    dashboardBlockedAddressesTitle: 'Engellenen Adresler',
+    dashboardRecordLower: 'kayıt',
+    dashboardVaultAssets: 'Kasa Varlıkları',
+    dashboardMonitored: 'izleniyor',
+    dashboardSecurityCircle: 'Güvenlik çemberi',
+    dashboardIntelligenceMonitoring: 'İstihbarat ve İzleme',
+    dashboardIntelligenceDescription: 'Zincir üzerindeki hareketleri ve tehditleri tek merkezde toplayın',
+    dashboardWhaleWatch: 'Balina Takip',
+    dashboardMonitorLargeMoves: 'Büyük hareketleri izle',
+    dashboardAnalyzeThreatMatches: 'Tehdit eşleşmelerini analiz et',
+    dashboardDeepChainIntel: 'Derin Zincir İstihbaratı',
+    dashboardInspectAddressRelations: 'Adres ilişkilerini incele',
+    dashboardEarlyThreatSignals: 'Erken tehdit sinyalleri',
+    dashboardWalletBehaviorProfile: 'Cüzdan davranış profili',
+    dashboardScamPatterns: 'Scam davranış kalıpları',
+    dashboardAddressContractRelations: 'Adres ve kontrat ilişkileri',
+    dashboardAssetsFinance: 'Varlık ve Finans',
+    dashboardAssetsFinanceDescription: 'Portföy, gas, fiyat ve işlem yönetimi',
+    dashboardPortfolio: 'Portföy',
+    dashboardViewVaultAssets: 'Kasa varlıklarını görüntüle',
+    dashboardGasOptimization: 'Gas Optimizasyonu',
+    dashboardCompareNetworkFees: 'Canlı ağ ücretlerini karşılaştır',
+    dashboardPriceAlert: 'Fiyat Alarmı',
+    dashboardTrackTargetPrices: 'Hedef fiyatları takip et',
+    dashboardTaxReport: 'Vergi Raporu',
+    dashboardReportTransactionHistory: 'İşlem geçmişini raporla',
+    dashboardMarketSentimentAnalysis: 'Piyasa ve sentiment analizi',
+    dashboardStopLossTakeProfit: 'Stop-loss ve take-profit',
+    dashboardOpenModule: 'MODÜLÜ AÇ',
+    dashboardEmergencySecurity: 'Acil Güvenlik ve Varlık Koruma',
+    dashboardEmergencySecurityDescription: 'Kritik durumlar ve uzun vadeli varlık güvenliği',
+    dashboardEmergencyAssetLock: 'Acil Varlık Kilidi',
+    dashboardEmergencyProtectionMode: 'Acil koruma modu',
+    dashboardCryptoInheritance: 'Kripto Varlık Mirasçılığı',
+    dashboardRecentTransactions: 'Son İşlemler',
+    dashboardRecentTransactionsDescription: 'Son sorgulanan zincir hareketleri ve güvenlik sonuçları',
+    dashboardRecordsUpper: 'KAYIT',
+    dashboardNoTransactions: 'Henüz görüntülenecek işlem bulunmuyor.',
+    dashboardTransactionsWillAppear: 'Cüzdan sorgusu yaptığınızda güvenlik sonuçları burada görünecek.',
+    dashboardTransaction: 'İşlem',
+    dashboardRisky: 'RİSKLİ',
+    dashboardReviewed: 'İNCELENDİ',
+    dashboardVipDescription: 'Gelişmiş güvenlik, sürekli kasa izleme ve genişletilmiş araç erişimi',
+    dashboardVipActive: 'VIP AKTİF',
+    dashboardStandard: 'STANDART',
+    dashboardMonthly: 'AYLIK',
+    dashboardYearly: 'YILLIK',
+    dashboardVipMembershipPayment: 'VIP ÜYELİK VE ÖDEME',
+    dashboardSystemOnline: 'SİSTEM ÇEVRİMİÇİ',
+    dashboardSystemOffline: 'SİSTEM ÇEVRİMDIŞI',
+    dashboardWallet: 'CÜZDAN',
+    dashboardSettings: 'AYARLAR',
+    toolBack: '‹ Geri Dön',
+    toolTitleCryptoPolicies: 'Kripto Para ve Finansal Politikalar',
+    toolTitlePortfolio: 'Portföy Değer Grafikleri (Kasa Varlıkları)',
+    toolTitlePriceAlerts: 'Anlık Fiyat Alarmları',
+    toolTitleOutboundShield: 'Riskli İşlem / Transfer Engeli',
+    toolTitleWhitelist: 'Güvenli Adresler',
+    toolTitleBlacklist: 'Engellenen Adresler',
+    toolTitleVault: 'Kasa Varlık Yönetimi',
+    toolTitleNotifications: 'Bildirimler & Scam Uyarıları',
+    toolTitleVip: 'VIP Ödeme ve Hızlı Bildirim',
+    toolTitleSmartContract: 'Akıllı Sözleşme & AI Tehdit Radarı',
+    toolTitleBehavioral: 'AI Cüzdan Davranış Analizi',
+    toolTitlePhishing: 'Phishing & DApp Kalkanı',
+    toolTitleQuickTest: 'Hızlı Cüzdan Testi',
+    toolTitleEmergencyLock: 'Acil Varlık Kilidi',
+    toolTitleGasOpt: 'Web3 Gas Optimizasyonu',
+    toolTitleDeepIntel: 'Derin Zincir İstihbaratı',
+    toolTitleAutoPhish: 'Otomatik Phishing Kalkanı',
+    toolTitleGuardian: 'Safe Sentinel Guardian — Akıllı Cüzdan Koruma Merkezi',
+    toolTitleInheritance: "Kripto Varlık Mirasçılığı (Dead Man's Switch)",
+    toolTitleRevoke: 'Token & NFT Yetki İptal (Revoke)',
+    toolTitleWhaleWatch: 'Riskli Adres / Whale (Balina) Takibi',
+    toolTitleGasTime: 'Gas Ücreti Optimizatörü ve Zamanlayıcı',
+    toolTitleAiMarket: 'AI Akıllı Piyasa Asistanı / Sentiment Analizi',
+    toolTitleTaxReport: 'Vergi ve İşlem Geçmişi Raporlayıcı',
+    toolTitleDexOrders: 'Otomatik Stop-Loss / Take-Profit (DEX Emirleri)',
+    contractMintRpc: 'Mint RPC',
+    contractMintCap: 'Mint Cap',
+    contractMinterRole: 'MINTER_ROLE',
+    contractOwnerMinterRole: 'Owner MINTER_ROLE',
+    contractAdminRole: 'Admin Role',
+    contractDefaultAdminDetected: 'DEFAULT_ADMIN_ROLE TESPİT EDİLDİ',
+    wlDescription1: 'Güvenilir olarak işaretlediğiniz cüzdan adresleri burada yönetilir.',
+    wlDescription2: 'Whitelist adresleri güvenlik sorgularında öncelikli olarak değerlendirilir.',
+    wlSafeAddresses: 'Güvenli Adresler',
+    wlRegistered: 'Kayıtlı güvenilir adresleriniz',
+    wlEmpty: 'Henüz güvenli adres eklenmedi.',
+    wlEmptyHelp1: 'Bir cüzdan adresini güvenli listeye eklemek için',
+    wlEmptyHelp2: 'ana güvenlik merkezindeki + Whitelist butonunu kullanabilirsiniz.',
+    wlSafeAddress: 'GÜVENLİ ADRES',
+    commonRemove: 'Kaldır',
+    blDescription1: 'Engellenen ve riskli olarak işaretlediğiniz cüzdan adresleri burada yönetilir.',
+    blDescription2: 'Blacklist adresleri cüzdan sorgularında güvenlik kontrolünden önce değerlendirilir.',
+    blRegistered: 'Kayıtlı engellenmiş adresleriniz',
+    blEmpty: 'Henüz engellenmiş adres bulunmuyor.',
+    blEmptyHelp1: 'Riskli olduğunu düşündüğünüz bir adresi ana güvenlik merkezinden',
+    blEmptyHelp2: '+ Blacklist ile engelleyebilirsiniz.',
+    blBlockedAddress: 'ENGELLİ ADRES',
+    blRemoveBlock: 'Engeli Kaldır',
+    vaultDescription1: 'Kasa, VIP kullanıcıların sürekli güvenlik takibine aldığı cüzdanları',
+    vaultDescription2: 've bu cüzdanlarla ilişkili güvenlik bildirimlerini yönetir.',
+    vaultAssetManagement: 'Kasa Varlık Yönetimi',
+    vaultMonitoredWallets: 'Sürekli izlenen cüzdanlar',
+    vaultEmpty: 'Kasada henüz izlenen cüzdan bulunmuyor.',
+    vaultAddFromDashboard: 'Ana Ekrandan Kasa Cüzdanı Ekle',
+    vaultUpgradeVip: 'VIP Üyeliğe Geç',
+    vaultMonitoringActive: 'KASA İZLEMESİ AKTİF',
+    vaultRemove: 'Kasadan Kaldır',
+    vaultSecurityNotifications: 'Kasa Güvenlik Bildirimleri',
+    vaultNotificationsEmpty: 'Henüz Kasa güvenlik bildirimi bulunmuyor.',
+    vaultSecurityNotification: 'Kasa Güvenlik Bildirimi',
+    securityNotificationReceived: 'Güvenlik bildirimi alındı.',
+    notificationsCentral: 'Merkezi Bildirimler',
+    notificationsDescription: 'Güvenlik, fiyat alarmı ve diğer sistem olayları',
+    notificationsMarkAllRead: 'Tümünü Okundu Yap',
+    notificationsEmpty: 'Henüz merkezi bildiriminiz bulunmuyor.',
+    severityCritical: 'KRİTİK',
+    severityHigh: 'YÜKSEK',
+    severityWarning: 'UYARI',
+    severityInfo: 'BİLGİ',
+    notificationDefaultTitle: 'Safe Sentinel Bildirimi',
+    notificationNoDetails: 'Bildirim ayrıntısı bulunmuyor.',
+    notificationsRead: 'Okundu',
+    notificationsRefreshInfo: 'Merkezi bildirimler sunucudan düzenli olarak yenilenir.',
+    commonAnalyzing: 'Analiz Ediliyor...',
+    commonRiskLevel: 'Risk Seviyesi',
+    commonNetwork: 'Ağ',
+    commonError: 'Hata',
+    behaviorDescription: 'Yapay zeka motoru ile cüzdanın davranışsal profilini çıkarın.',
+    behaviorWalletPlaceholder: 'Analiz edilecek cüzdan adresi...',
+    behaviorRun: '⚠️ Davranışsal Risk Profilini Çıkar',
+    behaviorProfileScore: 'Profil Skoru',
+    behaviorWalletAge: 'Cüzdan Yaşı',
+    behaviorTotalTransactions: 'Toplam İşlem',
+    behaviorSuccessfulTransactions: 'Başarılı İşlem',
+    behaviorFailedTransactions: 'Başarısız İşlem',
+    behaviorFailedRatio: 'Başarısızlık Oranı',
+    behaviorIncoming: 'Gelen İşlemler',
+    behaviorOutgoing: 'Giden İşlemler',
+    behaviorUniqueCounterparties: 'Benzersiz Karşı Taraf',
+    behaviorTokenTransfers: 'Token Transferleri',
+    behaviorDistinctTokens: 'Farklı Token',
+    behaviorMixerSignal: 'Mixer / Gizlilik Sinyali',
+    behaviorBotAutomation: 'Bot / Otomasyon',
+    behaviorRiskReasons: 'Risk Nedenleri',
+    behaviorRiskSignals: 'Risk Sinyalleri',
+    behaviorScamMatch: '⚠️ Scam istihbaratı ile eşleşme bulundu.',
+    whaleDescription: 'Büyük balina cüzdanlarının fon transferlerini anlık takip edin.',
+    whalePlaceholder: 'Takip edilecek balina cüzdan adresi...',
+    whaleEmptyAddress: 'Adres boş olamaz',
+    whaleAdded: 'Balina adresi izleme listesine eklendi.',
+    whaleAdd: 'Balina Adresi Ekle',
+    whaleActive: 'Aktif İzlenen Balinalar',
+    whaleWaitingRealData: 'Gerçek işlem verisi bekleniyor',
+    gasTimeDescription: '⛽ Ağ yoğunluğuna göre en ekonomik transfer saatini seçin.',
+    gasTimeMode: 'Optimizasyon Modu',
+    gasTimeStandard: 'Standard',
+    gasTimeEconomic: 'Ekonomik (%30 Ucuz Zaman Dilimi)',
+    gasTimeEmergency: 'Acil (Hızlı İşlem)',
+    gasTimeConfigured: 'Gas zamanlayıcı şu moda göre ayarlandı:',
+    gasTimeSave: 'Gas Stratejisini Kaydet',
+    portfolioDescription: 'Grafik verileri yalnızca Kasa (Vault) bölümüne eklediğiniz aktif kripto ve cüzdan varlıklarınızdan derlenmektedir.',
+    portfolioNoAssets: 'Kasada Varlık Bulunamadı!',
+    portfolioNoAssetsDescription: 'Portföy grafiğini görebilmek için önce cüzdanınızı kasaya eklemelisiniz. Kasaya varlık eklemek VIP hesap gerektirir.',
+    portfolioAddVaultVip: "Kasaya Varlık Ekle (VIP'e Geç)",
+    portfolioVaultValue: 'Kasa Portföy Değeri',
+    portfolioAssetsMonitored: 'Varlık İzleniyor',
+    priceDescription: 'İstediğiniz kripto varlığı seçerek hedef fiyat eşiklerine ulaşıldığında anında push bildirimi alın.',
+    priceSystemTitle: 'Kripto Fiyat Alarm Sistemi',
+    priceSystemDescription: 'Seçilen varlık hedef değere ulaştığında haber ver.',
+    priceSelectCrypto: 'Alarm Kurulacak Kripto:',
+    priceTargetPlaceholder: 'Hedef Fiyat',
+    priceVipLimitTitle: 'VIP Sınırı',
+    priceVipLimitMessage: 'Standart hesaplar en fazla 8 adet fiyat alarmı kurabilir.',
+    commonMissingInfo: 'Eksik Bilgi',
+    priceEnterValidTarget: 'Lütfen geçerli bir hedef fiyat giriniz.',
+    priceAlertCreated: 'Fiyat Alarmı Kuruldu',
+    priceTargetActivated: 'için hedef aktif edildi:',
+    commonSuccess: 'Başarılı',
+    priceSavedBackend: "varlığı için fiyat alarmı backend'e kaydedildi.",
+    priceSaveFailed: 'Kayıt Başarısız',
+    priceBackendSaveFailed: "Fiyat alarmı backend'e kaydedilemedi.",
+    priceSaveAlert: 'Alarmını Kaydet',
+    priceActiveAlerts: 'Aktif Fiyat Alarmlarınız',
+    priceNoAlerts: 'Henüz kayıtlı bir fiyat alarmınız bulunmuyor.',
+    commonDelete: 'Sil',
+    gasRecommendedNetwork: 'ÖNERİLEN AĞ',
+    gasLowestLiveValue: 'Canlı gas verileri içindeki en düşük değer.',
+    guardianDescription: 'Guardian güvenlik profiliniz backend ile senkronize edilir. Sistem cüzdan davranışı, Scam DNA, Security Graph ve Early Warning sinyallerini birlikte değerlendirir.',
+    guardianNonCustodial: 'Non-custodial koruma motoru — işlem imzalamaz, fon taşımaz.',
+    guardianThreshold: 'Kritik Alarm Eşik Değeri ($):',
+    guardianThresholdPlaceholder: 'Örn: 500 USD...',
+    guardianInvalidThreshold: 'Geçerli bir alarm eşik değeri girin.',
+    guardianUpdated: 'Guardian güvenlik profili backend üzerinde güncellendi.',
+    guardianUpdateFailed: 'Guardian profili güncellenemedi.',
+    commonSaving: 'Kaydediliyor...',
+    guardianSaveSettings: 'Guardian Ayarlarını Kaydet',
+    guardianProfileUnavailable: 'Guardian profili alınamadı.',
+    guardianProfileRefreshed: 'Guardian profili backend üzerinden yenilendi.',
+    guardianProfileLoadFailed: 'Guardian profili yüklenemedi.',
+    guardianRefreshProfile: 'Guardian Profilini Yenile',
+    guardianProfileStatus: 'Profil durumu',
+    guardianSynced: 'Backend ile senkronize',
+    guardianNotLoaded: 'Henüz yüklenmedi',
+    guardianLiveRisk: 'Guardian Canlı Risk Değerlendirmesi',
+    guardianRiskDescription1: 'Seçili cüzdan Behavioral Fingerprint, Scam DNA,',
+    guardianRiskDescription2: 'Security Graph ve Early Warning motorlarıyla değerlendirilir.',
+    guardianAnalyzing: 'Guardian Analiz Ediyor...',
+    guardianRunAnalysis: 'Guardian Risk Analizini Çalıştır',
+    guardianDecision: 'Karar',
+    guardianRiskScore: 'Risk Skoru',
+    guardianRiskLevel: 'Risk Seviyesi',
+    guardianProtectionMode: 'Koruma modu',
+    quickDescription: 'Standart kullanıcılar ilk üyelikten sonra sadece 1 kez bu testi yapabilir. VIP kullanıcılar sınırsız sorgulama yapabilir.',
+    quickWalletPlaceholder: 'Test edilecek cüzdan adresi...',
+    quickStartTest: 'Hızlı Cüzdan Testini Başlat',
+    emergencyDescription: 'Acil Varlık Kilidi: Bu sürümde gerçek blockchain kilitleme işlemi bağlı değildir. Bu ekran yalnızca yerel güvenlik senaryosunu gösterir.',
+    emergencyStatus: 'Kilit Durumu: YEREL MOD — BLOCKCHAIN KİLİDİ DEĞİL',
+    emergencyAlertMessage: 'Gerçek blockchain kilitleme işlemi bu sürümde aktif değil. Varlık transferi bu butonla dondurulmaz.',
+    emergencyButton: 'Acil Varlık Kilidi — Gerçek Blockchain Kilidi Bağlı Değil',
+    gasDescription: 'Güncel ağ gas ücretlerini karşılaştırın.',
+    gasLiveFees: 'CANLI GAS ÜCRETLERİ',
+    gasStrategy: 'Önerilen Gas Stratejisi',
+    gasStrategyDescription: 'Canlı RPC verilerine göre ağ ücretlerini karşılaştırarak daha uygun ağı tercih edin.',
+    deepIntelDescription: 'Blokzincir derinlik analizi ile cüzdanın fon kaynaklarını listeler.',
+    deepIntelScan: 'İstihbarat Taraması',
+    deepIntelCleanSource: 'Fon kaynağı temiz ve doğrulanmış borsalarla ilişkilendirilmiş.',
+    outboundDescription: 'Cüzdanınızdan dışarıya yapacağınız transferleri test edin.',
+    outboundRecipientPlaceholder: 'Hedef Alıcı Cüzdan Adresi...',
+    commonScanning: 'Taranıyor...',
+    outboundTestTransfer: 'Transferi Test Et',
+    commonRiskLevel: 'Risk Seviyesi',
+    contractDescription: 'EVM akıllı sözleşme adresini girerek gerçek blockchain verileri üzerinden temel güvenlik ve risk analizi yapın.',
+    contractAddressPlaceholder: 'Akıllı Sözleşme Adresi (0x...)...',
+    commonAnalyzing: 'Analiz Ediliyor...',
+    contractAnalyze: 'Sözleşmeyi Analiz Et',
+    commonRiskScore: 'Risk Skoru',
+    contractBuyTax: 'Alış Vergisi',
+    contractSellTax: 'Satış Vergisi',
+    contractMintPermission: 'Mint Yetkisi',
+    commonSupported: 'DESTEKLENİYOR',
+    commonNotSupported: 'DESTEKLENMİYOR',
+    commonDetected: 'TESPİT EDİLDİ',
+    commonYes: 'EVET',
+    commonNo: 'HAYIR',
+    contractAdminCount: 'Admin Sayısı',
+    phishingDescription: 'Ziyaret etmek istediğiniz web sitesinin sahte olup olmadığını test edin.',
+    phishingScanSite: 'Bağlantıyı ve Siteyi Tara',
+    phishingDomainAge: 'Alan Adı Yaşı',
+    revokeDescription: "Kasaya (Vault) eklediğiniz kripto varlıklara ve NFT'lere ait aktif akıllı sözleşme harcama izinleri.",
+    revokeNoAllowance: 'Aktif Harcama Yetkisi Bulunamadı',
+    revokeEmptyDescription: 'Kasaya (Vault) cüzdan varlığı eklediğinizde token ve NFT yetkileriniz burada dinamik olarak görünecektir.',
+    revokeAsset: 'Varlık',
+    revokeSpenderContract: 'Spender / Kontrat',
+    commonStatus: 'Durum',
+    revokeRevoking: 'İptal Ediliyor...',
+    revokePermission: 'Yetkiyi İptal Et (Revoke)',
+    autoPhishDescription: 'Tarayıcı ve DApp bağlantılarınızı oltalama sitelerine karşı korur.',
+    autoPhishActive: 'Bağlantı Tarama Koruması',
+    autoPhishLast24h: 'Bağlantılar yalnızca kullanıcı tarama başlattığında kontrol edilir; sistem tarayıcı trafiğini otomatik olarak engellemez.',
+    vipMembershipTitle: 'Safe Sentinel Pro VIP Üyelik',
+    vipMembershipDescription: 'Genişletilmiş cüzdan sorgulama, kasa izleme ve gelişmiş güvenlik analizi modüllerine erişim sağlayın.',
+    vipPayTrc20: 'TRC20 USDT ile Öde',
+    vipTxidPlaceholder: 'İşlem Hash (TXID) değerini girin...',
+    vipNotifyPayment: 'Ödemeyi Bildir ve Onayla',
+    policiesDescription: 'Safe Sentinel Pro finansal varlık yönetimi, kripto işlemleri, hukuki bilgilendirme ve platform güvenliğiyle ilgili politika açıklamalarını sunar.',
+    policiesAssetTitle: '1. Varlık Güvenliği ve Kasa Politikası',
+    policiesAssetBody: 'Kasaya (Vault) eklenen cüzdanlar ve tespit edilen akıllı sözleşme harcama izinleri (Revoke), kullanılabilir tehdit istihbaratı kaynaklarıyla analiz edilir. Safe Sentinel Pro şüpheli etkileşimler için risk uyarıları üretir; kullanıcı onayı olmadan zincir üstü işlemleri durdurmaz veya varlıkları taşımaz.',
+    policiesLegalTitle: '2. Hukuki Uyum ve Sorumluluk Reddi',
+    policiesLegalBody: 'Platform, geçerli veri koruma ve finansal düzenlemelere uyum hedefiyle geliştirilir. Analizler, yapay zekâ sonuçları ve güvenlik taramaları yalnızca bilgilendirme amaçlıdır; yatırım, hukuk veya vergi tavsiyesi değildir.',
+    policiesFeesTitle: '3. Şeffaflık ve Ücret Politikası',
+    policiesFeesBody: 'Temel sorgulama hakları ve VIP abonelik koşulları kullanıcıya açıkça gösterilir. TRON/TRX ağı üzerinden yapılan VIP ödemeleri TXID doğrulamasından sonra etkinleştirilir. Ağ ücretleri ve geçerli abonelik bedelleri ödeme öncesinde ayrıca gösterilmelidir.',
+    policiesPrivacyTitle: '4. Gizlilik ve Veri Koruma Standartları',
+    policiesPrivacyBody: 'Kimlik doğrulama belirteçleri desteklenen mobil cihazlarda SecureStore içinde saklanır. Web ortamında kullanılan AsyncStorage şifreli kasa değildir; hassas veriler ve özel anahtarlar burada saklanmamalıdır. Safe Sentinel Pro kullanıcıların özel anahtarlarını talep etmemeli veya saklamamalıdır.',
+    inheritDescription: 'Cüzdan sahibinin belirlediği hareketsizlik süresi dolduğunda uygulanacak miras talimatlarını yönetin. Zincir üstü aktarım, ayrıca doğrulanmış ve yetkilendirilmiş bir yürütme mekanizması gerektirir.',
+    inheritProtocolTitle: 'Varlık Mirasçılığı Protokolü',
+    inheritInactivityDays: 'Sinyal Yokluğu Süresi (Gün)',
+    inheritDaysPlaceholder: 'Örn: 30 gün...',
+    inheritBeneficiary: 'Varis Cüzdan Adresi',
+    inheritBeneficiaryPlaceholder: 'Varis cüzdan adresi...',
+    inheritCreate: 'Miras Protokolü Oluştur',
+    inheritLoading: 'Miras protokolleri yükleniyor...',
+    inheritEmpty: 'Henüz kayıtlı miras protokolü bulunmuyor.',
+    inheritStatusActive: 'AKTİF',
+    inheritStatusCancelled: 'İPTAL EDİLDİ',
+    inheritStatusDraft: 'TASLAK',
+    inheritProtocol: 'Miras Protokolü',
+    inheritBeneficiaryShort: 'Varis',
+    inheritInactivityPeriod: 'Hareketsizlik süresi',
+    inheritDays: 'gün',
+    inheritLastHeartbeat: 'Son sinyal',
+    inheritRefreshHeartbeat: 'Sinyali Yenile',
+    inheritCancel: 'Protokolü İptal Et',
+    aiMarketDescription: 'Yapay zekâ destekli piyasa duyarlılığı ve risk göstergelerini görüntüleyin.',
+    aiMarketAnalyzing: 'Analiz Ediliyor...',
+    aiMarketRun: 'Piyasa Duyarlılık Analizini Çalıştır',
+    aiMarketTitle: 'Piyasa İstihbaratı',
+    aiMarketSentiment: 'Duyarlılık',
+    aiMarketScore: 'Skor',
+    aiMarketLiveData: 'Canlı Piyasa Verileri',
+    aiMarketCap: 'Piyasa Değeri',
+    aiMarketChange24h: '24 Saatlik Değişim',
+    aiMarketVolume: 'İşlem Hacmi',
+    aiMarketBtcDominance: 'BTC Dominansı',
+    aiMarketEthDominance: 'ETH Dominansı',
+    aiMarketVolumeRatio: 'Hacim / Piyasa Değeri',
+    aiMarketSignals: 'Gerçek Piyasa Sinyalleri',
+    aiMarketWhaleTrend: 'Balina Eğilimi',
+    aiMarketSource: 'Kaynak',
+    aiMarketAnalysis: 'Analiz',
+    aiMarketDisclaimer: 'Bu sonuç gerçek piyasa verilerinden üretilen kural tabanlı bir analizdir; yatırım tavsiyesi değildir.',
+    aiMarketUnavailable: 'Piyasa istihbaratı sonucu alınamadı.',
+    taxDescription: 'Cüzdan hareketlerinizi vergi ve denetim raporu formatında dışa aktarın.',
+    taxPeriod: 'Rapor Dönemi',
+    taxReadyTitle: 'Yakında',
+    taxReadyMessage: 'Doğrulanmış CSV/PDF dışa aktarma özelliği henüz production kullanımına açık değildir.',
+    taxDownload: 'Raporlama Yakında Kullanılabilir',
+    dexDescription: 'DEX üzerinde stop-loss ve take-profit emir taslakları oluşturun. Gerçek zincir üstü yürütme, cüzdan imzası ve desteklenen bir emir protokolü gerektirir.',
+    dexSelectAsset: 'Varlık Seçin',
+    dexAssetPlaceholder: 'Örn: TRX, ETH...',
+    dexStopLossPlaceholder: 'Stop-Loss Fiyatı ($)...',
+    dexTakeProfitPlaceholder: 'Take-Profit Fiyatı ($)...',
+    dexMissingTitle: 'Eksik Bilgi',
+    dexMissingMessage: 'Lütfen varlık, Stop-Loss ve Take-Profit fiyatlarını doldurun.',
+    dexSavedMessage: 'için DEX emir taslağı kaydedildi. Zincir üstü yürütme henüz gerçekleştirilmedi.',
+    dexSaveDraft: 'DEX Emir Taslağını Kaydet',
+    dexRecommendedNetwork: 'ÖNERİLEN AĞ',
+    dexLowestGas: 'Canlı gas verilerindeki en düşük değer.',
+    dexActiveOrders: 'Aktif Emir Taslakları',
+    dexNoOrders: 'Kayıtlı emir taslağı bulunmuyor.',
+    dexCancel: 'İptal'
   },
   en: {
     settings: 'Application Settings',
@@ -276,8 +664,15 @@ const V26_TRANSLATIONS = {
     unreadNotifications: 'Unread Notifications',
     preferencesTitle: 'Wallet Preferences & Security',
     preferencesDescription: 'Customize your security profile and app preferences.',
-    autoScamBlock: 'Automatic Scam Blocking',
-    autoScamBlockDescription: 'Block interactions with wallets in dangerous pools.',
+    autoScamBlock: 'Scam Risk Warnings',
+    autoScamBlockDescription: 'Shows known risky addresses as warnings in analysis results.',
+    deleteAccount: 'Permanently Delete Account',
+    deleteAccountDescription: 'Permanently deletes your account and associated records. This action cannot be undone.',
+    deleteAccountTitle: 'Delete Account',
+    deleteAccountConfirm: 'Are you sure you want to permanently delete your account and associated data?',
+    deleteAccountCancel: 'Cancel',
+    deleteAccountAction: 'Delete Permanently',
+    deleteAccountFailed: 'The account could not be deleted. Please try again.',
     loginDescription: 'Next Generation Crypto Security and Intelligence Assistant',
     emailAddress: 'Email Address',
     loginPassword: 'Password',
@@ -290,7 +685,388 @@ const V26_TRANSLATIONS = {
     exampleFirstName: 'Example: John',
     exampleLastName: 'Example: Smith',
     completeRegistration: 'Create Account',
-    backToLogin: 'Already have an account? Sign In'
+    backToLogin: 'Already have an account? Sign In',
+    dashboardActive: 'ACTIVE',
+    dashboardReady: 'READY',
+    dashboardWalletsMonitored: 'wallets monitored',
+    dashboardNetworkStatus: 'NETWORK STATUS',
+    dashboardLastBlock: 'Latest block',
+    dashboardTotalPortfolio: 'TOTAL PORTFOLIO VALUE',
+    dashboardOpenPortfolio: 'OPEN PORTFOLIO',
+    dashboardQuickScan: 'Quick Wallet Security Scan',
+    dashboardQuickScanDescription: 'Query the wallet and start security checks',
+    dashboardLiveScan: 'LIVE SCAN',
+    dashboardWalletAddress: 'WALLET ADDRESS',
+    dashboardWalletPlaceholder: 'wallet address...',
+    dashboardQuerying: 'QUERYING...',
+    dashboardQueryWallet: 'QUERY WALLET',
+    dashboardWhitelist: 'WHITELIST',
+    dashboardBlacklist: 'BLACKLIST',
+    dashboardVault: 'VAULT',
+    dashboardSecurityStatus: 'Active Security Status',
+    dashboardSecurityDescription: 'Latest status from your Vault and security services',
+    dashboardSecurityLog: 'SECURITY LOG',
+    dashboardAnalysisWaiting: 'WAITING FOR ANALYSIS',
+    dashboardAnalysisAvailable: 'ANALYSIS AVAILABLE',
+    dashboardWaiting: 'WAITING',
+    dashboardThreatIntelStatus: 'Threat intelligence status',
+    dashboardVaultMonitoring: 'VAULT MONITORING',
+    dashboardLogout: 'LOG OUT',
+    dashboardWalletSecurityScore: 'WALLET SECURITY SCORE',
+    dashboardSafeAddresses: 'SAFE ADDRESSES',
+    dashboardOpenSecurityAlerts: 'OPEN SECURITY ALERTS',
+    dashboardRevokeRecords: 'REVOKE RECORDS',
+    dashboardBlockedAddresses: 'BLOCKED ADDRESSES',
+    dashboardSecurityCenter: 'Security Center',
+    dashboardSecurityCenterDescription: 'Transaction, connection, behavior and smart contract security',
+    dashboardTransferShield: 'Transfer Shield',
+    dashboardAnalyzeOutgoing: 'Analyze outgoing transactions',
+    dashboardPhishingShield: 'Phishing Shield',
+    dashboardScanSuspiciousLinks: 'Scan suspicious links',
+    dashboardAiBehavior: 'AI Behavior',
+    dashboardAnalyzeWalletBehavior: 'Analyze wallet behavior',
+    dashboardSmartContract: 'Smart Contract',
+    dashboardInspectContractRisk: 'Inspect contract risk',
+    dashboardRevokeCenter: 'Revoke Center',
+    dashboardCheckTokenPermissions: 'Check token permissions',
+    dashboardAvailable: 'AVAILABLE',
+    dashboardPlanned: 'PLANNED',
+    dashboardWalletProtection: 'Wallet Protection',
+    dashboardWalletProtectionDescription: 'Address, vault and emergency security',
+    dashboardSafeAddressesTitle: 'Safe Addresses',
+    dashboardBlockedAddressesTitle: 'Blocked Addresses',
+    dashboardRecordLower: 'records',
+    dashboardVaultAssets: 'Vault Assets',
+    dashboardMonitored: 'monitored',
+    dashboardSecurityCircle: 'Security circle',
+    dashboardIntelligenceMonitoring: 'Intelligence & Monitoring',
+    dashboardIntelligenceDescription: 'Bring on-chain activity and threats together in one place',
+    dashboardWhaleWatch: 'Whale Watch',
+    dashboardMonitorLargeMoves: 'Monitor large movements',
+    dashboardAnalyzeThreatMatches: 'Analyze threat matches',
+    dashboardDeepChainIntel: 'Deep Chain Intelligence',
+    dashboardInspectAddressRelations: 'Inspect address relationships',
+    dashboardEarlyThreatSignals: 'Early threat signals',
+    dashboardWalletBehaviorProfile: 'Wallet behavior profile',
+    dashboardScamPatterns: 'Scam behavior patterns',
+    dashboardAddressContractRelations: 'Address and contract relationships',
+    dashboardAssetsFinance: 'Assets & Finance',
+    dashboardAssetsFinanceDescription: 'Portfolio, gas, price and transaction management',
+    dashboardPortfolio: 'Portfolio',
+    dashboardViewVaultAssets: 'View vault assets',
+    dashboardGasOptimization: 'Gas Optimization',
+    dashboardCompareNetworkFees: 'Compare live network fees',
+    dashboardPriceAlert: 'Price Alert',
+    dashboardTrackTargetPrices: 'Track target prices',
+    dashboardTaxReport: 'Tax Report',
+    dashboardReportTransactionHistory: 'Report transaction history',
+    dashboardMarketSentimentAnalysis: 'Market and sentiment analysis',
+    dashboardStopLossTakeProfit: 'Stop-loss and take-profit',
+    dashboardOpenModule: 'OPEN MODULE',
+    dashboardEmergencySecurity: 'Emergency Security & Asset Protection',
+    dashboardEmergencySecurityDescription: 'Critical situations and long-term asset security',
+    dashboardEmergencyAssetLock: 'Emergency Asset Lock',
+    dashboardEmergencyProtectionMode: 'Emergency protection mode',
+    dashboardCryptoInheritance: 'Crypto Asset Inheritance',
+    dashboardRecentTransactions: 'Recent Transactions',
+    dashboardRecentTransactionsDescription: 'Recently queried on-chain activity and security results',
+    dashboardRecordsUpper: 'RECORDS',
+    dashboardNoTransactions: 'No transactions to display yet.',
+    dashboardTransactionsWillAppear: 'Security results will appear here after you query a wallet.',
+    dashboardTransaction: 'Transaction',
+    dashboardRisky: 'RISKY',
+    dashboardReviewed: 'REVIEWED',
+    dashboardVipDescription: 'Advanced security, continuous vault monitoring and expanded tool access',
+    dashboardVipActive: 'VIP ACTIVE',
+    dashboardStandard: 'STANDARD',
+    dashboardMonthly: 'MONTHLY',
+    dashboardYearly: 'YEARLY',
+    dashboardVipMembershipPayment: 'VIP MEMBERSHIP & PAYMENT',
+    dashboardSystemOnline: 'SYSTEM ONLINE',
+    dashboardSystemOffline: 'SYSTEM OFFLINE',
+    dashboardWallet: 'WALLET',
+    dashboardSettings: 'SETTINGS',
+    toolBack: '‹ Back',
+    toolTitleCryptoPolicies: 'Crypto & Financial Policies',
+    toolTitlePortfolio: 'Portfolio Value Charts (Vault Assets)',
+    toolTitlePriceAlerts: 'Real-Time Price Alerts',
+    toolTitleOutboundShield: 'Risky Transaction / Transfer Shield',
+    toolTitleWhitelist: 'Safe Addresses',
+    toolTitleBlacklist: 'Blocked Addresses',
+    toolTitleVault: 'Vault Asset Management',
+    toolTitleNotifications: 'Notifications & Scam Alerts',
+    toolTitleVip: 'VIP Payment & Fast Notification',
+    toolTitleSmartContract: 'Smart Contract & AI Threat Radar',
+    toolTitleBehavioral: 'AI Wallet Behavior Analysis',
+    toolTitlePhishing: 'Phishing & DApp Shield',
+    toolTitleQuickTest: 'Quick Wallet Test',
+    toolTitleEmergencyLock: 'Emergency Asset Lock',
+    toolTitleGasOpt: 'Web3 Gas Optimization',
+    toolTitleDeepIntel: 'Deep Chain Intelligence',
+    toolTitleAutoPhish: 'Automatic Phishing Shield',
+    toolTitleGuardian: 'Safe Sentinel Guardian — Smart Wallet Protection Center',
+    toolTitleInheritance: "Crypto Asset Inheritance (Dead Man's Switch)",
+    toolTitleRevoke: 'Token & NFT Permission Revoke',
+    toolTitleWhaleWatch: 'Risky Address / Whale Tracking',
+    toolTitleGasTime: 'Gas Fee Optimizer & Scheduler',
+    toolTitleAiMarket: 'AI Smart Market Assistant / Sentiment Analysis',
+    toolTitleTaxReport: 'Tax & Transaction History Reporter',
+    toolTitleDexOrders: 'Automatic Stop-Loss / Take-Profit (DEX Orders)',
+    contractMintRpc: 'Mint RPC',
+    contractMintCap: 'Mint Cap',
+    contractMinterRole: 'MINTER_ROLE',
+    contractOwnerMinterRole: 'Owner MINTER_ROLE',
+    contractAdminRole: 'Admin Role',
+    contractDefaultAdminDetected: 'DEFAULT_ADMIN_ROLE DETECTED',
+    wlDescription1: 'Wallet addresses you mark as trusted are managed here.',
+    wlDescription2: 'Whitelist addresses are prioritized during security checks.',
+    wlSafeAddresses: 'Safe Addresses',
+    wlRegistered: 'Your registered trusted addresses',
+    wlEmpty: 'No safe addresses have been added yet.',
+    wlEmptyHelp1: 'To add a wallet address to your safe list,',
+    wlEmptyHelp2: 'use the + Whitelist button in the main Security Center.',
+    wlSafeAddress: 'SAFE ADDRESS',
+    commonRemove: 'Remove',
+    blDescription1: 'Wallet addresses you mark as blocked or risky are managed here.',
+    blDescription2: 'Blacklist addresses are evaluated before wallet security checks.',
+    blRegistered: 'Your registered blocked addresses',
+    blEmpty: 'No blocked addresses found yet.',
+    blEmptyHelp1: 'To block an address you consider risky,',
+    blEmptyHelp2: 'use + Blacklist in the main Security Center.',
+    blBlockedAddress: 'BLOCKED ADDRESS',
+    blRemoveBlock: 'Remove Block',
+    vaultDescription1: 'Vault manages wallets continuously monitored for VIP users',
+    vaultDescription2: 'and security notifications associated with those wallets.',
+    vaultAssetManagement: 'Vault Asset Management',
+    vaultMonitoredWallets: 'Continuously monitored wallets',
+    vaultEmpty: 'No wallets are currently monitored in the Vault.',
+    vaultAddFromDashboard: 'Add Vault Wallet from Dashboard',
+    vaultUpgradeVip: 'Upgrade to VIP',
+    vaultMonitoringActive: 'VAULT MONITORING ACTIVE',
+    vaultRemove: 'Remove from Vault',
+    vaultSecurityNotifications: 'Vault Security Notifications',
+    vaultNotificationsEmpty: 'No Vault security notifications yet.',
+    vaultSecurityNotification: 'Vault Security Notification',
+    securityNotificationReceived: 'Security notification received.',
+    notificationsCentral: 'Central Notifications',
+    notificationsDescription: 'Security, price alerts and other system events',
+    notificationsMarkAllRead: 'Mark All as Read',
+    notificationsEmpty: 'You have no central notifications yet.',
+    severityCritical: 'CRITICAL',
+    severityHigh: 'HIGH',
+    severityWarning: 'WARNING',
+    severityInfo: 'INFO',
+    notificationDefaultTitle: 'Safe Sentinel Notification',
+    notificationNoDetails: 'Notification details are unavailable.',
+    notificationsRead: 'Read',
+    notificationsRefreshInfo: 'Central notifications are refreshed regularly from the server.',
+    commonAnalyzing: 'Analyzing...',
+    commonRiskLevel: 'Risk Level',
+    commonNetwork: 'Network',
+    commonError: 'Error',
+    behaviorDescription: 'Generate a behavioral profile of the wallet using the AI engine.',
+    behaviorWalletPlaceholder: 'Wallet address to analyze...',
+    behaviorRun: '⚠️ Generate Behavioral Risk Profile',
+    behaviorProfileScore: 'Profile Score',
+    behaviorWalletAge: 'Wallet Age',
+    behaviorTotalTransactions: 'Total Transactions',
+    behaviorSuccessfulTransactions: 'Successful Transactions',
+    behaviorFailedTransactions: 'Failed Transactions',
+    behaviorFailedRatio: 'Failure Ratio',
+    behaviorIncoming: 'Incoming Transactions',
+    behaviorOutgoing: 'Outgoing Transactions',
+    behaviorUniqueCounterparties: 'Unique Counterparties',
+    behaviorTokenTransfers: 'Token Transfers',
+    behaviorDistinctTokens: 'Distinct Tokens',
+    behaviorMixerSignal: 'Mixer / Privacy Signal',
+    behaviorBotAutomation: 'Bot / Automation',
+    behaviorRiskReasons: 'Risk Reasons',
+    behaviorRiskSignals: 'Risk Signals',
+    behaviorScamMatch: '⚠️ Match found in scam intelligence.',
+    whaleDescription: 'Track fund transfers of large whale wallets in real time.',
+    whalePlaceholder: 'Whale wallet address to track...',
+    whaleEmptyAddress: 'Address cannot be empty',
+    whaleAdded: 'Whale address was added to the watch list.',
+    whaleAdd: 'Add Whale Address',
+    whaleActive: 'Actively Monitored Whales',
+    whaleWaitingRealData: 'Waiting for real transaction data',
+    gasTimeDescription: '⛽ Choose the most economical transfer time based on network congestion.',
+    gasTimeMode: 'Optimization Mode',
+    gasTimeStandard: 'Standard',
+    gasTimeEconomic: 'Economical (30% Cheaper Time Window)',
+    gasTimeEmergency: 'Emergency (Fast Transaction)',
+    gasTimeConfigured: 'Gas scheduler configured for mode:',
+    gasTimeSave: 'Save Gas Strategy',
+    portfolioDescription: 'Chart data is compiled only from active crypto and wallet assets added to your Vault.',
+    portfolioNoAssets: 'No Assets Found in Vault!',
+    portfolioNoAssetsDescription: 'Add your wallet to the Vault before viewing the portfolio chart. Adding assets to the Vault requires a VIP account.',
+    portfolioAddVaultVip: 'Add Asset to Vault (Upgrade to VIP)',
+    portfolioVaultValue: 'Vault Portfolio Value',
+    portfolioAssetsMonitored: 'Assets Monitored',
+    priceDescription: 'Select a crypto asset and receive an instant push notification when it reaches your target price.',
+    priceSystemTitle: 'Crypto Price Alert System',
+    priceSystemDescription: 'Notify me when the selected asset reaches the target value.',
+    priceSelectCrypto: 'Crypto for Price Alert:',
+    priceTargetPlaceholder: 'Target Price',
+    priceVipLimitTitle: 'VIP Limit',
+    priceVipLimitMessage: 'Standard accounts can create up to 8 price alerts.',
+    commonMissingInfo: 'Missing Information',
+    priceEnterValidTarget: 'Please enter a valid target price.',
+    priceAlertCreated: 'Price Alert Created',
+    priceTargetActivated: 'target activated at:',
+    commonSuccess: 'Success',
+    priceSavedBackend: 'price alert was saved to the backend.',
+    priceSaveFailed: 'Save Failed',
+    priceBackendSaveFailed: 'The price alert could not be saved to the backend.',
+    priceSaveAlert: 'Save Alert',
+    priceActiveAlerts: 'Your Active Price Alerts',
+    priceNoAlerts: 'You have no saved price alerts yet.',
+    commonDelete: 'Delete',
+    gasRecommendedNetwork: 'RECOMMENDED NETWORK',
+    gasLowestLiveValue: 'Lowest value among live gas data.',
+    guardianDescription: 'Your Guardian security profile is synchronized with the backend. The system evaluates wallet behavior, Scam DNA, Security Graph and Early Warning signals together.',
+    guardianNonCustodial: 'Non-custodial protection engine — it does not sign transactions or move funds.',
+    guardianThreshold: 'Critical Alert Threshold ($):',
+    guardianThresholdPlaceholder: 'Example: 500 USD...',
+    guardianInvalidThreshold: 'Enter a valid alert threshold.',
+    guardianUpdated: 'Guardian security profile was updated on the backend.',
+    guardianUpdateFailed: 'Guardian profile could not be updated.',
+    commonSaving: 'Saving...',
+    guardianSaveSettings: 'Save Guardian Settings',
+    guardianProfileUnavailable: 'Guardian profile could not be retrieved.',
+    guardianProfileRefreshed: 'Guardian profile was refreshed from the backend.',
+    guardianProfileLoadFailed: 'Guardian profile could not be loaded.',
+    guardianRefreshProfile: 'Refresh Guardian Profile',
+    guardianProfileStatus: 'Profile status',
+    guardianSynced: 'Synchronized with backend',
+    guardianNotLoaded: 'Not loaded yet',
+    guardianLiveRisk: 'Guardian Live Risk Assessment',
+    guardianRiskDescription1: 'The selected wallet is evaluated using Behavioral Fingerprint, Scam DNA,',
+    guardianRiskDescription2: 'Security Graph and Early Warning engines.',
+    guardianAnalyzing: 'Guardian is Analyzing...',
+    guardianRunAnalysis: 'Run Guardian Risk Analysis',
+    guardianDecision: 'Decision',
+    guardianRiskScore: 'Risk Score',
+    guardianRiskLevel: 'Risk Level',
+    guardianProtectionMode: 'Protection mode',
+    quickDescription: 'Standard users can run this test only once after registration. VIP users have unlimited queries.',
+    quickWalletPlaceholder: 'Wallet address to test...',
+    quickStartTest: 'Start Quick Wallet Test',
+    emergencyDescription: 'Emergency Asset Lock: Real blockchain locking is not connected in this version. This screen demonstrates only the local security scenario.',
+    emergencyStatus: 'LOCK STATUS: LOCAL MODE — NOT A BLOCKCHAIN LOCK',
+    emergencyAlertMessage: 'Real blockchain locking is not active in this version. Asset transfers are not frozen by this button.',
+    emergencyButton: 'Emergency Asset Lock — Real Blockchain Lock Not Connected',
+    gasDescription: 'Compare current network gas fees.',
+    gasLiveFees: 'LIVE GAS FEES',
+    gasStrategy: 'Recommended Gas Strategy',
+    gasStrategyDescription: 'Compare network fees using live RPC data and choose the more cost-effective network.',
+    deepIntelDescription: 'List wallet fund sources using deep blockchain analysis.',
+    deepIntelScan: 'Intelligence Scan',
+    deepIntelCleanSource: 'The fund source is associated with clean and verified exchanges.',
+    outboundDescription: 'Test outgoing transfers from your wallet.',
+    outboundRecipientPlaceholder: 'Recipient Wallet Address...',
+    commonScanning: 'Scanning...',
+    outboundTestTransfer: 'Test Transfer',
+    commonRiskLevel: 'Risk Level',
+    contractDescription: 'Enter an EVM smart contract address to perform basic security and risk analysis using real blockchain data.',
+    contractAddressPlaceholder: 'Smart Contract Address (0x...)...',
+    commonAnalyzing: 'Analyzing...',
+    contractAnalyze: 'Analyze Contract',
+    commonRiskScore: 'Risk Score',
+    contractBuyTax: 'Buy Tax',
+    contractSellTax: 'Sell Tax',
+    contractMintPermission: 'Mint Permission',
+    commonSupported: 'SUPPORTED',
+    commonNotSupported: 'NOT SUPPORTED',
+    commonDetected: 'DETECTED',
+    commonYes: 'YES',
+    commonNo: 'NO',
+    contractAdminCount: 'Admin Count',
+    phishingDescription: 'Test whether a website you plan to visit may be fraudulent.',
+    phishingScanSite: 'Scan Link and Site',
+    phishingDomainAge: 'Domain Age',
+    revokeDescription: 'Active smart contract spending permissions for crypto assets and NFTs added to your Vault.',
+    revokeNoAllowance: 'No Active Spending Permission Found',
+    revokeEmptyDescription: 'When you add a wallet asset to the Vault, token and NFT permissions will appear here dynamically.',
+    revokeAsset: 'Asset',
+    revokeSpenderContract: 'Spender / Contract',
+    commonStatus: 'Status',
+    revokeRevoking: 'Revoking...',
+    revokePermission: 'Revoke Permission',
+    autoPhishDescription: 'Protect your browser and DApp connections against phishing websites.',
+    autoPhishActive: 'Link Scan Protection',
+    autoPhishLast24h: 'Links are checked only when the user starts a scan; the app does not automatically block browser traffic.',
+    vipMembershipTitle: 'Safe Sentinel Pro VIP Membership',
+    vipMembershipDescription: 'Get expanded wallet queries, vault monitoring and access to advanced security analysis modules.',
+    vipPayTrc20: 'Pay with TRC20 USDT',
+    vipTxidPlaceholder: 'Enter Transaction Hash (TXID)...',
+    vipNotifyPayment: 'Submit Payment and Verify',
+    policiesDescription: 'Safe Sentinel Pro provides policy information about digital asset management, crypto transactions, legal notices and platform security.',
+    policiesAssetTitle: '1. Asset Security and Vault Policy',
+    policiesAssetBody: 'Wallets added to the Vault and detected smart-contract spending permissions are analyzed against available threat-intelligence sources. Safe Sentinel Pro produces risk warnings for suspicious interactions; it does not stop on-chain transactions or move assets without user approval.',
+    policiesLegalTitle: '2. Legal Compliance and Disclaimer',
+    policiesLegalBody: 'The platform is developed with the goal of complying with applicable data-protection and financial regulations. Analyses, AI outputs and security scans are informational only and are not investment, legal or tax advice.',
+    policiesFeesTitle: '3. Transparency and Fee Policy',
+    policiesFeesBody: 'Base query allowances and VIP subscription terms are shown clearly. VIP payments made on the TRON/TRX network are activated after TXID verification. Network fees and applicable subscription charges should be displayed before payment.',
+    policiesPrivacyTitle: '4. Privacy and Data Protection Standards',
+    policiesPrivacyBody: 'Authentication tokens are stored in SecureStore on supported mobile devices. AsyncStorage used on the web is not an encrypted vault; sensitive data and private keys must not be stored there. Safe Sentinel Pro should never request or retain user private keys.',
+    inheritDescription: 'Manage inheritance instructions that apply after the wallet owner’s selected inactivity period. On-chain transfer requires a separately verified and authorized execution mechanism.',
+    inheritProtocolTitle: 'Digital Asset Inheritance Protocol',
+    inheritInactivityDays: 'Inactivity Period (Days)',
+    inheritDaysPlaceholder: 'Example: 30 days...',
+    inheritBeneficiary: 'Beneficiary Wallet Address',
+    inheritBeneficiaryPlaceholder: 'Beneficiary wallet address...',
+    inheritCreate: 'Create Inheritance Protocol',
+    inheritLoading: 'Loading inheritance protocols...',
+    inheritEmpty: 'No inheritance protocol has been registered yet.',
+    inheritStatusActive: 'ACTIVE',
+    inheritStatusCancelled: 'CANCELLED',
+    inheritStatusDraft: 'DRAFT',
+    inheritProtocol: 'Inheritance Protocol',
+    inheritBeneficiaryShort: 'Beneficiary',
+    inheritInactivityPeriod: 'Inactivity period',
+    inheritDays: 'days',
+    inheritLastHeartbeat: 'Last heartbeat',
+    inheritRefreshHeartbeat: 'Refresh Heartbeat',
+    inheritCancel: 'Cancel Protocol',
+    aiMarketDescription: 'View AI-assisted market sentiment and risk indicators.',
+    aiMarketAnalyzing: 'Analyzing...',
+    aiMarketRun: 'Run Market Sentiment Analysis',
+    aiMarketTitle: 'Market Intelligence',
+    aiMarketSentiment: 'Sentiment',
+    aiMarketScore: 'Score',
+    aiMarketLiveData: 'Live Market Data',
+    aiMarketCap: 'Market Cap',
+    aiMarketChange24h: '24-Hour Change',
+    aiMarketVolume: 'Trading Volume',
+    aiMarketBtcDominance: 'BTC Dominance',
+    aiMarketEthDominance: 'ETH Dominance',
+    aiMarketVolumeRatio: 'Volume / Market Cap',
+    aiMarketSignals: 'Live Market Signals',
+    aiMarketWhaleTrend: 'Whale Trend',
+    aiMarketSource: 'Source',
+    aiMarketAnalysis: 'Analysis',
+    aiMarketDisclaimer: 'This result is a rule-based analysis generated from live market data; it is not investment advice.',
+    aiMarketUnavailable: 'Market intelligence results are unavailable.',
+    taxDescription: 'Export wallet activity in tax and audit report formats.',
+    taxPeriod: 'Report Period',
+    taxReadyTitle: 'Coming Soon',
+    taxReadyMessage: 'Verified CSV/PDF export is not yet available for production use.',
+    taxDownload: 'Reporting Available Soon',
+    dexDescription: 'Create stop-loss and take-profit order drafts for a DEX. Actual on-chain execution requires a wallet signature and a supported order protocol.',
+    dexSelectAsset: 'Select Asset',
+    dexAssetPlaceholder: 'Example: TRX, ETH...',
+    dexStopLossPlaceholder: 'Stop-Loss Price ($)...',
+    dexTakeProfitPlaceholder: 'Take-Profit Price ($)...',
+    dexMissingTitle: 'Missing Information',
+    dexMissingMessage: 'Enter an asset plus Stop-Loss and Take-Profit prices.',
+    dexSavedMessage: 'DEX order draft saved. No on-chain execution has occurred.',
+    dexSaveDraft: 'Save DEX Order Draft',
+    dexRecommendedNetwork: 'RECOMMENDED NETWORK',
+    dexLowestGas: 'Lowest value in the live gas data.',
+    dexActiveOrders: 'Active Order Drafts',
+    dexNoOrders: 'No order drafts have been saved.',
+    dexCancel: 'Cancel'
   },
   fr: {
     settings: 'Paramètres de l\'application',
@@ -640,7 +1416,6 @@ const centralSeenIdsRef = useRef(new Set());
 
   const [isDarkMode, setIsDarkMode] = useState(true);
 
-  const [autoBlockScam, setAutoBlockScam] = useState(true);
   const [highGasAlerts, setHighGasAlerts] = useState(true);
 
   const [selectedChartRange, setSelectedChartRange] = useState('1H');
@@ -2145,6 +2920,44 @@ const triggerLocalNotification = async (title, body) => {
     setCurrentScreen('login');
     setActiveModule('dashboard');
   };
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      t('deleteAccountTitle'),
+      t('deleteAccountConfirm'),
+      [
+        {text:t('deleteAccountCancel'),style:'cancel'},
+        {
+          text:t('deleteAccountAction'),
+          style:'destructive',
+          onPress:async()=>{
+            try{
+              await api.delete('/api/me',{data:{confirmation:'DELETE'}});
+
+              if(Platform.OS==='web'){
+                await AsyncStorage.multiRemove([
+                  'user_secure_token',
+                  '@safe_sentinel_user'
+                ]);
+              }else{
+                await SecureStore.deleteItemAsync('user_secure_token');
+                await AsyncStorage.removeItem('@safe_sentinel_user');
+              }
+
+              setToken(null);
+              setName('');
+              setEmail('');
+              setUserStatus('free');
+              setActiveModule('dashboard');
+              setCurrentScreen('login');
+            }catch(error){
+              console.error('[ACCOUNT DELETE]',error?.response?.data||error?.message||error);
+              Alert.alert(t('commonError'),t('deleteAccountFailed'));
+            }
+          }
+        }
+      ]
+    );
+  };
   const handleLogin = async () => {
     const cleanEmail = SecurityScannerMiddleware.sanitizeInput(email).trim();
     const cleanPassword = password.trim();
@@ -2824,7 +3637,8 @@ const triggerLocalNotification = async (title, body) => {
         sellTax:
           "Bu RPC analizinde hesaplanmadı",
 
-        mintable:data.securityInspection?.mint?.supported ? "RPC Mint yüzeyi tespit edildi" : "RPC Mint yüzeyi tespit edilmedi",
+        mintable:
+data.securityInspection?.mint?.supported ? "RPC Mint yüzeyi tespit edildi" : "RPC Mint yüzeyi tespit edilmedi",
         mintDetails: data.securityInspection?.mint || null,
         adminDetails: data.securityInspection?.admin || null,
 
@@ -3726,7 +4540,7 @@ const handleBehavioralAnalysis = async () => {
 
     const updated = [...blacklist, cleanAddr];
     saveBlacklist(updated);
-    Alert.alert("Güvenlik Uyarısı", "Adres Blacklist listesine eklendi ve engellendi.");
+    Alert.alert("Güvenlik Uyarısı", "Adres riskli olarak işaretlendi ve güvenlik kontrollerine eklendi.");
   };
 
   const addToVault = () => {
@@ -3958,34 +4772,34 @@ const handleBehavioralAnalysis = async () => {
           <View style={[styles.headerRow, { paddingHorizontal: 12, paddingTop: Math.max(8, insets.top + 4), paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: theme.borderCol }]}>
             <Text style={[styles.title, { color: theme.textMain, fontSize: 14 }]}>
               {activeModule === 'preferencesView' ? t('preferencesTitle') :
-               activeModule === 'cryptoPoliciesView' ? ' Kripto Para ve Finansal Politikalar' :
-               activeModule === 'portfolioView' ? ' Portföy Değer Grafikleri (Kasa Varlıkları)' :
-               activeModule === 'priceAlertsView' ? ' Anlık Fiyat Alarmları' :
-               activeModule === 'outboundShieldView' ? ' Riskli İşlem / Transfer Engeli' :
-               activeModule === 'whitelistView' ? 'Güvenli Adresler' :
-               activeModule === 'blacklistView' ? 'Engellenen Adresler' :
-               activeModule === 'vaultView' ? 'Kasa Varlık Yönetimi' :
-               activeModule === 'notificationsView' ? 'Bildirimler & Scam Uyarıları' :
-               activeModule === 'vipView' ? 'VIP Ödeme ve Hızlı Bildirim' :
-               activeModule === 'smartContractView' ? 'Akıllı Sözleşme & AI Tehdit Radarı' :
-                activeModule === 'behavioralView' ? '🧠 AI Cüzdan Davranış Analizi' :
-               activeModule === 'phishingView' ? ' Phishing & DApp Kalkanı' :
-               activeModule === 'quickTestView' ? '? Hızlı Cüzdan Testi' :
-               activeModule === 'emergencyLockView' ? 'Acil Varlık Kilidi' :
-                activeModule === 'gasOptView' ? '⛽ Web3 Gaz Optimizasyonu' :
-               activeModule === 'deepIntelView' ? 'Derin Zincir İstihbaratı' :
-               activeModule === 'autoPhishView' ? ' Otomatik Phishing Kalkanı' :
-                activeModule === 'guardianView' ? '🛡️ Safe Sentinel Guardian — Akıllı Cüzdan Koruma Merkezi' :
-               activeModule === 'inheritView' ? ' Kripto Varlık Mirasçılığı (Dead Man\'s Switch)' :
-               activeModule === 'revokeView' ? '? Token & NFT Yetki İptal (Revoke)' :
-               activeModule === 'whaleWatchView' ? ' Riskli Adres / Whale (Balina) Takibi' :
-               activeModule === 'gasTimeView' ? ' Gas Ücreti Optimizatörü ve Zamanlayıcı' :
-                activeModule === 'aiMarketView' ? '📈 AI Akıllı Piyasa Asistanı / Sentiment Analizi' :
-               activeModule === 'taxReportView' ? ' Vergi ve İşlem Geçmişi Raporlayıcı' :
-               activeModule === 'dexOrdersView' ? ' Otomatik Stop-Loss / Take-Profit (DEX Emirleri)' : ''}
+               activeModule === 'cryptoPoliciesView' ? t('toolTitleCryptoPolicies') :
+               activeModule === 'portfolioView' ? t('toolTitlePortfolio') :
+               activeModule === 'priceAlertsView' ? t('toolTitlePriceAlerts') :
+               activeModule === 'outboundShieldView' ? t('toolTitleOutboundShield') :
+               activeModule === 'whitelistView' ? t('toolTitleWhitelist') :
+               activeModule === 'blacklistView' ? t('toolTitleBlacklist') :
+               activeModule === 'vaultView' ? t('toolTitleVault') :
+               activeModule === 'notificationsView' ? t('toolTitleNotifications') :
+               activeModule === 'vipView' ? t('toolTitleVip') :
+               activeModule === 'smartContractView' ? t('toolTitleSmartContract') :
+               activeModule === 'behavioralView' ? t('toolTitleBehavioral') :
+               activeModule === 'phishingView' ? t('toolTitlePhishing') :
+               activeModule === 'quickTestView' ? t('toolTitleQuickTest') :
+               activeModule === 'emergencyLockView' ? t('toolTitleEmergencyLock') :
+               activeModule === 'gasOptView' ? t('toolTitleGasOpt') :
+               activeModule === 'deepIntelView' ? t('toolTitleDeepIntel') :
+               activeModule === 'autoPhishView' ? t('toolTitleAutoPhish') :
+               activeModule === 'guardianView' ? t('toolTitleGuardian') :
+               activeModule === 'inheritView' ? t('toolTitleInheritance') :
+               activeModule === 'revokeView' ? t('toolTitleRevoke') :
+               activeModule === 'whaleWatchView' ? t('toolTitleWhaleWatch') :
+               activeModule === 'gasTimeView' ? t('toolTitleGasTime') :
+               activeModule === 'aiMarketView' ? t('toolTitleAiMarket') :
+               activeModule === 'taxReportView' ? t('toolTitleTaxReport') :
+               activeModule === 'dexOrdersView' ? t('toolTitleDexOrders') : ''}
             </Text>
             <TouchableOpacity onPress={() => setActiveModule('dashboard')} style={[styles.backButton, { backgroundColor: theme.inputBg, borderRadius: 6, paddingVertical: 4, paddingHorizontal: 8 }]}>
-               <Text style={[styles.backButtonText, { color: theme.primary, fontSize: 11 }]}>‹ Geri Dön</Text>
+               <Text style={[styles.backButtonText, { color: theme.primary, fontSize: 11 }]}>{t('toolBack')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -3996,8 +4810,8 @@ const handleBehavioralAnalysis = async () => {
               showsVerticalScrollIndicator={false}
             >
               <Text style={styles.prefDescription}>
-                Güvenilir olarak işaretlediğiniz cüzdan adresleri burada yönetilir.
-                Whitelist adresleri güvenlik sorgularında öncelikli olarak değerlendirilir.
+                {t('wlDescription1')}
+                {t('wlDescription2')}
               </Text>
 
               <View
@@ -4021,7 +4835,7 @@ const handleBehavioralAnalysis = async () => {
                         }
                       ]}
                     >
-                      Güvenli Adresler
+                      {t('wlSafeAddresses')}
                     </Text>
 
                     <Text
@@ -4033,7 +4847,7 @@ const handleBehavioralAnalysis = async () => {
                         }
                       ]}
                     >
-                      Kayıtlı güvenilir adresleriniz
+                      {t('wlRegistered')}
                     </Text>
                   </View>
 
@@ -4065,7 +4879,7 @@ const handleBehavioralAnalysis = async () => {
                         textAlign: 'center'
                       }}
                     >
-                      Henüz güvenli adres eklenmedi.
+                      {t('wlEmpty')}
                     </Text>
 
                     <Text
@@ -4076,8 +4890,8 @@ const handleBehavioralAnalysis = async () => {
                         marginTop: 4
                       }}
                     >
-                      Bir cüzdan adresini güvenli listeye eklemek için
-                      ana güvenlik merkezindeki + Whitelist butonunu kullanabilirsiniz.
+                      {t('wlEmptyHelp1')}
+                      {t('wlEmptyHelp2')}
                     </Text>
                   </View>
                 ) : (
@@ -4120,7 +4934,7 @@ const handleBehavioralAnalysis = async () => {
                             fontWeight: 'bold'
                           }}
                         >
-                          GÜVENLİ ADRES
+                          {t('wlSafeAddress')}
                         </Text>
 
                         <TouchableOpacity
@@ -4139,7 +4953,7 @@ const handleBehavioralAnalysis = async () => {
                               fontWeight: 'bold'
                             }}
                           >
-                            Kaldır
+                            {t('commonRemove')}
                           </Text>
                         </TouchableOpacity>
                       </View>
@@ -4155,8 +4969,8 @@ const handleBehavioralAnalysis = async () => {
               showsVerticalScrollIndicator={false}
             >
               <Text style={styles.prefDescription}>
-                Engellenen ve riskli olarak işaretlediğiniz cüzdan adresleri burada yönetilir.
-                Blacklist adresleri cüzdan sorgularında güvenlik kontrolünden önce değerlendirilir.
+                {t('blDescription1')}
+                {t('blDescription2')}
               </Text>
 
               <View
@@ -4192,7 +5006,7 @@ const handleBehavioralAnalysis = async () => {
                         }
                       ]}
                     >
-                      Kayıtlı engellenmiş adresleriniz
+                      {t('blRegistered')}
                     </Text>
                   </View>
 
@@ -4224,7 +5038,7 @@ const handleBehavioralAnalysis = async () => {
                         textAlign: 'center'
                       }}
                     >
-                      Henüz engellenmiş adres bulunmuyor.
+                      {t('blEmpty')}
                     </Text>
 
                     <Text
@@ -4235,8 +5049,8 @@ const handleBehavioralAnalysis = async () => {
                         marginTop: 4
                       }}
                     >
-                      Riskli olduğunu düşündüğünüz bir adresi ana güvenlik merkezinden
-                      + Blacklist ile engelleyebilirsiniz.
+                      {t('blEmptyHelp1')}
+                      {t('blEmptyHelp2')}
                     </Text>
                   </View>
                 ) : (
@@ -4279,7 +5093,7 @@ const handleBehavioralAnalysis = async () => {
                             fontWeight: 'bold'
                           }}
                         >
-                          ENGELLİ ADRES
+                          {t('blBlockedAddress')}
                         </Text>
 
                         <TouchableOpacity
@@ -4298,7 +5112,7 @@ const handleBehavioralAnalysis = async () => {
                               fontWeight: 'bold'
                             }}
                           >
-                            Engeli Kaldır
+                            {t('blRemoveBlock')}
                           </Text>
                         </TouchableOpacity>
                       </View>
@@ -4314,8 +5128,8 @@ const handleBehavioralAnalysis = async () => {
               showsVerticalScrollIndicator={false}
             >
               <Text style={styles.prefDescription}>
-                Kasa, VIP kullanıcıların sürekli güvenlik takibine aldığı cüzdanları
-                ve bu cüzdanlarla ilişkili güvenlik bildirimlerini yönetir.
+                {t('vaultDescription1')}
+                {t('vaultDescription2')}
               </Text>
 
               <View
@@ -4339,7 +5153,7 @@ const handleBehavioralAnalysis = async () => {
                         }
                       ]}
                     >
-                      Kasa Varlık Yönetimi
+                      {t('vaultAssetManagement')}
                     </Text>
 
                     <Text
@@ -4351,7 +5165,7 @@ const handleBehavioralAnalysis = async () => {
                         }
                       ]}
                     >
-                      Sürekli izlenen cüzdanlar
+                      {t('vaultMonitoredWallets')}
                     </Text>
                   </View>
 
@@ -4383,7 +5197,7 @@ const handleBehavioralAnalysis = async () => {
                         textAlign: 'center'
                       }}
                     >
-                      Kasada henüz izlenen cüzdan bulunmuyor.
+                      {t('vaultEmpty')}
                     </Text>
 
                     <TouchableOpacity
@@ -4416,8 +5230,8 @@ const handleBehavioralAnalysis = async () => {
                         ]}
                       >
                         {userStatus === 'vip'
-                          ? 'Ana Ekrandan Kasa Cüzdanı Ekle'
-                          : 'VIP Üyeliğe Geç'}
+                          ? t('vaultAddFromDashboard')
+                          : t('vaultUpgradeVip')}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -4461,7 +5275,7 @@ const handleBehavioralAnalysis = async () => {
                             fontWeight: 'bold'
                           }}
                         >
-                          KASA İZLEMESİ AKTİF
+                          {t('vaultMonitoringActive')}
                         </Text>
 
                         <TouchableOpacity
@@ -4480,7 +5294,7 @@ const handleBehavioralAnalysis = async () => {
                               fontWeight: 'bold'
                             }}
                           >
-                            Kasadan Kaldır
+                            {t('vaultRemove')}
                           </Text>
                         </TouchableOpacity>
                       </View>
@@ -4507,7 +5321,7 @@ const handleBehavioralAnalysis = async () => {
                     marginBottom: 6
                   }}
                 >
-                  Kasa Güvenlik Bildirimleri
+                  {t('vaultSecurityNotifications')}
                 </Text>
 
                 {vaultNotifications.length === 0 ? (
@@ -4519,7 +5333,7 @@ const handleBehavioralAnalysis = async () => {
                       paddingVertical: 10
                     }}
                   >
-                    Henüz Kasa güvenlik bildirimi bulunmuyor.
+                    {t('vaultNotificationsEmpty')}
                   </Text>
                 ) : (
                   vaultNotifications.slice(0, 10).map((item, index) => (
@@ -4544,7 +5358,7 @@ const handleBehavioralAnalysis = async () => {
                           marginBottom: 2
                         }}
                       >
-                        {item.title || item.type || 'Kasa Güvenlik Bildirimi'}
+                        {item.title || item.type || t('vaultSecurityNotification')}
                       </Text>
 
                       <Text
@@ -4554,7 +5368,7 @@ const handleBehavioralAnalysis = async () => {
                           lineHeight: 13
                         }}
                       >
-                        {item.message || item.description || 'Güvenlik bildirimi alındı.'}
+                        {item.message || item.description || t('securityNotificationReceived')}
                       </Text>
 
                       {item.createdAt ? (
@@ -4604,7 +5418,7 @@ const handleBehavioralAnalysis = async () => {
               fontWeight: 'bold'
             }}
           >
-            Merkezi Bildirimler
+            {t('notificationsCentral')}
           </Text>
 
           <Text
@@ -4614,7 +5428,7 @@ const handleBehavioralAnalysis = async () => {
               marginTop: 3
             }}
           >
-            Güvenlik, fiyat alarmı ve diğer sistem olayları
+            {t('notificationsDescription')}
           </Text>
         </View>
 
@@ -4669,7 +5483,7 @@ const handleBehavioralAnalysis = async () => {
             fontWeight: 'bold'
           }}
         >
-          Tümünü Okundu Yap
+          {t('notificationsMarkAllRead')}
         </Text>
       </TouchableOpacity>
 
@@ -4689,7 +5503,7 @@ const handleBehavioralAnalysis = async () => {
               textAlign: 'center'
             }}
           >
-            Henüz merkezi bildiriminiz bulunmuyor.
+            {t('notificationsEmpty')}
           </Text>
         </View>
       ) : (
@@ -4701,12 +5515,12 @@ const handleBehavioralAnalysis = async () => {
 
           const severityLabel =
             severity === 'CRITICAL'
-              ? 'KRİTİK'
+              ? t('severityCritical')
               : severity === 'HIGH'
-                ? 'YÜKSEK'
+                ? t('severityHigh')
                 : severity === 'WARNING'
-                  ? 'UYARI'
-                  : 'BİLGİ';
+                  ? t('severityWarning')
+                  : t('severityInfo');
 
           return (
             <View
@@ -4744,7 +5558,7 @@ const handleBehavioralAnalysis = async () => {
                     marginRight: 8
                   }}
                 >
-                  {notification.title || 'Safe Sentinel Bildirimi'}
+                  {notification.title || t('notificationDefaultTitle')}
                 </Text>
 
                 <Text
@@ -4769,7 +5583,7 @@ const handleBehavioralAnalysis = async () => {
                   marginTop: 5
                 }}
               >
-                {notification.body || 'Bildirim ayrıntısı bulunmuyor.'}
+                {notification.body || t('notificationNoDetails')}
               </Text>
 
               <View
@@ -4825,7 +5639,7 @@ const handleBehavioralAnalysis = async () => {
                         fontWeight: 'bold'
                       }}
                     >
-                      Okundu
+                      {t("notificationsRead")}
                     </Text>
                   </TouchableOpacity>
                 ) : (
@@ -4836,7 +5650,7 @@ const handleBehavioralAnalysis = async () => {
                       fontWeight: 'bold'
                     }}
                   >
-                    Okundu
+                    {t("notificationsRead")}
                   </Text>
                 )}
               </View>
@@ -4860,7 +5674,7 @@ const handleBehavioralAnalysis = async () => {
             textAlign: 'center'
           }}
         >
-          Merkezi bildirimler sunucudan düzenli olarak yenilenir.
+          {t('notificationsRefreshInfo')}
         </Text>
       </View>
     </View>
@@ -4884,7 +5698,7 @@ const handleBehavioralAnalysis = async () => {
             marginBottom: 6
           }}
         >
-          Kasa Güvenlik Bildirimleri
+          {t('vaultSecurityNotifications')}
         </Text>
 
         {vaultNotifications.slice(0, 10).map((item, index) => (
@@ -4910,7 +5724,7 @@ const handleBehavioralAnalysis = async () => {
                 marginBottom: 2
               }}
             >
-              {item.title || item.type || 'Kasa Güvenlik Bildirimi'}
+              {item.title || item.type || t('vaultSecurityNotification')}
             </Text>
 
             <Text
@@ -4923,7 +5737,7 @@ const handleBehavioralAnalysis = async () => {
               {item.message ||
                 item.description ||
                 item.body ||
-                'Güvenlik bildirimi alındı.'}
+                t('securityNotificationReceived')}
             </Text>
 
             {item.createdAt ? (
@@ -4945,41 +5759,41 @@ const handleBehavioralAnalysis = async () => {
           ) : activeModule === 'cryptoPoliciesView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
               <Text style={styles.prefDescription}>
-                Safe Sentinel Pro finansal varlık yönetimi, kripto para işlemleri, hukuki uyum metinleri ve platform güvenlik standartlarına dair resmi politika maddeleridir.
+                {t('policiesDescription')}
               </Text>
 
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
-                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 12, marginBottom: 4 }}>1. Varlık Güvenliği ve Kasa Politikası</Text>
+                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 12, marginBottom: 4 }}>{t('policiesAssetTitle')}</Text>
                 <Text style={{ color: theme.textMain, fontSize: 11, lineHeight: 16, marginBottom: 8 }}>
-                    Kullanıcıların kasaya (Vault) ekledikleri cüzdanlar ve akıllı sözleşme harcama yetkileri (Revoke), küresel tehdit istihbarat havuzları ile eş zamanlı taranır. Şüpheli transfer girişimleri ve drainer protokolleri anlık olarak bloklanmak üzere tasarlanmıştır.
+                  {t('policiesAssetBody')}
                 </Text>
 
-                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 12, marginBottom: 4 }}>2. Hukuki Uyum ve Sorumluluk Reddi (Legal Compliance)</Text>
+                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 12, marginBottom: 4 }}>{t('policiesLegalTitle')}</Text>
                 <Text style={{ color: theme.textMain, fontSize: 11, lineHeight: 16, marginBottom: 8 }}>
-                  Platform uluslararası veri koruma düzenlemelerine ve finansal istihbarat uyumluluk kurallarına tam uyumludur. Sunulan tüm analiz raporları, yapay zeka sentiment sonuçları ve güvenlik taramaları bilgilendirme amaçlıdır; doğrudan yatırım tavsiyesi niteliği taşımaz.
+                  {t('policiesLegalBody')}
                 </Text>
 
-                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 12, marginBottom: 4 }}>3. Şeffaflık ve Komisyon Politikası</Text>
+                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 12, marginBottom: 4 }}>{t('policiesFeesTitle')}</Text>
                 <Text style={{ color: theme.textMain, fontSize: 11, lineHeight: 16, marginBottom: 8 }}>
-                  Platform üzerinde sunulan temel sorgulama hakları şeffaf bir şekilde yönetilir. VIP abonelik süreçleri doğrudan blokzincir ağları (TRON / TRX ağı üzerinden) üzerinden gerçekleştirilir ve manuel/otomatik TXID doğrulamasıyla aktifleşir. Gizli masraf veya kesinti barındırmaz.
+                  {t('policiesFeesBody')}
                 </Text>
 
-                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 12, marginBottom: 4 }}>4. Gizlilik ve Veri Koruma Standartları</Text>
+                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 12, marginBottom: 4 }}>{t('policiesPrivacyTitle')}</Text>
                 <Text style={{ color: theme.textMain, fontSize: 11, lineHeight: 16 }}>
-                  Kullanıcı hesap bilgileri, şifreler ve yerel anahtarlar cihaz güvenliğinde (SecureStore & AsyncStorage) şifrelenmiş biçimde korunur. Otomatik yedekleme mekanizmaları ile verileriniz güvenli depoda saklanır.
+                  {t('policiesPrivacyBody')}
                 </Text>
               </View>
             </ScrollView>
           ) : activeModule === 'portfolioView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
               <Text style={styles.prefDescription}>
-                Grafik verileri yalnızca Kasa (Vault) bölümüne eklediğiniz aktif kripto ve cüzdan varlıklarınızdan derlenmektedir.
+                {t('portfolioDescription')}
               </Text>
 
               {vault.length === 0 ? (
                 <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: '#EF4444', alignItems: 'center', padding: 16 }]}>
-                  <Text style={{ color: '#EF4444', fontWeight: 'bold', fontSize: 12, marginBottom: 4 }}>Kasada Varlık Bulunamadı!</Text>
-                  <Text style={{ color: theme.textSub, fontSize: 11, textAlign: 'center', marginBottom: 10 }}>Portföy grafiğini görebilmek için önce cüzdanınızı kasaya eklemelisiniz. Kasaya varlık eklemek VIP hesap gerektirir.</Text>
+                  <Text style={{ color: '#EF4444', fontWeight: 'bold', fontSize: 12, marginBottom: 4 }}>{t('portfolioNoAssets')}</Text>
+                  <Text style={{ color: theme.textSub, fontSize: 11, textAlign: 'center', marginBottom: 10 }}>{t('portfolioNoAssetsDescription')}</Text>
                   <TouchableOpacity 
                     style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6 }]} 
                     onPress={() => {
@@ -4990,12 +5804,12 @@ const handleBehavioralAnalysis = async () => {
                       }
                     }}
                   >
-                    <Text style={[styles.buttonText, { fontSize: 11 }]}>Kasaya Varlık Ekle (VIP'e Geç)</Text>
+                    <Text style={[styles.buttonText, { fontSize: 11 }]}>{t('portfolioAddVaultVip')}</Text>
                   </TouchableOpacity>
                 </View>
               ) : (
                 <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol, alignItems: 'center' }]}>
-                  <Text style={{ color: theme.textSub, fontSize: 11, marginBottom: 4 }}>Kasa Portföy Değeri ({vault.length}/10 Varlık İzleniyor)</Text>
+                  <Text style={{ color: theme.textSub, fontSize: 11, marginBottom: 4 }}>{t('portfolioVaultValue')} ({vault.length}/10 {t('portfolioAssetsMonitored')})</Text>
                   <Text style={{ color: theme.primary, fontSize: 20, fontWeight: 'bold', marginBottom: 12 }}>${portfolioUsdValue > 0 ? portfolioUsdValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '--'} USD</Text>
                   
                   <LineChart
@@ -5037,14 +5851,14 @@ const handleBehavioralAnalysis = async () => {
           ) : activeModule === 'priceAlertsView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
               <Text style={styles.prefDescription}>
-                İstediğiniz kripto varlığı seçerek hedef fiyat eşiklerine ulaşıldığında anında push bildirimi alın.
+                {t('priceDescription')}
               </Text>
 
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
                 <View style={styles.prefCardHeader}>
                   <View style={{ flex: 1, marginRight: 10 }}>
-                    <Text style={[styles.prefCardTitle, { color: theme.textMain, fontSize: 12, fontWeight: 'bold' }]}> Kripto Fiyat Alarm Sistemi</Text>
-                    <Text style={[styles.prefCardSub, { color: theme.textSub, fontSize: 10 }]}>Seçilen varlık hedef değere ulaştığında haber ver.</Text>
+                    <Text style={[styles.prefCardTitle, { color: theme.textMain, fontSize: 12, fontWeight: 'bold' }]}>{t('priceSystemTitle')}</Text>
+                    <Text style={[styles.prefCardSub, { color: theme.textSub, fontSize: 10 }]}>{t('priceSystemDescription')}</Text>
                   </View>
                   <Switch 
                     trackColor={{ false: '#374151', true: theme.primary }}
@@ -5054,10 +5868,10 @@ const handleBehavioralAnalysis = async () => {
                   />
                 </View>
 
-                <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: 'bold', marginTop: 6, marginBottom: 4 }}>Alarm Kurulacak Kripto:</Text>
+                <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: 'bold', marginTop: 6, marginBottom: 4 }}>{t('priceSelectCrypto')}</Text>
                 
                 <View style={styles.gridContainer}>
-                  {Object.keys(NETWORKS).map((key) => {
+                  {Object.keys(NETWORKS).filter((key) => key !== 'nft').map((key) => {
                     const sym = NETWORKS[key].symbol;
                     const isSelected = alertTargetCrypto === sym;
                     return (
@@ -5084,7 +5898,7 @@ const handleBehavioralAnalysis = async () => {
 
                 <TextInput 
                   style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, marginTop: 4, height: 36, fontSize: 11 }]} 
-                  placeholder={`Hedef ${alertTargetCrypto} Fiyatı ($)...`} 
+                  placeholder={`${t("priceTargetPlaceholder")} ${alertTargetCrypto} ($)...`} 
                   placeholderTextColor="#888" 
                   value={targetAlertPrice} 
                   onChangeText={setTargetAlertPrice} 
@@ -5095,13 +5909,13 @@ const handleBehavioralAnalysis = async () => {
                   style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6 }]} 
                   onPress={async () => {
                     if (userStatus !== 'vip' && savedPriceAlerts.length >= 8) {
-                      Alert.alert("VIP Sınırı", "Standart hesaplar en fazla 8 adet fiyat alarmı kurabilir.");
+                      Alert.alert(t("priceVipLimitTitle"), t("priceVipLimitMessage"));
                       setActiveModule('vipView');
                       return;
                     }
 
                     if (!targetAlertPrice.trim()) {
-                      Alert.alert("Eksik Bilgi", "Lütfen geçerli bir hedef fiyat giriniz.");
+                      Alert.alert(t("commonMissingInfo"), t("priceEnterValidTarget"));
                       return;
                     }
 
@@ -5137,24 +5951,24 @@ const handleBehavioralAnalysis = async () => {
 
                       setSavedPriceAlerts((current) => [newAlert, ...current]);
                       setTargetAlertPrice('');
-                      triggerLocalNotification(" Fiyat Alarmı Kuruldu", `${newAlert.crypto} için $${newAlert.price} hedefi aktif edildi!`);
-                      Alert.alert("Başarılı", `${newAlert.crypto} varlığı için fiyat alarmı backend'e kaydedildi.`);
+                      triggerLocalNotification(t("priceAlertCreated"), `${newAlert.crypto} ${t("priceTargetActivated")} $${newAlert.price}`);
+                      Alert.alert(t("commonSuccess"), `${newAlert.crypto} ${t("priceSavedBackend")}`);
                     } catch (error) {
                       console.error('[PRICE ALERTS] Kaydetme başarısız:', error);
                       Alert.alert(
-                        "Kayıt Başarısız",
-                        error?.response?.data?.error || "Fiyat alarmı backend'e kaydedilemedi."
+                        t("priceSaveFailed"),
+                        error?.response?.data?.error || t("priceBackendSaveFailed")
                       );
                     }
                   }}
                 >
-                  <Text style={[styles.buttonText, { fontSize: 11 }]}>{alertTargetCrypto} Alarmını Kaydet</Text>
+                  <Text style={[styles.buttonText, { fontSize: 11 }]}>{alertTargetCrypto} {t("priceSaveAlert")}</Text>
                 </TouchableOpacity>
               </View>
 
               {getRecommendedGasNetwork ? (
                 <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.primary, marginTop: 8 }]}>
-                    <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11, marginBottom: 5 }}>ÖNERİLEN AĞ</Text>
+                    <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11, marginBottom: 5 }}>{t('gasRecommendedNetwork')}</Text>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Text style={{ color: theme.textMain, fontSize: 12, fontWeight: 'bold' }}>
                       {{ eth: 'Ethereum', bsc: 'BNB Chain', polygon: 'Polygon', arb: 'Arbitrum' }[getRecommendedGasNetwork.network] || getRecommendedGasNetwork.network.toUpperCase()}
@@ -5163,14 +5977,14 @@ const handleBehavioralAnalysis = async () => {
                       {getRecommendedGasNetwork.fee}
                     </Text>
                   </View>
-                  <Text style={{ color: theme.textSub, fontSize: 9, marginTop: 5 }}>Canlı gas verileri içindeki en düşük değer.</Text>
+                  <Text style={{ color: theme.textSub, fontSize: 9, marginTop: 5 }}>{t('gasLowestLiveValue')}</Text>
                 </View>
               ) : null}
 
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol, marginTop: 8 }]}>
-                <Text style={{ color: theme.textMain, fontWeight: 'bold', fontSize: 11, marginBottom: 6 }}>Aktif Fiyat Alarmlarınız ({savedPriceAlerts.length}/8):</Text>
+                <Text style={{ color: theme.textMain, fontWeight: 'bold', fontSize: 11, marginBottom: 6 }}>{t('priceActiveAlerts')} ({savedPriceAlerts.length}/8):</Text>
                 {savedPriceAlerts.length === 0 ? (
-                  <Text style={{ color: theme.textSub, fontSize: 11, textAlign: 'center', paddingVertical: 8 }}>Henüz kayıtlı bir fiyat alarmınız bulunmuyor.</Text>
+                  <Text style={{ color: theme.textSub, fontSize: 11, textAlign: 'center', paddingVertical: 8 }}>{t('priceNoAlerts')}</Text>
                 ) : (
                   savedPriceAlerts.map((item) => (
                     <View key={item.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: theme.inputBg, padding: 6, borderRadius: 6, marginBottom: 4 }}>
@@ -5179,7 +5993,7 @@ const handleBehavioralAnalysis = async () => {
                         onPress={() => setSavedPriceAlerts(savedPriceAlerts.filter(a => a.id !== item.id))}
                         style={{ backgroundColor: '#EF4444', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}
                       >
-                        <Text style={{ color: '#FFF', fontSize: 9, fontWeight: 'bold' }}>Sil </Text>
+                        <Text style={{ color: '#FFF', fontSize: 9, fontWeight: 'bold' }}>{t('commonDelete')}</Text>
                       </TouchableOpacity>
                     </View>
                   ))
@@ -5189,7 +6003,7 @@ const handleBehavioralAnalysis = async () => {
           ) : activeModule === 'guardianView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
               <Text style={styles.prefDescription}>
-                Guardian güvenlik profiliniz backend ile senkronize edilir. Sistem cüzdan davranışı, Scam DNA, Security Graph ve Early Warning sinyallerini birlikte değerlendirir.
+                {t('guardianDescription')}
               </Text>
 
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.primary }]}>
@@ -5199,7 +6013,7 @@ const handleBehavioralAnalysis = async () => {
                       Safe Sentinel Guardian
                     </Text>
                     <Text style={[styles.prefCardSub, { color: theme.textSub, fontSize: 10 }]}>
-                      Non-custodial koruma motoru — işlem imzalamaz, fon taşımaz.
+                      {t('guardianNonCustodial')}
                     </Text>
                   </View>
 
@@ -5213,12 +6027,12 @@ const handleBehavioralAnalysis = async () => {
                 </View>
 
                 <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: 'bold', marginTop: 6, marginBottom: 4 }}>
-                  Kritik Alarm Eşik Değeri ($):
+                  {t('guardianThreshold')}
                 </Text>
 
                 <TextInput
                   style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 10, height: 36, fontSize: 11 }]}
-                  placeholder="Örn: 500 USD..."
+                  placeholder={t("guardianThresholdPlaceholder")}
                   placeholderTextColor="#888"
                   value={guardianAlertThreshold}
                   onChangeText={setGuardianAlertThreshold}
@@ -5233,7 +6047,7 @@ const handleBehavioralAnalysis = async () => {
                     const threshold = Number(guardianAlertThreshold);
 
                     if (!Number.isFinite(threshold) || threshold < 0) {
-                      Alert.alert('Guardian', 'Geçerli bir alarm eşik değeri girin.');
+                      Alert.alert('Guardian', t('guardianInvalidThreshold'));
                       return;
                     }
 
@@ -5255,14 +6069,14 @@ const handleBehavioralAnalysis = async () => {
 
                       Alert.alert(
                         'Guardian',
-                        'Guardian güvenlik profili backend üzerinde güncellendi.'
+                        t('guardianUpdated')
                       );
                     } catch (error) {
                       Alert.alert(
                         'Guardian',
                         error?.response?.data?.error ||
                           error?.message ||
-                          'Guardian profili güncellenemedi.'
+                          t('guardianUpdateFailed')
                       );
                     } finally {
                       setGuardianLoading(false);
@@ -5270,7 +6084,7 @@ const handleBehavioralAnalysis = async () => {
                   }}
                 >
                   <Text style={[styles.buttonText, { fontSize: 11 }]}>
-                    {guardianLoading ? 'Kaydediliyor...' : 'Guardian Ayarlarını Kaydet'}
+                    {guardianLoading ? t('commonSaving') : t('guardianSaveSettings')}
                   </Text>
                 </TouchableOpacity>
 
@@ -5285,20 +6099,20 @@ const handleBehavioralAnalysis = async () => {
                       const profile = response.data?.profile;
 
                       if (!profile) {
-                        throw new Error('Guardian profili alınamadı.');
+                        throw new Error(t('guardianProfileUnavailable'));
                       }
 
                       setGuardianEnabled(Boolean(profile.enabled));
                       setGuardianAlertThreshold(String(profile.alertThresholdUsd ?? 500));
                       setGuardianProfileLoaded(true);
 
-                      Alert.alert('Guardian', 'Guardian profili backend üzerinden yenilendi.');
+                      Alert.alert('Guardian', t('guardianProfileRefreshed'));
                     } catch (error) {
                       Alert.alert(
                         'Guardian',
                         error?.response?.data?.error ||
                           error?.message ||
-                          'Guardian profili yüklenemedi.'
+                          t('guardianProfileLoadFailed')
                       );
                     } finally {
                       setGuardianLoading(false);
@@ -5306,12 +6120,12 @@ const handleBehavioralAnalysis = async () => {
                   }}
                 >
                   <Text style={[styles.buttonText, { color: theme.textMain, fontSize: 11 }]}>
-                    Guardian Profilini Yenile
+                    {t('guardianRefreshProfile')}
                   </Text>
                 </TouchableOpacity>
 
                 <Text style={{ color: theme.textSub, fontSize: 9, marginTop: 8 }}>
-                  Profil durumu: {guardianProfileLoaded ? 'Backend ile senkronize' : 'Henüz yüklenmedi'}
+                  {t('guardianProfileStatus')}: {guardianProfileLoaded ? t('guardianSynced') : t('guardianNotLoaded')}
                 </Text>
               </View>
                       <View style={{
@@ -5329,7 +6143,7 @@ const handleBehavioralAnalysis = async () => {
               fontSize: 15,
               marginBottom: 8
             }}>
-              Guardian Canlı Risk Değerlendirmesi
+              {t('guardianLiveRisk')}
             </Text>
 
             <Text style={{
@@ -5337,8 +6151,8 @@ const handleBehavioralAnalysis = async () => {
               fontSize: 12,
               marginBottom: 10
             }}>
-              Seçili cüzdan Behavioral Fingerprint, Scam DNA,
-              Security Graph ve Early Warning motorlarıyla değerlendirilir.
+              {t('guardianRiskDescription1')}
+              {t('guardianRiskDescription2')}
             </Text>
 
             <TouchableOpacity
@@ -5360,8 +6174,8 @@ const handleBehavioralAnalysis = async () => {
                 fontWeight: '700'
               }}>
                 {guardianEvaluating
-                  ? 'Guardian Analiz Ediyor...'
-                  : 'Guardian Risk Analizini Çalıştır'}
+                  ? t('guardianAnalyzing')
+                  : t('guardianRunAnalysis')}
               </Text>
             </TouchableOpacity>
 
@@ -5383,21 +6197,21 @@ const handleBehavioralAnalysis = async () => {
                   fontWeight: '700',
                   marginBottom: 6
                 }}>
-                  Karar: {guardianEvaluationResult.decision.action}
+                  {t('guardianDecision')}: {guardianEvaluationResult.decision.action}
                 </Text>
 
                 <Text style={{
                   color: theme.text,
                   marginBottom: 4
                 }}>
-                  Risk Skoru: {guardianEvaluationResult.decision.riskScore ?? 0}/100
+                  {t('guardianRiskScore')}: {guardianEvaluationResult.decision.riskScore ?? 0}/100
                 </Text>
 
                 <Text style={{
                   color: theme.text,
                   marginBottom: 8
                 }}>
-                  Risk Seviyesi: {guardianEvaluationResult.decision.riskLevel || 'UNKNOWN'}
+                  {t('guardianRiskLevel')}: {guardianEvaluationResult.decision.riskLevel || 'UNKNOWN'}
                 </Text>
 
                 {Array.isArray(guardianEvaluationResult.decision.reasons) &&
@@ -5470,7 +6284,7 @@ const handleBehavioralAnalysis = async () => {
                       fontSize: 11,
                       marginTop: 6
                     }}>
-                      Koruma modu: {guardianEvaluationResult.protectionMode || 'NON_CUSTODIAL_READ_ONLY'}
+                      {t('guardianProtectionMode')}: {guardianEvaluationResult.protectionMode || 'NON_CUSTODIAL_READ_ONLY'}
                     </Text>
 
                   </View>
@@ -5483,12 +6297,12 @@ const handleBehavioralAnalysis = async () => {
 </ScrollView>          ) : activeModule === 'inheritView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
               <Text style={styles.prefDescription}>
-                Cüzdan sahibinin uzun süre aktif olmaması durumunda varlıklarınızın önceden belirlenen güvenilir varis adresine aktarılması.
+                {t('inheritDescription')}
               </Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.primary }]}>
                 <View style={styles.prefCardHeader}>
                   <View style={{ flex: 1, marginRight: 10 }}>
-                    <Text style={[styles.prefCardTitle, { color: theme.textMain, fontSize: 12, fontWeight: 'bold' }]}> Varlık Mirasçılığı Protokolü</Text>
+                    <Text style={[styles.prefCardTitle, { color: theme.textMain, fontSize: 12, fontWeight: 'bold' }]}>{t('inheritProtocolTitle')}</Text>
                   </View>
                   <Switch 
                     trackColor={{ false: '#374151', true: theme.primary }}
@@ -5500,20 +6314,20 @@ const handleBehavioralAnalysis = async () => {
 
                 {inheritEnabled && (
                   <>
-                <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: 'bold', marginTop: 6, marginBottom: 2 }}>Sinyal Yokluğu Süresi (Gün):</Text>
+                <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: 'bold', marginTop: 6, marginBottom: 2 }}>{t('inheritInactivityDays')}:</Text>
                 <TextInput 
                   style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder="Örn: 30 gün..." 
+                  placeholder={t('inheritDaysPlaceholder')} 
                   placeholderTextColor="#888" 
                   value={inheritDays} 
                   onChangeText={setInheritDays} 
                   keyboardType="numeric"
                 />
 
-                <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: 'bold', marginBottom: 2 }}>Varis Cüzdan Adresi:</Text>
+                <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: 'bold', marginBottom: 2 }}>{t('inheritBeneficiary')}:</Text>
                 <TextInput 
                   style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 10, height: 36, fontSize: 11 }]} 
-                  placeholder="Varis cüzdan adresi..." 
+                  placeholder={t('inheritBeneficiaryPlaceholder')} 
                   placeholderTextColor="#888" 
                   value={inheritBeneficiary} 
                   onChangeText={setInheritBeneficiary} 
@@ -5525,26 +6339,26 @@ const handleBehavioralAnalysis = async () => {
                   disabled={inheritanceLoading}
                   activeOpacity={0.8}
                 >
-                  <Text style={[styles.buttonText, { fontSize: 11 }]}>Miras Protokolü Oluştur</Text>
+                  <Text style={[styles.buttonText, { fontSize: 11 }]}>{t('inheritCreate')}</Text>
 
                     </TouchableOpacity>
                 {inheritanceLoading && (
                   <Text style={{ color: theme.textSecondary, fontSize: 11, marginTop: 10, textAlign: 'center' }}>
-                    Miras protokolleri yükleniyor...
+                    {t('inheritLoading')}
                   </Text>
                 )}
 
                 {!inheritanceLoading && inheritanceProtocols.length === 0 && (
                   <Text style={{ color: theme.textSecondary, fontSize: 10, marginTop: 10, textAlign: 'center' }}>
-                    Henüz kayıtlı miras protokolü bulunmuyor.
+                    {t('inheritEmpty')}
                   </Text>
                 )}
 
                 {!inheritanceLoading && inheritanceProtocols.map((protocol) => {
                   const statusText =
-                    protocol.status === 'ACTIVE' ? 'AKTİF' :
-                    protocol.status === 'CANCELLED' ? 'İPTAL EDİLDİ' :
-                    'TASLAK';
+                    protocol.status === 'ACTIVE' ? t('inheritStatusActive') :
+                    protocol.status === 'CANCELLED' ? t('inheritStatusCancelled') :
+                    t('inheritStatusDraft');
 
                   return (
                     <View
@@ -5559,23 +6373,23 @@ const handleBehavioralAnalysis = async () => {
                       }}
                     >
                       <Text style={{ color: theme.textMain, fontSize: 12, fontWeight: 'bold', marginBottom: 6 }}>
-                         Miras Protokolü — {statusText}
+                        {t('inheritProtocol')} — {statusText}
                       </Text>
 
                       <Text style={{ color: theme.textSecondary, fontSize: 10, marginBottom: 3 }}>
-                        Ağ: {protocol.network}
+                        {t('commonNetwork')}: {protocol.network}
                       </Text>
                       <Text style={{ color: theme.textSecondary, fontSize: 10, marginBottom: 3 }}>
-                        Cüzdan: {protocol.walletAddress}
+                        {t('dashboardWallet')}: {protocol.walletAddress}
                       </Text>
                       <Text style={{ color: theme.textSecondary, fontSize: 10, marginBottom: 3 }}>
-                        Varis: {protocol.beneficiaryAddress}
+                        {t('inheritBeneficiaryShort')}: {protocol.beneficiaryAddress}
                       </Text>
                       <Text style={{ color: theme.textSecondary, fontSize: 10, marginBottom: 3 }}>
-                        Hareketsizlik süresi: {protocol.inactivityDays} gün
+                        {t('inheritInactivityPeriod')}: {protocol.inactivityDays} {t('inheritDays')}
                       </Text>
                       <Text style={{ color: theme.textSecondary, fontSize: 10 }}>
-                        Son sinyal: {protocol.lastHeartbeatAt ? new Date(protocol.lastHeartbeatAt).toLocaleString() : '-'}
+                        {t('inheritLastHeartbeat')}: {protocol.lastHeartbeatAt ? new Date(protocol.lastHeartbeatAt).toLocaleString() : '-'}
                       </Text>
 
                       {protocol.status !== 'CANCELLED' && (
@@ -5586,7 +6400,7 @@ const handleBehavioralAnalysis = async () => {
                             disabled={inheritanceLoading}
                             activeOpacity={0.8}
                           >
-                            <Text style={[styles.buttonText, { fontSize: 10 }]}>Sinyali Yenile</Text>
+                            <Text style={[styles.buttonText, { fontSize: 10 }]}>{t('inheritRefreshHeartbeat')}</Text>
                           </TouchableOpacity>
 
                           <TouchableOpacity
@@ -5595,7 +6409,7 @@ const handleBehavioralAnalysis = async () => {
                             disabled={inheritanceLoading}
                             activeOpacity={0.8}
                           >
-                            <Text style={[styles.buttonText, { fontSize: 10 }]}>Protokolü İptal Et</Text>
+                            <Text style={[styles.buttonText, { fontSize: 10 }]}>{t('inheritCancel')}</Text>
                           </TouchableOpacity>
                         </View>
                       )}
@@ -5608,35 +6422,35 @@ const handleBehavioralAnalysis = async () => {
             </ScrollView>
           ) : activeModule === 'quickTestView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
-              <Text style={styles.prefDescription}>Standart kullanıcılar ilk üyelikten sonra sadece 1 kez bu testi yapabilir. VIP kullanıcılar sınırsız sorgulama yapabilir.</Text>
+              <Text style={styles.prefDescription}>{t('quickDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
                 <TextInput 
                   style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 10, height: 36, fontSize: 11 }]} 
-                  placeholder="Test edilecek cüzdan adresi..." 
+                  placeholder={t("quickWalletPlaceholder")} 
                   placeholderTextColor="#888" 
                   value={address} 
                   onChangeText={setAddress} 
                 />
                 <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary, width: '85%', alignSelf: 'center', height: 36, borderRadius: 6 }]} onPress={handleAddressCheck}>
-                  <Text style={[styles.buttonText, { fontSize: 11 }]}> Hızlı Cüzdan Testini Başlat</Text>
+                  <Text style={[styles.buttonText, { fontSize: 11 }]}>{t('quickStartTest')}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
           ) : activeModule === 'emergencyLockView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
-              <Text style={styles.prefDescription}>Acil Varlık Kilidi: Bu sürümde gerçek blockchain kilitleme işlemi bağlı değildir. Bu ekran yalnızca yerel güvenlik senaryosunu gösterir.</Text>
+              <Text style={styles.prefDescription}>{t('emergencyDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: '#7F1D1D', borderColor: '#EF4444' }]}>
-                  <Text style={{ color: '#FFF', fontSize: 11, fontWeight: 'bold', marginBottom: 6 }}>Kilit Durumu: YEREL MOD — BLOCKCHAIN KİLİDİ DEĞİL</Text>
-                <TouchableOpacity style={[styles.button, { backgroundColor: '#EF4444', width: '100%', height: 36, borderRadius: 6 }]} onPress={() => Alert.alert("Acil Varlık Kilidi", "Gerçek blockchain kilitleme işlemi bu sürümde aktif değil. Varlık transferi bu butonla dondurulmaz.")}>
-                   <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 11 }}>Acil Varlık Kilidi — Gerçek Blockchain Kilidi Bağlı Değil</Text>
+                  <Text style={{ color: '#FFF', fontSize: 11, fontWeight: 'bold', marginBottom: 6 }}>{t('emergencyStatus')}</Text>
+                <TouchableOpacity style={[styles.button, { backgroundColor: '#EF4444', width: '100%', height: 36, borderRadius: 6 }]} onPress={() => Alert.alert(t("toolTitleEmergencyLock"), t("emergencyAlertMessage"))}>
+                   <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 11 }}>{t('emergencyButton')}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
           ) : activeModule === 'gasOptView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
-              <Text style={styles.prefDescription}>Güncel ağ gas ücretlerini karşılaştırın.</Text>
+              <Text style={styles.prefDescription}>{t('gasDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
-                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 12, marginBottom: 8 }}>CANLI GAS ÜCRETLERİ</Text>
+                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 12, marginBottom: 8 }}>{t('gasLiveFees')}</Text>
                 {Object.entries(networkGasFees).map(([network, fee]) => {
                   const names = { eth: 'Ethereum', bsc: 'BNB Chain', polygon: 'Polygon', arb: 'Arbitrum' };
                   return (
@@ -5649,7 +6463,7 @@ const handleBehavioralAnalysis = async () => {
               </View>
               {getRecommendedGasNetwork ? (
                 <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.primary, marginTop: 8 }]}>
-                    <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11, marginBottom: 5 }}>ÖNERİLEN AĞ</Text>
+                    <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11, marginBottom: 5 }}>{t('gasRecommendedNetwork')}</Text>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Text style={{ color: theme.textMain, fontSize: 12, fontWeight: 'bold' }}>
                       {{ eth: 'Ethereum', bsc: 'BNB Chain', polygon: 'Polygon', arb: 'Arbitrum' }[getRecommendedGasNetwork.network] || getRecommendedGasNetwork.network.toUpperCase()}
@@ -5658,29 +6472,29 @@ const handleBehavioralAnalysis = async () => {
                       {getRecommendedGasNetwork.fee}
                     </Text>
                   </View>
-                  <Text style={{ color: theme.textSub, fontSize: 9, marginTop: 5 }}>Canlı gas verileri içindeki en düşük değer.</Text>
+                  <Text style={{ color: theme.textSub, fontSize: 9, marginTop: 5 }}>{t('gasLowestLiveValue')}</Text>
                 </View>
               ) : null}
 
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol, marginTop: 8 }]}>
-                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11, marginBottom: 5 }}>Önerilen Gas Stratejisi</Text>
-                <Text style={{ color: theme.textMain, fontSize: 10, lineHeight: 15 }}>Canlı RPC verilerine göre ağ ücretlerini karşılaştırarak daha uygun ağı tercih edin.</Text>
+                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11, marginBottom: 5 }}>{t('gasStrategy')}</Text>
+                <Text style={{ color: theme.textMain, fontSize: 10, lineHeight: 15 }}>{t('gasStrategyDescription')}</Text>
               </View>
             </ScrollView>
           ) : activeModule === 'deepIntelView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer}>
-              <Text style={styles.prefDescription}>Blokzincir derinlik analizi ile cüzdanın fon kaynaklarını listeler.</Text>
+              <Text style={styles.prefDescription}>{t('deepIntelDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
-                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11, marginBottom: 4 }}>İstihbarat Taraması</Text>
-                <Text style={{ color: theme.textMain, fontSize: 11, lineHeight: 15 }}>Fon kaynağı temiz ve doğrulanmış borsalarla ilişkilendirilmiş.</Text>
+                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11, marginBottom: 4 }}>{t('deepIntelScan')}</Text>
+                <Text style={{ color: theme.textMain, fontSize: 11, lineHeight: 15 }}>{t('deepIntelCleanSource')}</Text>
               </View>
             </ScrollView>
           ) : activeModule === 'autoPhishView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer}>
-              <Text style={styles.prefDescription}>Tarayıcı ve DApp bağlantılarınızı oltalama sitelerine karşı korur.</Text>
+              <Text style={styles.prefDescription}>{t('autoPhishDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.primary }]}>
-                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11, marginBottom: 4 }}> Otomatik Kalkan Aktif</Text>
-                <Text style={{ color: theme.textMain, fontSize: 11, lineHeight: 15 }}>Son 24 saatte 14 şüpheli site engellendi.</Text>
+                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11, marginBottom: 4 }}>{t('autoPhishActive')}</Text>
+                <Text style={{ color: theme.textMain, fontSize: 11, lineHeight: 15 }}>{t('autoPhishLast24h')}</Text>
               </View>
             </ScrollView>
           ) : activeModule === 'preferencesView' ? (
@@ -5855,35 +6669,43 @@ const handleBehavioralAnalysis = async () => {
                     <Text style={[styles.prefCardTitle, { color: theme.textMain, fontSize: 11, fontWeight: 'bold' }]}>{t('autoScamBlock')}</Text>
                     <Text style={[styles.prefCardSub, { color: theme.textSub, fontSize: 10 }]}>{t('autoScamBlockDescription')}</Text>
                   </View>
-                  <Switch 
-                    trackColor={{ false: '#374151', true: theme.primary }}
-                    thumbColor={autoBlockScam ? '#FFFFFF' : '#9CA3AF'}
-                    onValueChange={() => setAutoBlockScam(!autoBlockScam)}
-                    value={autoBlockScam}
-                  />
                 </View>
+              </View>
+              <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: '#EF4444' }]}>
+                <Text style={{ color: '#EF4444', fontSize: 11, fontWeight: 'bold', marginBottom: 5 }}>
+                  {t('deleteAccount')}
+                </Text>
+                <Text style={{ color: theme.textSub, fontSize: 9, lineHeight: 14, marginBottom: 9 }}>
+                  {t('deleteAccountDescription')}
+                </Text>
+                <TouchableOpacity
+                  onPress={handleDeleteAccount}
+                  style={[styles.button, { backgroundColor: '#B91C1C', width: '100%', height: 36, borderRadius: 6 }]}
+                >
+                  <Text style={[styles.buttonText, { fontSize: 10 }]}>{t('deleteAccount')}</Text>
+                </TouchableOpacity>
               </View>
             </ScrollView>
             </>
           ) : activeModule === 'outboundShieldView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
-              <Text style={styles.prefDescription}>Cüzdanınızdan dışarıya yapacağınız transferleri test edin.</Text>
+              <Text style={styles.prefDescription}>{t('outboundDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
                 <TextInput 
                   style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder="Hedef Alıcı Cüzdan Adresi..." 
+                  placeholder={t("outboundRecipientPlaceholder")} 
                   placeholderTextColor="#888" 
                   value={outboundRecipient} 
                   onChangeText={setOutboundRecipient} 
                 />
                 <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary, width: '85%', alignSelf: 'center', height: 36, borderRadius: 6 }]} onPress={handleOutboundShieldCheck}>
-                  <Text style={[styles.buttonText, { fontSize: 11 }]}>{checkingOutbound ? "Taranıyor..." : " Transferi Test Et"}</Text>
+                  <Text style={[styles.buttonText, { fontSize: 11 }]}>{checkingOutbound ? t("commonScanning") : t("outboundTestTransfer")}</Text>
                 </TouchableOpacity>
 
                 {outboundCheckResult && (
                   <View style={{ marginTop: 10, padding: 8, backgroundColor: theme.inputBg, borderRadius: 6 }}>
                     <Text style={{ color: outboundCheckResult.isBlocked ? '#EF4444' : '#10B981', fontWeight: 'bold', fontSize: 11 }}>{outboundCheckResult.status}</Text>
-                    <Text style={{ color: theme.textMain, fontSize: 10, marginTop: 2 }}>Risk Seviyesi: {outboundCheckResult.riskLevel}</Text>
+                    <Text style={{ color: theme.textMain, fontSize: 10, marginTop: 2 }}>{t('commonRiskLevel')}: {outboundCheckResult.riskLevel}</Text>
                     <Text style={{ color: theme.textSub, fontSize: 10, marginTop: 2 }}>{outboundCheckResult.actionTaken}</Text>
                   </View>
                 )}
@@ -5891,7 +6713,7 @@ const handleBehavioralAnalysis = async () => {
             </ScrollView>
           ) : activeModule === 'smartContractView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
-              <Text style={styles.prefDescription}>EVM akıllı sözleşme adresini girerek gerçek blockchain verileri üzerinden temel güvenlik ve risk analizi yapın.</Text>
+              <Text style={styles.prefDescription}>{t('contractDescription')}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 9 }}>
                 {["ethereum", "bsc", "polygon", "arbitrum", "base", "optimism", "avalanche"].map((key) => (
                   <TouchableOpacity
@@ -5922,39 +6744,39 @@ const handleBehavioralAnalysis = async () => {
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
                 <TextInput 
                   style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder="Akıllı Sözleşme Adresi (0x...)..." 
+                  placeholder={t("contractAddressPlaceholder")} 
                   placeholderTextColor="#888" 
                   value={contractAddress} 
                   onChangeText={setContractAddress} 
                 />
                 <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary, width: '85%', alignSelf: 'center', height: 36, borderRadius: 6 }]} onPress={handleSmartContractAnalysis}>
-                  <Text style={[styles.buttonText, { fontSize: 11 }]}>{analyzingContract ? "Analiz Ediliyor..." : "Sözleşmeyi Analiz Et"}</Text>
+                  <Text style={[styles.buttonText, { fontSize: 11 }]}>{analyzingContract ? t("commonAnalyzing") : t("contractAnalyze")}</Text>
                 </TouchableOpacity>
 
                 {contractAnalysisResult && (
                   <View style={{ marginTop: 10, padding: 8, backgroundColor: theme.inputBg, borderRadius: 6 }}>
-                    <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11 }}>Risk Skoru: {contractAnalysisResult.riskScore}</Text>
-                    <Text style={{ color: theme.textMain, fontSize: 10, marginTop: 2 }}>Alış Vergisi: {contractAnalysisResult.buyTax} | Satış Vergisi: {contractAnalysisResult.sellTax}</Text>
-                    <Text style={{ color: theme.textMain, fontSize: 10, marginTop: 2 }}>Mint Yetkisi: {contractAnalysisResult.mintable}</Text>
+                    <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11 }}>{t('commonRiskScore')}: {contractAnalysisResult.riskScore}</Text>
+                    <Text style={{ color: theme.textMain, fontSize: 10, marginTop: 2 }}>{t('contractBuyTax')}: {contractAnalysisResult.buyTax} | {t('contractSellTax')}: {contractAnalysisResult.sellTax}</Text>
+                    <Text style={{ color: theme.textMain, fontSize: 10, marginTop: 2 }}>{t('contractMintPermission')}: {contractAnalysisResult.mintable}</Text>
                     {contractAnalysisResult.mintDetails && (
                       <View style={{ marginTop: 4 }}>
-                        <Text style={{ color: theme.textSub, fontSize: 9 }}>Mint RPC: {contractAnalysisResult.mintDetails.supported ? "DESTEKLENİYOR" : "DESTEKLENMİYOR"}</Text>
+                        <Text style={{ color: theme.textSub, fontSize: 9 }}>{t('contractMintRpc')}: {contractAnalysisResult.mintDetails.supported ? t('commonSupported') : t('commonNotSupported')}</Text>
                         {contractAnalysisResult.mintDetails.capSupported && (
-                          <Text style={{ color: theme.textSub, fontSize: 9 }}>Mint Cap: {contractAnalysisResult.mintDetails.cap}</Text>
+                          <Text style={{ color: theme.textSub, fontSize: 9 }}>{t('contractMintCap')}: {contractAnalysisResult.mintDetails.cap}</Text>
                         )}
                         {contractAnalysisResult.mintDetails.minterRoleSupported && (
-                          <Text style={{ color: theme.textSub, fontSize: 9 }}>MINTER_ROLE: TESPİT EDİLDİ</Text>
+                          <Text style={{ color: theme.textSub, fontSize: 9 }}>{t('contractMinterRole')}: {t('commonDetected')}</Text>
                         )}
                         {typeof contractAnalysisResult.mintDetails.ownerHasMinterRole === "boolean" && (
-                          <Text style={{ color: theme.textSub, fontSize: 9 }}>Owner MINTER_ROLE: {contractAnalysisResult.mintDetails.ownerHasMinterRole ? "EVET" : "HAYIR"}</Text>
+                          <Text style={{ color: theme.textSub, fontSize: 9 }}>{t('contractOwnerMinterRole')}: {contractAnalysisResult.mintDetails.ownerHasMinterRole ? t('commonYes') : t('commonNo')}</Text>
                         )}
                       </View>
                     )}
                     {contractAnalysisResult.adminDetails && (
                       <View style={{ marginTop: 4 }}>
-                        <Text style={{ color: theme.textSub, fontSize: 9 }}>Admin Role: {contractAnalysisResult.adminDetails.supported ? "DEFAULT_ADMIN_ROLE TESPİT EDİLDİ" : "DESTEKLENMİYOR"}</Text>
+                        <Text style={{ color: theme.textSub, fontSize: 9 }}>{t('contractAdminRole')}: {contractAnalysisResult.adminDetails.supported ? t('contractDefaultAdminDetected') : t('commonNotSupported')}</Text>
                         {contractAnalysisResult.adminDetails.countSupported && (
-                          <Text style={{ color: theme.textSub, fontSize: 9 }}>Admin Sayısı: {contractAnalysisResult.adminDetails.count}</Text>
+                          <Text style={{ color: theme.textSub, fontSize: 9 }}>{t('contractAdminCount')}: {contractAnalysisResult.adminDetails.count}</Text>
                         )}
                       </View>
                     )}
@@ -5965,17 +6787,17 @@ const handleBehavioralAnalysis = async () => {
             </ScrollView>
           ) : activeModule === 'behavioralView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
-              <Text style={styles.prefDescription}>Yapay zeka motoru ile cüzdanın davranışsal profilini çıkarın.</Text>
+              <Text style={styles.prefDescription}>{t('behaviorDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
                 <TextInput 
                   style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder="Analiz edilecek cüzdan adresi..." 
+                  placeholder={t("behaviorWalletPlaceholder")} 
                   placeholderTextColor="#888" 
                   value={address} 
                   onChangeText={setAddress} 
                 />
                 <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary, width: '85%', alignSelf: 'center', height: 36, borderRadius: 6 }]} onPress={handleBehavioralAnalysis}>
-                   <Text style={[styles.buttonText, { fontSize: 11 }]}>{analyzingBehavior ? "Analiz Ediliyor..." : "⚠️ Davranışsal Risk Profilini Çıkar"}</Text>
+                   <Text style={[styles.buttonText, { fontSize: 11 }]}>{analyzingBehavior ? t('commonAnalyzing') : t('behaviorRun')}</Text>
                 </TouchableOpacity>
 
                 {behavioralAnalysisResult && (
@@ -5994,7 +6816,7 @@ const handleBehavioralAnalysis = async () => {
                         fontSize: 12
                       }}
                     >
-                      Profil Skoru: {behavioralAnalysisResult.behavioralScore}
+                      {t('behaviorProfileScore')}: {behavioralAnalysisResult.behavioralScore}
                     </Text>
 
                     <Text
@@ -6004,7 +6826,7 @@ const handleBehavioralAnalysis = async () => {
                         marginTop: 4
                       }}
                     >
-                      Risk Seviyesi: {behavioralAnalysisResult.riskLevel}
+                      {t('commonRiskLevel')}: {behavioralAnalysisResult.riskLevel}
                     </Text>
 
                     <Text
@@ -6014,7 +6836,7 @@ const handleBehavioralAnalysis = async () => {
                         marginTop: 2
                       }}
                     >
-                      Ağ: {behavioralAnalysisResult.network}
+                      {t('commonNetwork')}: {behavioralAnalysisResult.network}
                     </Text>
 
                     <Text
@@ -6024,7 +6846,7 @@ const handleBehavioralAnalysis = async () => {
                         marginTop: 2
                       }}
                     >
-                      Cüzdan Yaşı: {behavioralAnalysisResult.walletAge}
+                      {t('behaviorWalletAge')}: {behavioralAnalysisResult.walletAge}
                     </Text>
 
                     <Text
@@ -6034,7 +6856,7 @@ const handleBehavioralAnalysis = async () => {
                         marginTop: 2
                       }}
                     >
-                      Toplam İşlem: {behavioralAnalysisResult.totalTransactions}
+                      {t('behaviorTotalTransactions')}: {behavioralAnalysisResult.totalTransactions}
                     </Text>
 
                     <Text
@@ -6044,7 +6866,7 @@ const handleBehavioralAnalysis = async () => {
                         marginTop: 2
                       }}
                     >
-                      Başarılı İşlem: {behavioralAnalysisResult.successfulTransactions}
+                      {t('behaviorSuccessfulTransactions')}: {behavioralAnalysisResult.successfulTransactions}
                     </Text>
 
                     <Text
@@ -6054,7 +6876,7 @@ const handleBehavioralAnalysis = async () => {
                         marginTop: 2
                       }}
                     >
-                      Başarısız İşlem: {behavioralAnalysisResult.failedTransactions}
+                      {t('behaviorFailedTransactions')}: {behavioralAnalysisResult.failedTransactions}
                     </Text>
 
                     <Text
@@ -6064,7 +6886,7 @@ const handleBehavioralAnalysis = async () => {
                         marginTop: 2
                       }}
                     >
-                      Başarısızlık Oranı: {behavioralAnalysisResult.failedRatio}
+                      {t('behaviorFailedRatio')}: {behavioralAnalysisResult.failedRatio}
                     </Text>
 
                     <Text
@@ -6074,7 +6896,7 @@ const handleBehavioralAnalysis = async () => {
                         marginTop: 2
                       }}
                     >
-                      Gelen İşlemler: {behavioralAnalysisResult.incomingTransactions}
+                      {t('behaviorIncoming')}: {behavioralAnalysisResult.incomingTransactions}
                     </Text>
 
                     <Text
@@ -6084,7 +6906,7 @@ const handleBehavioralAnalysis = async () => {
                         marginTop: 2
                       }}
                     >
-                      Giden İşlemler: {behavioralAnalysisResult.outgoingTransactions}
+                      {t('behaviorOutgoing')}: {behavioralAnalysisResult.outgoingTransactions}
                     </Text>
 
                     <Text
@@ -6094,7 +6916,7 @@ const handleBehavioralAnalysis = async () => {
                         marginTop: 2
                       }}
                     >
-                      Benzersiz Karşı Taraf: {behavioralAnalysisResult.uniqueCounterparties}
+                      {t('behaviorUniqueCounterparties')}: {behavioralAnalysisResult.uniqueCounterparties}
                     </Text>
 
                     <Text
@@ -6104,7 +6926,7 @@ const handleBehavioralAnalysis = async () => {
                         marginTop: 2
                       }}
                     >
-                      Token Transferleri: {behavioralAnalysisResult.tokenTransferTransactions}
+                      {t('behaviorTokenTransfers')}: {behavioralAnalysisResult.tokenTransferTransactions}
                     </Text>
 
                     <Text
@@ -6114,7 +6936,7 @@ const handleBehavioralAnalysis = async () => {
                         marginTop: 2
                       }}
                     >
-                      Farklı Token: {behavioralAnalysisResult.distinctTokens}
+                      {t('behaviorDistinctTokens')}: {behavioralAnalysisResult.distinctTokens}
                     </Text>
 
                     <Text
@@ -6124,7 +6946,7 @@ const handleBehavioralAnalysis = async () => {
                         marginTop: 4
                       }}
                     >
-                      Mixer / Gizlilik Sinyali: {behavioralAnalysisResult.mixerInteraction}
+                      {t('behaviorMixerSignal')}: {behavioralAnalysisResult.mixerInteraction}
                     </Text>
 
                     <Text
@@ -6134,7 +6956,7 @@ const handleBehavioralAnalysis = async () => {
                         marginTop: 2
                       }}
                     >
-                      Bot / Otomasyon: {behavioralAnalysisResult.botActivityScore}
+                      {t('behaviorBotAutomation')}: {behavioralAnalysisResult.botActivityScore}
                     </Text>
 
                     <Text
@@ -6158,7 +6980,7 @@ const handleBehavioralAnalysis = async () => {
                               fontSize: 10
                             }}
                           >
-                            Risk Nedenleri
+                            {t('behaviorRiskReasons')}
                           </Text>
 
                           {behavioralAnalysisResult.reasons.map(
@@ -6188,7 +7010,7 @@ const handleBehavioralAnalysis = async () => {
                               fontSize: 10
                             }}
                           >
-                            Risk Sinyalleri
+                            {t('behaviorRiskSignals')}
                           </Text>
 
                           {behavioralAnalysisResult.signals.map(
@@ -6219,7 +7041,7 @@ const handleBehavioralAnalysis = async () => {
                           marginTop: 7
                         }}
                       >
-                         ⚠️ Scam istihbaratı ile eşleşme bulundu.
+                         {t('behaviorScamMatch')}
                       </Text>
                     )}
                   </View>
@@ -6228,23 +7050,23 @@ const handleBehavioralAnalysis = async () => {
             </ScrollView>
           ) : activeModule === 'phishingView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
-              <Text style={styles.prefDescription}>Ziyaret etmek istediğiniz web sitesinin sahte olup olmadığını test edin.</Text>
+              <Text style={styles.prefDescription}>{t('phishingDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
                 <TextInput 
                   style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder="https://ornek-dapp.com..." 
+                  placeholder="https://example-dapp.com..." 
                   placeholderTextColor="#888" 
                   value={phishingUrl} 
                   onChangeText={setPhishingUrl} 
                 />
                 <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary, width: '85%', alignSelf: 'center', height: 36, borderRadius: 6 }]} onPress={handlePhishingAnalysis}>
-                  <Text style={[styles.buttonText, { fontSize: 11 }]}>{analyzingPhishing ? "Taranıyor..." : "Bağlantıyı ve Siteyi Tara"}</Text>
+                  <Text style={[styles.buttonText, { fontSize: 11 }]}>{analyzingPhishing ? t("commonScanning") : t("phishingScanSite")}</Text>
                 </TouchableOpacity>
 
                 {phishingResult && (
                   <View style={{ marginTop: 10, padding: 8, backgroundColor: theme.inputBg, borderRadius: 6 }}>
                     <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11 }}>{phishingResult.status}</Text>
-                    <Text style={{ color: theme.textMain, fontSize: 10, marginTop: 2 }}>Alan Adı Yaşı: {phishingResult.domainAge} | SSL: {phishingResult.sslValid}</Text>
+                    <Text style={{ color: theme.textMain, fontSize: 10, marginTop: 2 }}>{t('phishingDomainAge')}: {phishingResult.domainAge} | SSL: {phishingResult.sslValid}</Text>
                     <Text style={{ color: theme.textSub, fontSize: 10, marginTop: 4 }}>{phishingResult.summary}</Text>
                   </View>
                 )}
@@ -6253,25 +7075,25 @@ const handleBehavioralAnalysis = async () => {
           ) : activeModule === 'revokeView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
               <Text style={styles.prefDescription}>
-                Kasaya (Vault) eklediğiniz kripto varlıklara ve NFT'lere ait aktif akıllı sözleşme harcama izinleri.
+                {t('revokeDescription')}
               </Text>
               {revokeList.length === 0 ? (
                 <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: '#EF4444', alignItems: 'center', padding: 16 }]}>
-                  <Text style={{ color: '#EF4444', fontWeight: 'bold', fontSize: 11, marginBottom: 4 }}>Aktif Harcama Yetkisi Bulunamadı</Text>
-                  <Text style={{ color: theme.textSub, fontSize: 10, textAlign: 'center' }}>Kasaya (Vault) cüzdan varlığı eklediğinizde token ve NFT yetkileriniz burada dinamik olarak görünecektir.</Text>
+                  <Text style={{ color: '#EF4444', fontWeight: 'bold', fontSize: 11, marginBottom: 4 }}>{t('revokeNoAllowance')}</Text>
+                  <Text style={{ color: theme.textSub, fontSize: 10, textAlign: 'center' }}>{t('revokeEmptyDescription')}</Text>
                 </View>
               ) : (
                 revokeList.map((item, index) => (
                   <View key={index} style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
-                    <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11, marginBottom: 2 }}>Varlık: {item.token}</Text>
-                    <Text style={{ color: theme.textMain, fontSize: 10, marginBottom: 2 }}>Spender / Kontrat: {item.spender}</Text>
-                    <Text style={{ color: theme.textSub, fontSize: 10, marginBottom: 6 }}>Durum: {item.allowance}</Text>
+                    <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11, marginBottom: 2 }}>{t('revokeAsset')}: {item.token}</Text>
+                    <Text style={{ color: theme.textMain, fontSize: 10, marginBottom: 2 }}>{t('revokeSpenderContract')}: {item.spender}</Text>
+                    <Text style={{ color: theme.textSub, fontSize: 10, marginBottom: 6 }}>{t('commonStatus')}: {item.allowance}</Text>
                     <TouchableOpacity 
                       style={{ backgroundColor: '#EF4444', height: 34, borderRadius: 6, justifyContent: 'center', alignItems: 'center' }} 
                       onPress={() => handleRevokeApproval(index)}
                     >
                       <Text style={{ color: '#FFF', fontSize: 10, fontWeight: 'bold' }}>
-                        {revokingIndex === index ? "İptal Ediliyor..." : "? Yetkiyi İptal Et (Revoke)"}
+                        {revokingIndex === index ? t("revokeRevoking") : t("revokePermission")}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -6280,11 +7102,11 @@ const handleBehavioralAnalysis = async () => {
             </ScrollView>
           ) : activeModule === 'whaleWatchView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
-              <Text style={styles.prefDescription}> Büyük balina cüzdanlarının fon transferlerini anlık takip edin.</Text>
+              <Text style={styles.prefDescription}>{t('whaleDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
                 <TextInput 
                   style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder="Takip edilecek balina cüzdan adresi..." 
+                  placeholder={t("whalePlaceholder")} 
                   placeholderTextColor="#888" 
                   value={newWhaleAddress} 
                   onChangeText={setNewWhaleAddress} 
@@ -6292,31 +7114,31 @@ const handleBehavioralAnalysis = async () => {
                 <TouchableOpacity 
                   style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6 }]} 
                   onPress={() => {
-                    if (!newWhaleAddress.trim()) return Alert.alert("Hata", "Adres boş olamaz");
+                    if (!newWhaleAddress.trim()) return Alert.alert(t("commonError"), t("whaleEmptyAddress"));
                     setWhaleWatchList([SecurityScannerMiddleware.sanitizeInput(newWhaleAddress), ...whaleWatchList]);
                     setNewWhaleAddress('');
-                    Alert.alert("Başarılı", "Balina adresi izleme listesine eklendi.");
+                    Alert.alert(t("commonSuccess"), t("whaleAdded"));
                   }}
                 >
-                  <Text style={[styles.buttonText, { fontSize: 11 }]}>Balina Adresi Ekle</Text>
+                  <Text style={[styles.buttonText, { fontSize: 11 }]}>{t('whaleAdd')}</Text>
                 </TouchableOpacity>
               </View>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
-                <Text style={{ color: theme.textMain, fontWeight: 'bold', fontSize: 11, marginBottom: 6 }}>Aktif İzlenen Balinalar:</Text>
+                <Text style={{ color: theme.textMain, fontWeight: 'bold', fontSize: 11, marginBottom: 6 }}>{t('whaleActive')}:</Text>
                 {whaleWatchList.map((w, idx) => (
                   <View key={idx} style={{ backgroundColor: theme.inputBg, padding: 6, borderRadius: 6, marginBottom: 4 }}>
                     <Text style={{ color: theme.primary, fontSize: 10, fontWeight: 'bold' }}> {w}</Text>
-                    <Text style={{ color: theme.textSub, fontSize: 9, marginTop: 2 }}>Gerçek işlem verisi bekleniyor</Text>
+                    <Text style={{ color: theme.textSub, fontSize: 9, marginTop: 2 }}>{t('whaleWaitingRealData')}</Text>
                   </View>
                 ))}
               </View>
             </ScrollView>
           ) : activeModule === 'gasTimeView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
-               <Text style={styles.prefDescription}>⛽ Ağ yoğunluğuna göre en ekonomik transfer saatini seçin.</Text>
+               <Text style={styles.prefDescription}>{t('gasTimeDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
-                <Text style={{ color: theme.textMain, fontWeight: 'bold', fontSize: 11, marginBottom: 6 }}>Optimizasyon Modu:</Text>
-                {['Standard', 'Ekonomik (%30 Ucuz Zaman Dilimi)', 'Acil (Hızlı İşlem)'].map((mode) => (
+                <Text style={{ color: theme.textMain, fontWeight: 'bold', fontSize: 11, marginBottom: 6 }}>{t('gasTimeMode')}:</Text>
+                {[t('gasTimeStandard'), t('gasTimeEconomic'), t('gasTimeEmergency')].map((mode) => (
                   <TouchableOpacity 
                     key={mode} 
                     style={{ padding: 6, backgroundColor: gasOptimizerTarget === mode ? theme.primary : theme.inputBg, borderRadius: 6, marginBottom: 4 }}
@@ -6327,73 +7149,73 @@ const handleBehavioralAnalysis = async () => {
                 ))}
                 <TouchableOpacity 
                   style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6, marginTop: 4 }]}
-                  onPress={() => Alert.alert("Başarılı", `Gas zamanlayıcı ${gasOptimizerTarget} moduna göre ayarlandı.`)}
+                  onPress={() => Alert.alert(t("commonSuccess"), `${t("gasTimeConfigured")} ${gasOptimizerTarget}`)}
                 >
-                  <Text style={[styles.buttonText, { fontSize: 11 }]}>Gas Stratejisini Kaydet</Text>
+                  <Text style={[styles.buttonText, { fontSize: 11 }]}>{t('gasTimeSave')}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
           ) : activeModule === 'aiMarketView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
-               <Text style={styles.prefDescription}>🧠 Yapay zeka tabanlı piyasa duygu analizi (sentiment) sunar.</Text>
+               <Text style={styles.prefDescription}>🧠 {t('aiMarketDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
                 <TouchableOpacity 
                   style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6, marginBottom: 8 }]}
                   onPress={fetchMarketIntelligence}
                 >
-                  <Text style={[styles.buttonText, { fontSize: 11 }]}>{analyzingSentiment ? "Analiz Ediliyor..." : "Piyasa Sentiment Analizini Çalıştır"}</Text>
+                  <Text style={[styles.buttonText, { fontSize: 11 }]}>{analyzingSentiment ? t('aiMarketAnalyzing') : t('aiMarketRun')}</Text>
                 </TouchableOpacity>
 
                 {sentimentResult && (
   <View style={{ backgroundColor: theme.inputBg, padding: 8, borderRadius: 6 }}>
 
     <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 12, marginBottom: 5 }}>
-      {sentimentResult.title || 'Market Intelligence'}
+      {sentimentResult.title || t('aiMarketTitle')}
     </Text>
 
     {sentimentResult.status === 'LIVE' ? (
       <>
         <Text style={{ color: theme.textMain, fontSize: 10, marginBottom: 3 }}>
-          Sentiment: {sentimentResult.sentiment}
+          {t('aiMarketSentiment')}: {sentimentResult.sentiment}
         </Text>
 
         <Text style={{ color: theme.textMain, fontSize: 10, marginBottom: 3 }}>
-          Risk Seviyesi: {sentimentResult.riskLevel}
+          {t('commonRiskLevel')}: {sentimentResult.riskLevel}
         </Text>
 
         <Text style={{ color: theme.primary, fontSize: 10, fontWeight: 'bold', marginBottom: 5 }}>
-          Skor: {sentimentResult.score}/100
+          {t('aiMarketScore')}: {sentimentResult.score}/100
         </Text>
 
         {sentimentResult.market ? (
           <View style={{ marginTop: 4, paddingTop: 5, borderTopWidth: 1, borderTopColor: theme.borderCol }}>
 
             <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: 'bold', marginBottom: 4 }}>
-              Canlı Piyasa Verileri
+              {t('aiMarketLiveData')}
             </Text>
 
             <Text style={{ color: theme.textSub, fontSize: 9, marginBottom: 2 }}>
-              Market Cap: ${Number(sentimentResult.market.totalMarketCapUsd || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}
+              {t('aiMarketCap')}: {formatCurrency(Number(sentimentResult.market.totalMarketCapUsd || 0))}
             </Text>
 
             <Text style={{ color: theme.textSub, fontSize: 9, marginBottom: 2 }}>
-              24s Değişim: {Number(sentimentResult.market.marketCapChange24hPct || 0).toFixed(2)}%
+              {t('aiMarketChange24h')}: {Number(sentimentResult.market.marketCapChange24hPct || 0).toFixed(2)}%
             </Text>
 
             <Text style={{ color: theme.textSub, fontSize: 9, marginBottom: 2 }}>
-              İşlem Hacmi: ${Number(sentimentResult.market.totalVolumeUsd || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}
+              {t('aiMarketVolume')}: {formatCurrency(Number(sentimentResult.market.totalVolumeUsd || 0))}
             </Text>
 
             <Text style={{ color: theme.textSub, fontSize: 9, marginBottom: 2 }}>
-              BTC Dominansı: {Number(sentimentResult.market.btcDominancePct || 0).toFixed(2)}%
+              {t('aiMarketBtcDominance')}: {Number(sentimentResult.market.btcDominancePct || 0).toFixed(2)}%
             </Text>
 
             <Text style={{ color: theme.textSub, fontSize: 9, marginBottom: 2 }}>
-              ETH Dominansı: {Number(sentimentResult.market.ethDominancePct || 0).toFixed(2)}%
+              {t('aiMarketEthDominance')}: {Number(sentimentResult.market.ethDominancePct || 0).toFixed(2)}%
             </Text>
 
             <Text style={{ color: theme.textSub, fontSize: 9, marginBottom: 2 }}>
-              Hacim / Market Cap: {(Number(sentimentResult.market.volumeToMarketCapRatio || 0) * 100).toFixed(2)}%
+              {t('aiMarketVolumeRatio')}: {(Number(sentimentResult.market.volumeToMarketCapRatio || 0) * 100).toFixed(2)}%
             </Text>
 
           </View>
@@ -6403,7 +7225,7 @@ const handleBehavioralAnalysis = async () => {
           <View style={{ marginTop: 5, paddingTop: 5, borderTopWidth: 1, borderTopColor: theme.borderCol }}>
 
             <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: 'bold', marginBottom: 3 }}>
-              Gerçek Piyasa Sinyalleri
+              {t('aiMarketSignals')}
             </Text>
 
             {sentimentResult.signals.map((signal, index) => (
@@ -6419,7 +7241,7 @@ const handleBehavioralAnalysis = async () => {
         ) : null}
 
         <Text style={{ color: theme.textSub, fontSize: 9, marginTop: 5 }}>
-          Balina Eğilimi: {sentimentResult.whaleAccumulation}
+          {t('aiMarketWhaleTrend')}: {sentimentResult.whaleAccumulation}
         </Text>
 
         <Text style={{ color: theme.textSub, fontSize: 9, marginTop: 4 }}>
@@ -6427,20 +7249,20 @@ const handleBehavioralAnalysis = async () => {
         </Text>
 
         <Text style={{ color: theme.textSub, fontSize: 8, marginTop: 6 }}>
-          Kaynak: {sentimentResult.source || 'COINGECKO'}
+          {t('aiMarketSource')}: {sentimentResult.source || 'COINGECKO'}
         </Text>
 
         <Text style={{ color: theme.textSub, fontSize: 8, marginTop: 2 }}>
-          Analiz: {sentimentResult.analysisType || 'RULE_BASED_MARKET_INTELLIGENCE'}
+          {t('aiMarketAnalysis')}: {sentimentResult.analysisType || 'RULE_BASED_MARKET_INTELLIGENCE'}
         </Text>
 
         <Text style={{ color: theme.textSub, fontSize: 8, marginTop: 4 }}>
-          Bu sonuç gerçek piyasa verilerinden üretilen kural tabanlı analizdir; yatırım tavsiyesi değildir.
+          {t('aiMarketDisclaimer')}
         </Text>
       </>
     ) : (
       <Text style={{ color: theme.textSub, fontSize: 10 }}>
-        {sentimentResult.message || 'Market Intelligence sonucu alınamadı.'}
+        {sentimentResult.message || t('aiMarketUnavailable')}
       </Text>
     )}
 
@@ -6450,32 +7272,33 @@ const handleBehavioralAnalysis = async () => {
             </ScrollView>
           ) : activeModule === 'taxReportView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
-              <Text style={styles.prefDescription}> Tüm cüzdan hareketlerinizi vergi ve denetim raporu formatında dışa aktarın.</Text>
+              <Text style={styles.prefDescription}>{t('taxDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
-                <Text style={{ color: theme.textMain, fontWeight: 'bold', fontSize: 11, marginBottom: 6 }}>Rapor Dönemi:</Text>
+                <Text style={{ color: theme.textMain, fontWeight: 'bold', fontSize: 11, marginBottom: 6 }}>{t('taxPeriod')}:</Text>
                 <TouchableOpacity 
-                  style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6 }]}
-                  onPress={() => Alert.alert("Rapor Hazır", "İşlem geçmişi ve vergi raporu CSV formatında hazırlandı.")}
+                  style={[styles.button, { backgroundColor: '#6B7280', width: '100%', height: 36, borderRadius: 6 }]}
+                  onPress={() => Alert.alert(t('taxReadyTitle'), t('taxReadyMessage'))}
+                  disabled={true}
                 >
-                  <Text style={[styles.buttonText, { fontSize: 11 }]}>CSV / PDF Vergi Raporu İndir</Text>
+                  <Text style={[styles.buttonText, { fontSize: 11 }]}>{t('taxDownload')}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
           ) : activeModule === 'dexOrdersView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
-              <Text style={styles.prefDescription}> DEX üzerinde otomatik stop-loss ve take-profit emirleri oluşturun.</Text>
+              <Text style={styles.prefDescription}>{t('dexDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
-                <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: 'bold', marginBottom: 4 }}>Varlık Seçin:</Text>
+                <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: 'bold', marginBottom: 4 }}>{t('dexSelectAsset')}:</Text>
                 <TextInput 
                   style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder="Örn: TRX, ETH..." 
+                  placeholder={t('dexAssetPlaceholder')} 
                   placeholderTextColor="#888" 
                   value={slCrypto} 
                   onChangeText={setSlCrypto} 
                 />
                 <TextInput 
                   style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder="Stop-Loss Fiyatı ($)..." 
+                  placeholder={t('dexStopLossPlaceholder')} 
                   placeholderTextColor="#888" 
                   value={slPrice} 
                   onChangeText={setSlPrice} 
@@ -6483,7 +7306,7 @@ const handleBehavioralAnalysis = async () => {
                 />
                 <TextInput 
                   style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder="Take-Profit Fiyatı ($)..." 
+                  placeholder={t('dexTakeProfitPlaceholder')} 
                   placeholderTextColor="#888" 
                   value={tpPrice} 
                   onChangeText={setTpPrice} 
@@ -6492,24 +7315,24 @@ const handleBehavioralAnalysis = async () => {
                 <TouchableOpacity 
                   style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6 }]}
                   onPress={() => {
-                    if (!slPrice || !tpPrice) {
-                      Alert.alert("Eksik Bilgi", "Lütfen Stop-Loss ve Take-Profit fiyatlarını doldurunuz.");
+                    if (!slCrypto.trim() || !slPrice || !tpPrice) {
+                      Alert.alert(t('dexMissingTitle'), t('dexMissingMessage'));
                       return;
                     }
                     const newOrder = { id: Date.now().toString(), crypto: slCrypto, sl: slPrice, tp: tpPrice };
                     setStopLossList([newOrder, ...stopLossList]);
                     setSlPrice('');
                     setTpPrice('');
-                    Alert.alert("Başarılı", `${slCrypto} için DEX Stop-Loss/Take-Profit emri sisteme kaydedildi.`);
+                    Alert.alert(t('commonSuccess'), `${slCrypto} ${t('dexSavedMessage')}`);
                   }}
                 >
-                  <Text style={[styles.buttonText, { fontSize: 11 }]}>DEX Emrini Kaydet ve Çalıştır</Text>
+                  <Text style={[styles.buttonText, { fontSize: 11 }]}>{t('dexSaveDraft')}</Text>
                 </TouchableOpacity>
               </View>
 
               {getRecommendedGasNetwork ? (
                 <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.primary, marginTop: 8 }]}>
-                    <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11, marginBottom: 5 }}>ÖNERİLEN AĞ</Text>
+                    <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11, marginBottom: 5 }}>{t('dexRecommendedNetwork')}</Text>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Text style={{ color: theme.textMain, fontSize: 12, fontWeight: 'bold' }}>
                       {{ eth: 'Ethereum', bsc: 'BNB Chain', polygon: 'Polygon', arb: 'Arbitrum' }[getRecommendedGasNetwork.network] || getRecommendedGasNetwork.network.toUpperCase()}
@@ -6518,20 +7341,20 @@ const handleBehavioralAnalysis = async () => {
                       {getRecommendedGasNetwork.fee}
                     </Text>
                   </View>
-                  <Text style={{ color: theme.textSub, fontSize: 9, marginTop: 5 }}>Canlı gas verileri içindeki en düşük değer.</Text>
+                  <Text style={{ color: theme.textSub, fontSize: 9, marginTop: 5 }}>{t('dexLowestGas')}</Text>
                 </View>
               ) : null}
 
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol, marginTop: 8 }]}>
-                <Text style={{ color: theme.textMain, fontWeight: 'bold', fontSize: 11, marginBottom: 6 }}>Aktif Emirler ({stopLossList.length}):</Text>
+                <Text style={{ color: theme.textMain, fontWeight: 'bold', fontSize: 11, marginBottom: 6 }}>{t('dexActiveOrders')} ({stopLossList.length}):</Text>
                 {stopLossList.length === 0 ? (
-                  <Text style={{ color: theme.textSub, fontSize: 10, textAlign: 'center', paddingVertical: 6 }}>Aktif emir bulunmuyor.</Text>
+                  <Text style={{ color: theme.textSub, fontSize: 10, textAlign: 'center', paddingVertical: 6 }}>{t('dexNoOrders')}</Text>
                 ) : (
                   stopLossList.map(o => (
                     <View key={o.id} style={{ flexDirection: 'row', justifyContent: 'space-between', backgroundColor: theme.inputBg, padding: 6, borderRadius: 6, marginBottom: 4, alignItems: 'center' }}>
                       <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: 'bold' }}>{o.crypto} | SL: ${o.sl} - TP: ${o.tp}</Text>
                       <TouchableOpacity onPress={() => setStopLossList(stopLossList.filter(x => x.id !== o.id))} style={{ backgroundColor: '#EF4444', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                        <Text style={{ color: '#FFF', fontSize: 9 }}>İptal</Text>
+                        <Text style={{ color: '#FFF', fontSize: 9 }}>{t('dexCancel')}</Text>
                       </TouchableOpacity>
                     </View>
                   ))
@@ -6541,8 +7364,8 @@ const handleBehavioralAnalysis = async () => {
           ) : activeModule === 'vipView' ? (
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.primary, alignItems: 'center', padding: 16 }]}>
-                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 12, marginBottom: 2 }}> Safe Sentinel Pro VIP Üyelik</Text>
-                <Text style={{ color: theme.textSub, fontSize: 11, textAlign: 'center', marginBottom: 12 }}>Sınırsız cüzdan sorgulama, gerçek zamanlı scam koruması ve gelişmiş AI istihbarat modüllerine tam erişim sağlayın.</Text>
+                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 12, marginBottom: 2 }}>{t('vipMembershipTitle')}</Text>
+                <Text style={{ color: theme.textSub, fontSize: 11, textAlign: 'center', marginBottom: 12 }}>{t('vipMembershipDescription')}</Text>
                 
                 <View style={{ width: '100%', marginBottom: 12, alignItems: 'center' }}>
                   <QRCode value={VIP_PAYMENT_USDT_ADDRESS} size={130} />
@@ -6550,19 +7373,19 @@ const handleBehavioralAnalysis = async () => {
                 </View>
 
                 <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6, marginBottom: 8 }]} onPress={handleOneClickVipPayment}>
-                  <Text style={[styles.buttonText, { fontSize: 11 }]}>TRC20 USDT ile Öde</Text>
+                  <Text style={[styles.buttonText, { fontSize: 11 }]}>{t('vipPayTrc20')}</Text>
                 </TouchableOpacity>
 
                 <TextInput 
                   style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, width: '100%', marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder="İşlem Hash (TXID) değerini girin..." 
+                  placeholder={t("vipTxidPlaceholder")} 
                   placeholderTextColor="#888" 
                   value={paymentTxHashInput} 
                   onChangeText={setPaymentTxHashInput} 
                 />
 
                 <TouchableOpacity style={[styles.button, { backgroundColor: '#10B981', width: '100%', height: 36, borderRadius: 6 }]} onPress={submitPaymentNotificationToSystem}>
-                  <Text style={[styles.buttonText, { fontSize: 11 }]}>Ödemeyi Bildir ve Onayla</Text>
+                  <Text style={[styles.buttonText, { fontSize: 11 }]}>{t('vipNotifyPayment')}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -6630,7 +7453,7 @@ const handleBehavioralAnalysis = async () => {
                     fontWeight: "900"
                   }}
                 >
-                  {apiOnline ? "SYSTEM ONLINE" : "SYSTEM OFFLINE"}
+                  {apiOnline ? t("dashboardSystemOnline") : t("dashboardSystemOffline")}
                 </Text>
               </View>
 
@@ -6658,7 +7481,7 @@ const handleBehavioralAnalysis = async () => {
                   }}
                 >
                   <Text style={{ color: theme.textMain, fontSize: 9, fontWeight: "900" }}>
-                    CÜZDAN
+                    {t("dashboardWallet")}
                   </Text>
                 </TouchableOpacity>
 
@@ -6678,7 +7501,7 @@ const handleBehavioralAnalysis = async () => {
                   }}
                 >
                   <Text style={{ color: theme.textMain, fontSize: 9, fontWeight: "900" }}>
-                    AYARLAR
+                    {t("dashboardSettings")}
                   </Text>
                 </TouchableOpacity>
 
@@ -6697,7 +7520,7 @@ const handleBehavioralAnalysis = async () => {
                   }}
                 >
                   <Text style={{ color: "#EF4444", fontSize: 9, fontWeight: "900" }}>
-                     ÇIKIŞ
+                     {t("dashboardLogout")}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -6720,7 +7543,7 @@ const handleBehavioralAnalysis = async () => {
                 }}
               >
                 <Text style={{ color: theme.textSub, fontSize: 8 }}>
-                  CÜZDAN GÜVENLİK SKORU
+                  {t("dashboardWalletSecurityScore")}
                 </Text>
                 <Text
                   style={{
@@ -6740,7 +7563,7 @@ const handleBehavioralAnalysis = async () => {
                     marginTop: 2
                   }}
                 >
-                  {walletRisk?.level || "ANALİZ BEKLENİYOR"}
+                  {walletRisk?.level || t("dashboardAnalysisWaiting")}
                 </Text>
               </View>
 
@@ -6766,7 +7589,7 @@ const handleBehavioralAnalysis = async () => {
                     marginTop: 7
                   }}
                 >
-                  {walletScamIntel ? "ANALİZ MEVCUT" : "BEKLENİYOR"}
+                  {walletScamIntel ? t("dashboardAnalysisAvailable") : t("dashboardWaiting")}
                 </Text>
                 <Text
                   style={{
@@ -6775,7 +7598,7 @@ const handleBehavioralAnalysis = async () => {
                     marginTop: 3
                   }}
                 >
-                  Tehdit istihbaratı durumu
+                  {t("dashboardThreatIntelStatus")}
                 </Text>
               </View>
 
@@ -6791,7 +7614,7 @@ const handleBehavioralAnalysis = async () => {
                 }}
               >
                 <Text style={{ color: theme.textSub, fontSize: 8 }}>
-                  KASA İZLEME
+                  {t("dashboardVaultMonitoring")}
                 </Text>
                 <Text
                   style={{
@@ -6801,7 +7624,7 @@ const handleBehavioralAnalysis = async () => {
                     marginTop: 7
                   }}
                 >
-                  {vault.length > 0 ? "AKTİF" : "HAZIR"}
+                  {vault.length > 0 ? t("dashboardActive") : t("dashboardReady")}
                 </Text>
                 <Text
                   style={{
@@ -6810,7 +7633,7 @@ const handleBehavioralAnalysis = async () => {
                     marginTop: 3
                   }}
                 >
-                  {vault.length}/10 cüzdan izleniyor
+                  {vault.length}/10 {t("dashboardWalletsMonitored")}
                 </Text>
               </View>
 
@@ -6826,7 +7649,7 @@ const handleBehavioralAnalysis = async () => {
                 }}
               >
                 <Text style={{ color: theme.textSub, fontSize: 8 }}>
-                  AĞ DURUMU
+                  {t("dashboardNetworkStatus")}
                 </Text>
                 <Text
                   style={{
@@ -6845,7 +7668,7 @@ const handleBehavioralAnalysis = async () => {
                     marginTop: 3
                   }}
                 >
-                  Son blok: {walletLatestBlock ?? "--"}
+                  {t("dashboardLastBlock")}: {walletLatestBlock ?? "--"}
                 </Text>
               </View>
             </View>
@@ -6863,7 +7686,7 @@ const handleBehavioralAnalysis = async () => {
             >
               <View>
                 <Text style={{ color: theme.textSub, fontSize: 8 }}>
-                    TOPLAM PORTFÖY DEĞERİ
+                    {t("dashboardTotalPortfolio")}
                 </Text>
                 <Text
                   style={{
@@ -6896,7 +7719,7 @@ const handleBehavioralAnalysis = async () => {
                     fontWeight: "900"
                   }}
                 >
-                  PORTFÖYÜ AÇ
+                  {t("dashboardOpenPortfolio")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -6929,7 +7752,7 @@ const handleBehavioralAnalysis = async () => {
                     fontWeight: "900"
                   }}
                 >
-                  Hızlı Cüzdan Güvenlik Taraması
+                  {t("dashboardQuickScan")}
                 </Text>
                 <Text
                   style={{
@@ -6938,7 +7761,7 @@ const handleBehavioralAnalysis = async () => {
                     marginTop: 3
                   }}
                 >
-                  Cüzdanı sorgula ve güvenlik kontrollerini başlat
+                  {t("dashboardQuickScanDescription")}
                 </Text>
               </View>
 
@@ -6949,7 +7772,7 @@ const handleBehavioralAnalysis = async () => {
                   fontWeight: "900"
                 }}
               >
-                LIVE SCAN
+                {t("dashboardLiveScan")}
               </Text>
             </View>
 
@@ -7014,7 +7837,7 @@ const handleBehavioralAnalysis = async () => {
                 marginBottom: 4
               }}
             >
-              CÜZDAN ADRESİ
+              {t("dashboardWalletAddress")}
             </Text>
 
             <TextInput
@@ -7029,7 +7852,7 @@ const handleBehavioralAnalysis = async () => {
                   marginBottom: 8
                 }
               ]}
-              placeholder={`${NETWORKS[selectedNetwork].name} cüzdan adresi...`}
+              placeholder={`${NETWORKS[selectedNetwork].name} ${t("dashboardWalletPlaceholder")}`}
               placeholderTextColor="#777"
               value={address}
               onChangeText={setAddress}
@@ -7074,7 +7897,7 @@ const handleBehavioralAnalysis = async () => {
                     fontWeight: "900"
                   }}
                 >
-                  {loading ? "SORGULANIYOR..." : "CÜZDANI SORGULA"}
+                  {loading ? t("dashboardQuerying") : t("dashboardQueryWallet")}
                 </Text>
               </TouchableOpacity>
 
@@ -7093,7 +7916,7 @@ const handleBehavioralAnalysis = async () => {
                 }}
               >
                 <Text style={{ color: "#10B981", fontSize: 9, fontWeight: "900" }}>
-                  + WHITELIST
+                  + {t("dashboardWhitelist")}
                 </Text>
               </TouchableOpacity>
 
@@ -7112,7 +7935,7 @@ const handleBehavioralAnalysis = async () => {
                 }}
               >
                 <Text style={{ color: "#EF4444", fontSize: 9, fontWeight: "900" }}>
-                  + BLACKLIST
+                  + {t("dashboardBlacklist")}
                 </Text>
               </TouchableOpacity>
 
@@ -7131,7 +7954,7 @@ const handleBehavioralAnalysis = async () => {
                 }}
               >
                 <Text style={{ color: "#8B5CF6", fontSize: 9, fontWeight: "900" }}>
-                  + KASA
+                  + {t("dashboardVault")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -7164,10 +7987,10 @@ const handleBehavioralAnalysis = async () => {
                     fontWeight: "900"
                   }}
                 >
-                  Aktif Güvenlik Durumu
+                  {t("dashboardSecurityStatus")}
                 </Text>
                 <Text style={{ color: theme.textSub, fontSize: 8, marginTop: 2 }}>
-                  Kasanız ve güvenlik servislerinden gelen son durum
+                  {t("dashboardSecurityDescription")}
                 </Text>
               </View>
 
@@ -7181,7 +8004,7 @@ const handleBehavioralAnalysis = async () => {
                     fontWeight: "900"
                   }}
                 >
-                   GÜVENLİK GÜNLÜĞÜ
+                   {t("dashboardSecurityLog")}
                 </Text>
               </TouchableOpacity>
             {/* V25-K2-UNREAD-BADGE */}
@@ -7232,7 +8055,7 @@ const handleBehavioralAnalysis = async () => {
                 }}
               >
                 <Text style={{ color: theme.textSub, fontSize: 7 }}>
-                  GÜVENLİ ADRESLER
+                  {t("dashboardSafeAddresses")}
                 </Text>
                 <Text
                   style={{
@@ -7256,7 +8079,7 @@ const handleBehavioralAnalysis = async () => {
                 }}
               >
                 <Text style={{ color: theme.textSub, fontSize: 7 }}>
-                  ENGELLENEN ADRESLER
+                  {t("dashboardBlockedAddresses")}
                 </Text>
                 <Text
                   style={{
@@ -7280,7 +8103,7 @@ const handleBehavioralAnalysis = async () => {
                 }}
               >
                 <Text style={{ color: theme.textSub, fontSize: 7 }}>
-                  AÇIK GÜVENLİK BİLDİRİMLERİ
+                  {t("dashboardOpenSecurityAlerts")}
                 </Text>
                 <Text
                   style={{
@@ -7306,7 +8129,7 @@ const handleBehavioralAnalysis = async () => {
                 }}
               >
                 <Text style={{ color: theme.textSub, fontSize: 7 }}>
-                  REVOKE KAYITLARI
+                  {t("dashboardRevokeRecords")}
                 </Text>
                 <Text
                   style={{
@@ -7342,7 +8165,7 @@ const handleBehavioralAnalysis = async () => {
                 fontWeight: "900"
               }}
             >
-              Güvenlik Merkezi
+              {t("dashboardSecurityCenter")}
             </Text>
             <Text
               style={{
@@ -7352,7 +8175,7 @@ const handleBehavioralAnalysis = async () => {
                 marginBottom: 10
               }}
             >
-              İşlem, bağlantı, davranış ve sözleşme güvenliği
+              {t("dashboardSecurityCenterDescription")}
             </Text>
 
             <View
@@ -7363,11 +8186,11 @@ const handleBehavioralAnalysis = async () => {
               }}
             >
               {[
-                ["Transfer Kalkanı", "Giden işlemleri analiz et", "outboundShieldView", "MEVCUT"],
-                  ["Phishing Kalkanı", "Şüpheli bağlantıları tara", "phishingView", "MEVCUT"],
-                ["AI Davranış", "Cüzdan davranışını analiz et", "behavioralView", "MEVCUT"],
-                ["Akıllı Sözleşme", "Kontrat riskini incele", "smartContractView", "MEVCUT"],
-                ["Revoke Merkezi", "Token yetkilerini kontrol et", "revokeView", "MEVCUT"]
+                [t("dashboardTransferShield"), t("dashboardAnalyzeOutgoing"), "outboundShieldView", t("dashboardAvailable")],
+                  [t("dashboardPhishingShield"), t("dashboardScanSuspiciousLinks"), "phishingView", t("dashboardAvailable")],
+                [t("dashboardAiBehavior"), t("dashboardAnalyzeWalletBehavior"), "behavioralView", t("dashboardAvailable")],
+                [t("dashboardSmartContract"), t("dashboardInspectContractRisk"), "smartContractView", t("dashboardAvailable")],
+                [t("dashboardRevokeCenter"), t("dashboardCheckTokenPermissions"), "revokeView", t("dashboardAvailable")]
               ].map((item, index) => (
                 <TouchableOpacity
                   key={index}
@@ -7428,18 +8251,18 @@ const handleBehavioralAnalysis = async () => {
             }}
           >
             <Text style={{ color: theme.textMain, fontSize: 14, fontWeight: "900" }}>
-              Cüzdan Koruma
+              {t("dashboardWalletProtection")}
             </Text>
             <Text style={{ color: theme.textSub, fontSize: 8, marginTop: 3, marginBottom: 10 }}>
-              Adres, kasa ve acil durum güvenliği
+              {t("dashboardWalletProtectionDescription")}
             </Text>
 
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
               {[
-                ["Güvenli Adresler", `${whitelist.length} kayıt`, "whitelistView", "MEVCUT"],
-                ["Engellenen Adresler", `${blacklist.length} kayıt`, "blacklistView", "MEVCUT"],
-                ["Kasa Varlıkları", `${vault.length}/10 izleniyor`, "vaultView", "MEVCUT"],
-                ["Guardian", "Güvenlik çemberi", "guardianView", "MEVCUT"]
+                [t("dashboardSafeAddressesTitle"), `${whitelist.length} ${t("dashboardRecordLower")}`, "whitelistView", t("dashboardAvailable")],
+                [t("dashboardBlockedAddressesTitle"), `${blacklist.length} ${t("dashboardRecordLower")}`, "blacklistView", t("dashboardAvailable")],
+                [t("dashboardVaultAssets"), `${vault.length}/10 ${t("dashboardMonitored")}`, "vaultView", t("dashboardAvailable")],
+                ["Guardian", t("dashboardSecurityCircle"), "guardianView", t("dashboardAvailable")]
               ].map((item, index) => (
                 <TouchableOpacity
                   key={index}
@@ -7480,21 +8303,21 @@ const handleBehavioralAnalysis = async () => {
             }}
           >
             <Text style={{ color: theme.textMain, fontSize: 14, fontWeight: "900" }}>
-              İstihbarat ve İzleme
+              {t("dashboardIntelligenceMonitoring")}
             </Text>
             <Text style={{ color: theme.textSub, fontSize: 8, marginTop: 3, marginBottom: 10 }}>
-              Zincir üzerindeki hareketleri ve tehditleri tek merkezde toplayın
+              {t("dashboardIntelligenceDescription")}
             </Text>
 
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
               {[
-                ["Balina Takip", "Büyük hareketleri izle", "whaleWatchView", "MEVCUT"],
-                ["Scam Intelligence", "Tehdit eşleşmelerini analiz et", null, "PLANLANDI"],
-                ["Derin Zincir İstihbaratı", "Adres ilişkilerini incele", "deepIntelView", "MEVCUT"],
-                ["Early Warning", "Erken tehdit sinyalleri", null, "PLANLANDI"],
-                ["Wallet Behavioral Fingerprint", "Cüzdan davranış profili", null, "PLANLANDI"],
-                ["Scam DNA Engine", "Scam davranış kalıpları", null, "PLANLANDI"],
-                ["Wallet Security Graph", "Adres ve kontrat ilişkileri", null, "PLANLANDI"]
+                [t("dashboardWhaleWatch"), t("dashboardMonitorLargeMoves"), "whaleWatchView", t("dashboardAvailable")],
+                ["Scam Intelligence", t("dashboardAnalyzeThreatMatches"), null, t("dashboardPlanned")],
+                [t("dashboardDeepChainIntel"), t("dashboardInspectAddressRelations"), "deepIntelView", t("dashboardAvailable")],
+                ["Early Warning", t("dashboardEarlyThreatSignals"), null, t("dashboardPlanned")],
+                ["Wallet Behavioral Fingerprint", t("dashboardWalletBehaviorProfile"), null, t("dashboardPlanned")],
+                ["Scam DNA Engine", t("dashboardScamPatterns"), null, t("dashboardPlanned")],
+                ["Wallet Security Graph", t("dashboardAddressContractRelations"), null, t("dashboardPlanned")]
               ].map((item, index) => (
                 <TouchableOpacity
                   key={index}
@@ -7546,20 +8369,20 @@ const handleBehavioralAnalysis = async () => {
             }}
           >
             <Text style={{ color: theme.textMain, fontSize: 14, fontWeight: "900" }}>
-              Varlık ve Finans
+              {t("dashboardAssetsFinance")}
             </Text>
             <Text style={{ color: theme.textSub, fontSize: 8, marginTop: 3, marginBottom: 10 }}>
-              Portföy, gas, fiyat ve işlem yönetimi
+              {t("dashboardAssetsFinanceDescription")}
             </Text>
 
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
               {[
-                ["Portföy", "Kasa varlıklarını görüntüle", "portfolioView"],
-                ["Gas Optimizasyonu", "Canlı ağ ücretlerini karşılaştır", "gasOptView"],
-                ["Fiyat Alarmı", "Hedef fiyatları takip et", "priceAlertsView"],
-                ["Vergi Raporu", "İşlem geçmişini raporla", "taxReportView"],
-                ["AI Market", "Piyasa ve sentiment analizi", "aiMarketView"],
-                ["DEX Orders", "Stop-loss ve take-profit", "dexOrdersView"]
+                [t("dashboardPortfolio"), t("dashboardViewVaultAssets"), "portfolioView"],
+                [t("dashboardGasOptimization"), t("dashboardCompareNetworkFees"), "gasOptView"],
+                [t("dashboardPriceAlert"), t("dashboardTrackTargetPrices"), "priceAlertsView"],
+                [t("dashboardTaxReport"), t("dashboardReportTransactionHistory"), "taxReportView", t("dashboardPlanned")],
+                [t("toolTitleAiMarket"), t("dashboardMarketSentimentAnalysis"), "aiMarketView"],
+                [t("toolTitleDexOrders"), t("dashboardStopLossTakeProfit"), "dexOrdersView"]
               ].map((item, index) => (
                 <TouchableOpacity
                   key={index}
@@ -7581,7 +8404,7 @@ const handleBehavioralAnalysis = async () => {
                     {item[1]}
                   </Text>
                   <Text style={{ color: theme.primary, fontSize: 7, fontWeight: "900", marginTop: 9 }}>
-                    MODÜLÜ AÇ
+                    {t("dashboardOpenModule")}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -7600,17 +8423,17 @@ const handleBehavioralAnalysis = async () => {
             }}
           >
             <Text style={{ color: theme.textMain, fontSize: 14, fontWeight: "900" }}>
-              Acil Güvenlik ve Varlık Koruma
+              {t("dashboardEmergencySecurity")}
             </Text>
             <Text style={{ color: theme.textSub, fontSize: 8, marginTop: 3, marginBottom: 10 }}>
-              Kritik durumlar ve uzun vadeli varlık güvenliği
+              {t("dashboardEmergencySecurityDescription")}
             </Text>
 
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
               {[
-                ["Acil Varlık Kilidi", "Acil koruma modu", "emergencyLockView", "MEVCUT"],
-                ["Guardian", "Güvenlik çemberi", "guardianView", "MEVCUT"],
-                ["Kripto Varlık Mirasçılığı", "Dead Man's Switch", "inheritView", "MEVCUT"]
+                [t("dashboardEmergencyAssetLock"), t("dashboardEmergencyProtectionMode"), "emergencyLockView", t("dashboardAvailable")],
+                ["Guardian", t("dashboardSecurityCircle"), "guardianView", t("dashboardAvailable")],
+                [t("dashboardCryptoInheritance"), "Dead Man's Switch", "inheritView", t("dashboardAvailable")]
               ].map((item, index) => (
                 <TouchableOpacity
                   key={index}
@@ -7660,15 +8483,15 @@ const handleBehavioralAnalysis = async () => {
             >
               <View>
                 <Text style={{ color: theme.textMain, fontSize: 14, fontWeight: "900" }}>
-                  Son İşlemler
+                  {t("dashboardRecentTransactions")}
                 </Text>
                 <Text style={{ color: theme.textSub, fontSize: 8, marginTop: 2 }}>
-                  Son sorgulanan zincir hareketleri ve güvenlik sonuçları
+                  {t("dashboardRecentTransactionsDescription")}
                 </Text>
               </View>
 
               <Text style={{ color: theme.primary, fontSize: 8, fontWeight: "900" }}>
-                {transactionHistory.length} KAYIT
+                {transactionHistory.length} {t("dashboardRecordsUpper")}
               </Text>
             </View>
 
@@ -7682,10 +8505,10 @@ const handleBehavioralAnalysis = async () => {
                 }}
               >
                 <Text style={{ color: theme.textSub, fontSize: 9 }}>
-                  Henüz görüntülenecek işlem bulunmuyor.
+                  {t("dashboardNoTransactions")}
                 </Text>
                 <Text style={{ color: theme.textSub, fontSize: 8, marginTop: 4 }}>
-                  Cüzdan sorgusu yaptığınızda güvenlik sonuçları burada görünecek.
+                  {t("dashboardTransactionsWillAppear")}
                 </Text>
               </View>
             ) : (
@@ -7717,7 +8540,7 @@ const handleBehavioralAnalysis = async () => {
                         fontWeight: "900"
                       }}
                     >
-                      {item.type || "İşlem"}
+                      {item.type || t("dashboardTransaction")}
                     </Text>
 
                     <Text
@@ -7727,7 +8550,7 @@ const handleBehavioralAnalysis = async () => {
                         fontWeight: "900"
                       }}
                     >
-                      {item.scamMatched ? "RİSKLİ" : "İNCELENDİ"}
+                      {item.scamMatched ? t("dashboardRisky") : t("dashboardReviewed")}
                     </Text>
                   </View>
 
@@ -7793,7 +8616,7 @@ const handleBehavioralAnalysis = async () => {
                     marginTop: 3
                   }}
                 >
-                  Gelişmiş güvenlik, sürekli kasa izleme ve genişletilmiş araç erişimi
+                  {t("dashboardVipDescription")}
                 </Text>
               </View>
 
@@ -7804,7 +8627,7 @@ const handleBehavioralAnalysis = async () => {
                   fontWeight: "900"
                 }}
               >
-                {userStatus === "vip" ? "VIP AKTİF" : "STANDART"}
+                {userStatus === "vip" ? t("dashboardVipActive") : t("dashboardStandard")}
               </Text>
             </View>
 
@@ -7825,7 +8648,7 @@ const handleBehavioralAnalysis = async () => {
                 }}
               >
                 <Text style={{ color: theme.textSub, fontSize: 7 }}>
-                  AYLIK
+                  {t("dashboardMonthly")}
                 </Text>
                 <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: "900", marginTop: 2 }}>
                   {VIP_MONTHLY_USDT} USDT
@@ -7841,7 +8664,7 @@ const handleBehavioralAnalysis = async () => {
                 }}
               >
                 <Text style={{ color: theme.textSub, fontSize: 7 }}>
-                  YILLIK
+                  {t("dashboardYearly")}
                 </Text>
                 <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: "900", marginTop: 2 }}>
                   {VIP_YEARLY_USDT} USDT
@@ -7860,7 +8683,7 @@ const handleBehavioralAnalysis = async () => {
               }}
             >
               <Text style={{ color: "#FFF", fontSize: 10, fontWeight: "900" }}>
-                VIP ÜYELİK VE ÖDEME
+                {t("dashboardVipMembershipPayment")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -8121,16 +8944,6 @@ export default function SafeSentinelApp() {
     </SafeAreaProvider>
   );
 }
-
-
-
-
-
-
-
-
-
-
 
 
 

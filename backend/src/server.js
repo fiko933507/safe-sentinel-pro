@@ -111,25 +111,25 @@ const calculateWalletRisk = ({account,transactions,balanceTrx,address}) => {
       addRisk(
         25,
         'VERY_NEW_WALLET',
-        'CÃ¼zdan 24 saatten daha yeni.'
+        'Cüzdan 24 saatten daha yeni.'
       );
     }else if(walletAgeDays<3){
       addRisk(
         20,
         'NEW_WALLET',
-        'CÃ¼zdan Ã§ok yeni oluÅŸturulmuÅŸ.'
+        'Cüzdan çok yeni oluşturulmuş.'
       );
     }else if(walletAgeDays<7){
       addRisk(
         12,
         'RECENT_WALLET',
-        'CÃ¼zdan son 7 gÃ¼n iÃ§inde oluÅŸturulmuÅŸ.'
+        'Cüzdan son 7 gün içinde oluşturulmuş.'
       );
     }else if(walletAgeDays<30){
       addRisk(
         5,
         'YOUNG_WALLET',
-        'CÃ¼zdan 30 gÃ¼nden daha yeni.'
+        'Cüzdan 30 günden daha yeni.'
       );
     }
   }
@@ -141,19 +141,19 @@ const calculateWalletRisk = ({account,transactions,balanceTrx,address}) => {
     addRisk(
       5,
       'NO_TRANSACTION_HISTORY',
-      'Ä°ncelenen zaman penceresinde iÅŸlem geÃ§miÅŸi bulunamadÄ±.'
+      'İncelenen zaman penceresinde işlem geçmişi bulunamadı.'
     );
   }else if(totalTransactions>=20){
     addRisk(
       8,
       'HIGH_ACTIVITY',
-      'Ä°ncelenen iÅŸlem penceresinde yÃ¼ksek hareketlilik bulundu.'
+      'İncelenen işlem penceresinde yüksek hareketlilik bulundu.'
     );
   }else if(totalTransactions>=10){
     addRisk(
       4,
       'ACTIVE_WALLET',
-      'CÃ¼zdanda belirgin iÅŸlem aktivitesi bulundu.'
+      'Cüzdanda belirgin işlem aktivitesi bulundu.'
     );
   }
 
@@ -165,19 +165,19 @@ const calculateWalletRisk = ({account,transactions,balanceTrx,address}) => {
       addRisk(
         25,
         'HIGH_FAILURE_RATE',
-        `Ä°ÅŸlemlerin %${Math.round(failedRatio*100)} kadarÄ± baÅŸarÄ±sÄ±z.`
+        `İşlemlerin %${Math.round(failedRatio*100)} kadarı başarısız.`
       );
     }else if(failedRatio>=0.25){
       addRisk(
         15,
         'ELEVATED_FAILURE_RATE',
-        `Ä°ÅŸlemlerin %${Math.round(failedRatio*100)} kadarÄ± baÅŸarÄ±sÄ±z.`
+        `İşlemlerin %${Math.round(failedRatio*100)} kadarı başarısız.`
       );
     }else{
       addRisk(
         6,
         'FAILED_TRANSACTIONS',
-        'CÃ¼zdanda baÅŸarÄ±sÄ±z iÅŸlemler bulundu.'
+        'Cüzdanda başarısız işlemler bulundu.'
       );
     }
   }
@@ -189,13 +189,13 @@ const calculateWalletRisk = ({account,transactions,balanceTrx,address}) => {
     addRisk(
       10,
       'MANY_COUNTERPARTIES',
-      `CÃ¼zdan ${uniqueCounterparties} farklÄ± karÅŸÄ± tarafla etkileÅŸime girmiÅŸ.`
+      `Cüzdan ${uniqueCounterparties} farklı karşı tarafla etkileşime girmiş.`
     );
   }else if(uniqueCounterparties>=8){
     addRisk(
       5,
       'MULTIPLE_COUNTERPARTIES',
-      `CÃ¼zdan ${uniqueCounterparties} farklÄ± karÅŸÄ± tarafla etkileÅŸime girmiÅŸ.`
+      `Cüzdan ${uniqueCounterparties} farklı karşı tarafla etkileşime girmiş.`
     );
   }
 
@@ -206,7 +206,7 @@ const calculateWalletRisk = ({account,transactions,balanceTrx,address}) => {
     addRisk(
       10,
       'MANY_INCOMING_SOURCES',
-      `${uniqueIncomingAddresses} farklÄ± adresten fon giriÅŸi tespit edildi.`
+      `${uniqueIncomingAddresses} farklı adresten fon girişi tespit edildi.`
     );
   }
 
@@ -217,7 +217,7 @@ const calculateWalletRisk = ({account,transactions,balanceTrx,address}) => {
     addRisk(
       10,
       'MANY_OUTGOING_DESTINATIONS',
-      `${uniqueOutgoingAddresses} farklÄ± adrese fon Ã§Ä±kÄ±ÅŸÄ± tespit edildi.`
+      `${uniqueOutgoingAddresses} farklı adrese fon çıkışı tespit edildi.`
     );
   }
 
@@ -232,7 +232,7 @@ const calculateWalletRisk = ({account,transactions,balanceTrx,address}) => {
     addRisk(
       8,
       'DISTRIBUTION_PATTERN',
-      'Fon giriÅŸlerinden sonra birden fazla adrese daÄŸÄ±tÄ±m davranÄ±ÅŸÄ± gÃ¶zlendi.'
+      'Fon girişlerinden sonra birden fazla adrese dağıtım davranışı gözlendi.'
     );
   }
 
@@ -247,7 +247,7 @@ const calculateWalletRisk = ({account,transactions,balanceTrx,address}) => {
     addRisk(
       5,
       'COLLECTION_PATTERN',
-      'Birden fazla adresten yoÄŸun fon toplama davranÄ±ÅŸÄ± gÃ¶zlendi.'
+      'Birden fazla adresten yoğun fon toplama davranışı gözlendi.'
     );
   }
 
@@ -258,13 +258,13 @@ const calculateWalletRisk = ({account,transactions,balanceTrx,address}) => {
     addRisk(
       10,
       'HIGH_TRC20_ACTIVITY',
-      'YoÄŸun TRC20 token hareketliliÄŸi bulundu.'
+      'Yoğun TRC20 token hareketliliği bulundu.'
     );
   }else if(trc20Transactions>=8){
     addRisk(
       6,
       'ELEVATED_TRC20_ACTIVITY',
-      'Belirgin TRC20 token hareketliliÄŸi bulundu.'
+      'Belirgin TRC20 token hareketliliği bulundu.'
     );
   }
 
@@ -275,7 +275,7 @@ const calculateWalletRisk = ({account,transactions,balanceTrx,address}) => {
     addRisk(
       5,
       'LOW_BALANCE_AFTER_ACTIVITY',
-      'Ä°ÅŸlem geÃ§miÅŸine raÄŸmen TRX bakiyesi Ã§ok dÃ¼ÅŸÃ¼k veya sÄ±fÄ±r.'
+      'İşlem geçmişine rağmen TRX bakiyesi çok düşük veya sıfır.'
     );
   }
 
@@ -290,7 +290,7 @@ const calculateWalletRisk = ({account,transactions,balanceTrx,address}) => {
     addRisk(
       4,
       'ONE_WAY_INBOUND',
-      'Ä°ncelenen iÅŸlemlerde yalnÄ±zca fon giriÅŸi gÃ¶rÃ¼ldÃ¼.'
+      'İncelenen işlemlerde yalnızca fon girişi görüldü.'
     );
   }
 
@@ -305,7 +305,7 @@ const calculateWalletRisk = ({account,transactions,balanceTrx,address}) => {
     addRisk(
       10,
       'NEW_WALLET_FAILURE_CLUSTER',
-      'Yeni cÃ¼zdanda birden fazla baÅŸarÄ±sÄ±z iÅŸlem bulundu.'
+      'Yeni cüzdanda birden fazla başarısız işlem bulundu.'
     );
   }
 
@@ -319,7 +319,7 @@ const calculateWalletRisk = ({account,transactions,balanceTrx,address}) => {
     addRisk(
       7,
       'HIGH_DISTRIBUTION_ACTIVITY',
-      'YÃ¼ksek iÅŸlem aktivitesi ile Ã§ok sayÄ±da Ã§Ä±kÄ±ÅŸ adresi birlikte gÃ¶rÃ¼ldÃ¼.'
+      'Yüksek işlem aktivitesi ile çok sayıda çıkış adresi birlikte görüldü.'
     );
   }
 
@@ -340,7 +340,7 @@ const calculateWalletRisk = ({account,transactions,balanceTrx,address}) => {
 
   if(reasons.length===0){
     reasons.push(
-      'Mevcut zincir verilerinde belirgin risk sinyali bulunmadÄ±.'
+      'Mevcut zincir verilerinde belirgin risk sinyali bulunmadı.'
     );
   }
 
@@ -539,9 +539,9 @@ const calculateEvmWalletRisk = ({
   /*
    * 1. SCAM INTELLIGENCE
    *
-   * VeritabanÄ±nda doÄŸrudan eÅŸleÅŸme,
-   * davranÄ±ÅŸsal sinyallerden ayrÄ± ve gÃ¼Ã§lÃ¼
-   * bir gÃ¼venlik gÃ¶stergesidir.
+   * Veritabanında doğrudan eşleşme,
+   * davranışsal sinyallerden ayrı ve güçlü
+   * bir güvenlik göstergesidir.
    */
   if (scamMatched) {
     const highestSeverity =
@@ -568,33 +568,33 @@ const calculateEvmWalletRisk = ({
     addRisk(
       scamPoints,
       'SCAM_INTELLIGENCE_MATCH',
-      'Adres scam intelligence veritabanÄ±nda eÅŸleÅŸti.'
+      'Adres scam intelligence veritabanında eşleşti.'
     );
   }
 
   /*
    * 2. TRANSACTION ACTIVITY
    *
-   * Bu sayÄ± yalnÄ±zca adapter'Ä±n taradÄ±ÄŸÄ±
+   * Bu sayı yalnızca adapter'ın taradığı
    * mevcut EVM blok penceresini temsil eder.
    */
   if (totalTransactions === 0) {
     addRisk(
       2,
       'NO_EVM_TOKEN_ACTIVITY',
-      'Ä°ncelenen EVM token-transfer penceresinde hareket bulunmadÄ±.'
+      'İncelenen EVM token-transfer penceresinde hareket bulunmadı.'
     );
   } else if (totalTransactions >= 20) {
     addRisk(
       8,
       'HIGH_EVM_TOKEN_ACTIVITY',
-      'Ä°ncelenen EVM token-transfer penceresinde yÃ¼ksek aktivite bulundu.'
+      'İncelenen EVM token-transfer penceresinde yüksek aktivite bulundu.'
     );
   } else if (totalTransactions >= 10) {
     addRisk(
       4,
       'ACTIVE_EVM_TOKEN_WALLET',
-      'Ä°ncelenen EVM token-transfer penceresinde belirgin aktivite bulundu.'
+      'İncelenen EVM token-transfer penceresinde belirgin aktivite bulundu.'
     );
   }
 
@@ -605,13 +605,13 @@ const calculateEvmWalletRisk = ({
     addRisk(
       10,
       'MANY_EVM_COUNTERPARTIES',
-      `${uniqueCounterparties} farklÄ± gerÃ§ek adresle etkileÅŸim tespit edildi.`
+      `${uniqueCounterparties} farklı gerçek adresle etkileşim tespit edildi.`
     );
   } else if (uniqueCounterparties >= 8) {
     addRisk(
       5,
       'MULTIPLE_EVM_COUNTERPARTIES',
-      `${uniqueCounterparties} farklÄ± gerÃ§ek adresle etkileÅŸim tespit edildi.`
+      `${uniqueCounterparties} farklı gerçek adresle etkileşim tespit edildi.`
     );
   }
 
@@ -625,7 +625,7 @@ const calculateEvmWalletRisk = ({
     addRisk(
       10,
       'MANY_EVM_INCOMING_SOURCES',
-      `${uniqueIncomingAddresses} farklÄ± gerÃ§ek adresten token giriÅŸi tespit edildi.`
+      `${uniqueIncomingAddresses} farklı gerçek adresten token girişi tespit edildi.`
     );
   }
 
@@ -639,7 +639,7 @@ const calculateEvmWalletRisk = ({
     addRisk(
       10,
       'MANY_EVM_OUTGOING_DESTINATIONS',
-      `${uniqueOutgoingAddresses} farklÄ± gerÃ§ek adrese token Ã§Ä±kÄ±ÅŸÄ± tespit edildi.`
+      `${uniqueOutgoingAddresses} farklı gerçek adrese token çıkışı tespit edildi.`
     );
   }
 
@@ -654,7 +654,7 @@ const calculateEvmWalletRisk = ({
     addRisk(
       8,
       'EVM_DISTRIBUTION_PATTERN',
-      'Fon giriÅŸlerinden sonra birden fazla gerÃ§ek adrese daÄŸÄ±tÄ±m davranÄ±ÅŸÄ± gÃ¶zlendi.'
+      'Fon girişlerinden sonra birden fazla gerçek adrese dağıtım davranışı gözlendi.'
     );
   }
 
@@ -669,7 +669,7 @@ const calculateEvmWalletRisk = ({
     addRisk(
       5,
       'EVM_COLLECTION_PATTERN',
-      'Birden fazla gerÃ§ek adresten yoÄŸun token toplama davranÄ±ÅŸÄ± gÃ¶zlendi.'
+      'Birden fazla gerçek adresten yoğun token toplama davranışı gözlendi.'
     );
   }
 
@@ -681,19 +681,19 @@ const calculateEvmWalletRisk = ({
       addRisk(
         20,
         'HIGH_EVM_FAILURE_RATE',
-        `Ä°ncelenen iÅŸlemlerin %${Math.round(failedRatio * 100)} kadarÄ± baÅŸarÄ±sÄ±z.`
+        `İncelenen işlemlerin %${Math.round(failedRatio * 100)} kadarı başarısız.`
       );
     } else if (failedRatio >= 0.25) {
       addRisk(
         12,
         'ELEVATED_EVM_FAILURE_RATE',
-        `Ä°ncelenen iÅŸlemlerin %${Math.round(failedRatio * 100)} kadarÄ± baÅŸarÄ±sÄ±z.`
+        `İncelenen işlemlerin %${Math.round(failedRatio * 100)} kadarı başarısız.`
       );
     } else {
       addRisk(
         5,
         'EVM_FAILED_TRANSACTIONS',
-        'Ä°ncelenen iÅŸlem geÃ§miÅŸinde baÅŸarÄ±sÄ±z iÅŸlemler bulundu.'
+        'İncelenen işlem geçmişinde başarısız işlemler bulundu.'
       );
     }
   }
@@ -705,13 +705,13 @@ const calculateEvmWalletRisk = ({
     addRisk(
       8,
       'HIGH_TOKEN_DIVERSITY',
-      `${distinctTokens} farklÄ± token kontratÄ±yla hareket tespit edildi.`
+      `${distinctTokens} farklı token kontratıyla hareket tespit edildi.`
     );
   } else if (distinctTokens >= 5) {
     addRisk(
       4,
       'MULTIPLE_TOKEN_ACTIVITY',
-      `${distinctTokens} farklÄ± token kontratÄ±yla hareket tespit edildi.`
+      `${distinctTokens} farklı token kontratıyla hareket tespit edildi.`
     );
   }
 
@@ -722,7 +722,7 @@ const calculateEvmWalletRisk = ({
     addRisk(
       8,
       'HIGH_ERC20_ACTIVITY',
-      'YoÄŸun ERC-20 transfer aktivitesi bulundu.'
+      'Yoğun ERC-20 transfer aktivitesi bulundu.'
     );
   } else if (tokenTransferTransactions >= 10) {
     addRisk(
@@ -735,15 +735,15 @@ const calculateEvmWalletRisk = ({
   /*
    * 11. MINT / AIRDROP ACTIVITY
    *
-   * Zero-address transferleri gerÃ§ek karÅŸÄ± taraf
-   * olarak sayÄ±lmaz. Ancak olaÄŸandÄ±ÅŸÄ± miktarda
-   * mint aktivitesini ayrÄ± bir sinyal olarak tutarÄ±z.
+   * Zero-address transferleri gerçek karşı taraf
+   * olarak sayılmaz. Ancak olağandışı miktarda
+   * mint aktivitesini ayrı bir sinyal olarak tutarız.
    */
   if (mintTransactions >= 5) {
     addRisk(
       3,
       'MULTIPLE_TOKEN_MINTS',
-      `${mintTransactions} adet zero-address kaynaklÄ± token mint hareketi bulundu.`
+      `${mintTransactions} adet zero-address kaynaklı token mint hareketi bulundu.`
     );
   }
 
@@ -768,7 +768,7 @@ const calculateEvmWalletRisk = ({
     addRisk(
       4,
       'EVM_ONE_WAY_INBOUND',
-      'Ä°ncelenen gerÃ§ek token hareketlerinde yalnÄ±zca fon giriÅŸi gÃ¶rÃ¼ldÃ¼.'
+      'İncelenen gerçek token hareketlerinde yalnızca fon girişi görüldü.'
     );
   }
 
@@ -782,15 +782,15 @@ const calculateEvmWalletRisk = ({
     addRisk(
       7,
       'EVM_HIGH_DISTRIBUTION_ACTIVITY',
-      'YÃ¼ksek token aktivitesi ile Ã§ok sayÄ±da gerÃ§ek Ã§Ä±kÄ±ÅŸ adresi birlikte gÃ¶rÃ¼ldÃ¼.'
+      'Yüksek token aktivitesi ile çok sayıda gerçek çıkış adresi birlikte görüldü.'
     );
   }
 
   /*
    * 15. BALANCE CONTEXT
    *
-   * Native balance'Ä±n sÄ±fÄ±r olmasÄ± tek baÅŸÄ±na scam
-   * gÃ¶stergesi deÄŸildir. Bu nedenle dÃ¼ÅŸÃ¼k aÄŸÄ±rlÄ±k.
+   * Native balance'ın sıfır olması tek başına scam
+   * göstergesi değildir. Bu nedenle düşük ağırlık.
    */
   if (
     numericBalance <= 0 &&
@@ -799,7 +799,7 @@ const calculateEvmWalletRisk = ({
     addRisk(
       3,
       'ZERO_NATIVE_BALANCE',
-      `CÃ¼zdanÄ±n native ${String(balanceUnit || 'coin')} bakiyesi sÄ±fÄ±r veya Ã§ok dÃ¼ÅŸÃ¼k.`
+      `Cüzdanın native ${String(balanceUnit || 'coin')} bakiyesi sıfır veya çok düşük.`
     );
   }
 
@@ -820,7 +820,7 @@ const calculateEvmWalletRisk = ({
 
   if (reasons.length === 0) {
     reasons.push(
-      'Mevcut EVM zincir verilerinde belirgin davranÄ±ÅŸsal risk sinyali bulunmadÄ±.'
+      'Mevcut EVM zincir verilerinde belirgin davranışsal risk sinyali bulunmadı.'
     );
   }
 
@@ -983,7 +983,7 @@ const calculateSolanaWalletRisk = ({
     addRisk(
       80,
       'SCAM_INTELLIGENCE_MATCH',
-      'Solana adresi scam intelligence veritabanÄ±nda eÅŸleÅŸti.'
+      'Solana adresi scam intelligence veritabanında eşleşti.'
     );
   }
 
@@ -991,19 +991,19 @@ const calculateSolanaWalletRisk = ({
     addRisk(
       1,
       'NO_SOLANA_ACTIVITY',
-      'Ä°ncelenen Solana iÅŸlem penceresinde iÅŸlem bulunmadÄ±.'
+      'İncelenen Solana işlem penceresinde işlem bulunmadı.'
     );
   } else if (totalTransactions >= 20) {
     addRisk(
       8,
       'HIGH_SOLANA_ACTIVITY',
-      'Ä°ncelenen Solana iÅŸlem penceresinde yÃ¼ksek aktivite bulundu.'
+      'İncelenen Solana işlem penceresinde yüksek aktivite bulundu.'
     );
   } else if (totalTransactions >= 10) {
     addRisk(
       4,
       'ACTIVE_SOLANA_WALLET',
-      'Ä°ncelenen Solana iÅŸlem penceresinde belirgin aktivite bulundu.'
+      'İncelenen Solana işlem penceresinde belirgin aktivite bulundu.'
     );
   }
 
@@ -1011,13 +1011,13 @@ const calculateSolanaWalletRisk = ({
     addRisk(
       10,
       'MANY_SOLANA_COUNTERPARTIES',
-      `${uniqueCounterparties} farklÄ± adresle etkileÅŸim tespit edildi.`
+      `${uniqueCounterparties} farklı adresle etkileşim tespit edildi.`
     );
   } else if (uniqueCounterparties >= 8) {
     addRisk(
       5,
       'MULTIPLE_SOLANA_COUNTERPARTIES',
-      `${uniqueCounterparties} farklÄ± adresle etkileÅŸim tespit edildi.`
+      `${uniqueCounterparties} farklı adresle etkileşim tespit edildi.`
     );
   }
 
@@ -1028,7 +1028,7 @@ const calculateSolanaWalletRisk = ({
     addRisk(
       8,
       'MANY_SOLANA_INCOMING_SOURCES',
-      `${uniqueIncomingAddresses} farklÄ± adresten Solana giriÅŸi tespit edildi.`
+      `${uniqueIncomingAddresses} farklı adresten Solana girişi tespit edildi.`
     );
   }
 
@@ -1039,7 +1039,7 @@ const calculateSolanaWalletRisk = ({
     addRisk(
       8,
       'MANY_SOLANA_OUTGOING_DESTINATIONS',
-      `${uniqueOutgoingAddresses} farklÄ± adrese Solana Ã§Ä±kÄ±ÅŸÄ± tespit edildi.`
+      `${uniqueOutgoingAddresses} farklı adrese Solana çıkışı tespit edildi.`
     );
   }
 
@@ -1051,7 +1051,7 @@ const calculateSolanaWalletRisk = ({
     addRisk(
       7,
       'SOLANA_DISTRIBUTION_PATTERN',
-      'Fon giriÅŸlerinden sonra birden fazla adrese daÄŸÄ±tÄ±m davranÄ±ÅŸÄ± gÃ¶zlendi.'
+      'Fon girişlerinden sonra birden fazla adrese dağıtım davranışı gözlendi.'
     );
   }
 
@@ -1063,7 +1063,7 @@ const calculateSolanaWalletRisk = ({
     addRisk(
       5,
       'SOLANA_COLLECTION_PATTERN',
-      'Birden fazla adresten yoÄŸun Solana toplama davranÄ±ÅŸÄ± gÃ¶zlendi.'
+      'Birden fazla adresten yoğun Solana toplama davranışı gözlendi.'
     );
   }
 
@@ -1072,19 +1072,19 @@ const calculateSolanaWalletRisk = ({
       addRisk(
         18,
         'HIGH_SOLANA_FAILURE_RATE',
-        `Ä°ncelenen iÅŸlemlerin %${Math.round(failedRatio * 100)} kadarÄ± baÅŸarÄ±sÄ±z.`
+        `İncelenen işlemlerin %${Math.round(failedRatio * 100)} kadarı başarısız.`
       );
     } else if (failedRatio >= 0.25) {
       addRisk(
         10,
         'ELEVATED_SOLANA_FAILURE_RATE',
-        `Ä°ncelenen iÅŸlemlerin %${Math.round(failedRatio * 100)} kadarÄ± baÅŸarÄ±sÄ±z.`
+        `İncelenen işlemlerin %${Math.round(failedRatio * 100)} kadarı başarısız.`
       );
     } else {
       addRisk(
         4,
         'SOLANA_FAILED_TRANSACTIONS',
-        'Ä°ncelenen Solana iÅŸlem geÃ§miÅŸinde baÅŸarÄ±sÄ±z iÅŸlemler bulundu.'
+        'İncelenen Solana işlem geçmişinde başarısız işlemler bulundu.'
       );
     }
   }
@@ -1096,7 +1096,7 @@ const calculateSolanaWalletRisk = ({
     addRisk(
       4,
       'SOLANA_ONE_WAY_INBOUND',
-      'Ä°ncelenen hareketlerde yalnÄ±zca Solana giriÅŸi gÃ¶rÃ¼ldÃ¼.'
+      'İncelenen hareketlerde yalnızca Solana girişi görüldü.'
     );
   }
 
@@ -1107,7 +1107,7 @@ const calculateSolanaWalletRisk = ({
     addRisk(
       6,
       'SOLANA_HIGH_DISTRIBUTION_ACTIVITY',
-      'YÃ¼ksek iÅŸlem aktivitesi ile Ã§ok sayÄ±da Ã§Ä±kÄ±ÅŸ adresi birlikte gÃ¶rÃ¼ldÃ¼.'
+      'Yüksek işlem aktivitesi ile çok sayıda çıkış adresi birlikte görüldü.'
     );
   }
 
@@ -1118,7 +1118,7 @@ const calculateSolanaWalletRisk = ({
     addRisk(
       2,
       'ZERO_SOLANA_BALANCE',
-      'CÃ¼zdanÄ±n SOL bakiyesi sÄ±fÄ±r veya Ã§ok dÃ¼ÅŸÃ¼k.'
+      'Cüzdanın SOL bakiyesi sıfır veya çok düşük.'
     );
   }
 
@@ -1139,7 +1139,7 @@ const calculateSolanaWalletRisk = ({
 
   if (reasons.length === 0) {
     reasons.push(
-      'Mevcut Solana zincir verilerinde belirgin davranÄ±ÅŸsal risk sinyali bulunmadÄ±.'
+      'Mevcut Solana zincir verilerinde belirgin davranışsal risk sinyali bulunmadı.'
     );
   }
 
@@ -1172,8 +1172,8 @@ const lookupScamIntelligence = async ({network,address}) => {
 
   /*
    * EVM adresleri lowercase olarak sorgulanabilir.
-   * TRON adresleri Base58 olduÄŸu iÃ§in bÃ¼yÃ¼k/kÃ¼Ã§Ã¼k harf
-   * korunmalÄ±dÄ±r; lowercase yapÄ±lmasÄ± adresi bozar.
+   * TRON adresleri Base58 olduğu için büyük/küçük harf
+   * korunmalıdır; lowercase yapılması adresi bozar.
    */
   const rawAddress=String(address||'').trim();
 
@@ -1193,12 +1193,12 @@ const lookupScamIntelligence = async ({network,address}) => {
 
   try{
     /*
-     * ScamSniffer aÃ§Ä±k kaynak adres havuzu EVM
-     * aÄŸlarÄ±nÄ± ortak "evm" altÄ±nda tutuyor.
+     * ScamSniffer açık kaynak adres havuzu EVM
+     * ağlarını ortak "evm" altında tutuyor.
      *
      * Bu nedenle Ethereum / BSC / Polygon /
      * Arbitrum / Base / Optimism / Avalanche
-     * sorgularÄ±nÄ± "evm" havuzuna baÄŸlÄ±yoruz.
+     * sorgularını "evm" havuzuna bağlıyoruz.
      */
     const evmNetworks=[
       'ethereum',
@@ -1331,16 +1331,16 @@ const lookupTransactionScamIntelligence = async ({
   try {
 
     /*
-     * Her transaction iÃ§in karÅŸÄ± tarafÄ± belirle:
+     * Her transaction için karşı tarafı belirle:
      *
      * outgoing:
-     *   karÅŸÄ± taraf = to
+     *   karşı taraf = to
      *
      * incoming:
-     *   karÅŸÄ± taraf = from
+     *   karşı taraf = from
      *
-     * Wallet adresi ile aynÄ± adresi karÅŸÄ± taraf olarak
-     * yanlÄ±ÅŸlÄ±kla taramÄ±yoruz.
+     * Wallet adresi ile aynı adresi karşı taraf olarak
+     * yanlışlıkla taramıyoruz.
      */
 
     const walletLower =
@@ -1383,7 +1383,7 @@ const lookupTransactionScamIntelligence = async ({
       } else {
 
         /*
-         * Adapter bazÄ± iÅŸlemlerde direction bilgisi veriyorsa
+         * Adapter bazı işlemlerde direction bilgisi veriyorsa
          * onu da fallback olarak kullan.
          */
 
@@ -1439,7 +1439,7 @@ const lookupTransactionScamIntelligence = async ({
     }
 
     /*
-     * EVM aÄŸlarÄ±nda hem gerÃ§ek network hem de ortak "evm"
+     * EVM ağlarında hem gerçek network hem de ortak "evm"
      * havuzunu kontrol ediyoruz.
      */
     const evmNetworks = [
@@ -1458,7 +1458,7 @@ const lookupTransactionScamIntelligence = async ({
         : [normalizedNetwork];
 
     /*
-     * ScamAddress kayÄ±tlarÄ±nÄ± tek sorguda Ã§ekiyoruz.
+     * ScamAddress kayıtlarını tek sorguda çekiyoruz.
      */
 
     const matches = await db.scamAddress.findMany({
@@ -1507,7 +1507,7 @@ const lookupTransactionScamIntelligence = async ({
     });
 
     /*
-     * HÄ±zlÄ± adres -> scam kaydÄ± eÅŸleÅŸtirme haritasÄ±.
+     * Hızlı adres -> scam kaydı eşleştirme haritası.
      */
     const matchMap = new Map();
 
@@ -1526,7 +1526,7 @@ const lookupTransactionScamIntelligence = async ({
     }
 
     /*
-     * Scam bulunan transaction'larÄ± tespit et.
+     * Scam bulunan transaction'ları tespit et.
      */
     const transactionMatches = [];
 
@@ -1706,7 +1706,19 @@ const formatTronTimestamp = (timestamp) => {
 };
 
 if(!process.env.JWT_SECRET||process.env.JWT_SECRET.length<32) throw new Error('JWT_SECRET must be at least 32 chars');
-app.use(helmet()); app.use(cors({origin:process.env.CORS_ORIGIN?.split(',')||true,credentials:false})); app.use(express.json({limit:'200kb'})); app.use(rateLimit({windowMs:60_000,max:120,standardHeaders:true,legacyHeaders:false}));
+const allowedCorsOrigins=String(process.env.CORS_ORIGIN||'').split(',').map(value=>value.trim()).filter(Boolean);
+if(process.env.NODE_ENV==='production'&&allowedCorsOrigins.length===0) throw new Error('CORS_ORIGIN is required in production');
+app.set('trust proxy',1);
+app.use(helmet());
+app.use(cors({
+  origin(origin,callback){
+    if(!origin||allowedCorsOrigins.includes(origin)) return callback(null,true);
+    return callback(new Error('CORS origin is not allowed'));
+  },
+  credentials:false
+}));
+app.use(express.json({limit:'200kb'}));
+app.use(rateLimit({windowMs:60_000,max:120,standardHeaders:true,legacyHeaders:false}));
 const loginLimiter=rateLimit({
   windowMs:15*60*1000,
   max:10,
@@ -1850,8 +1862,8 @@ const token=async(u,req)=>{
 app.get('/health',(_,res)=>res.json({ok:true}));
 /*
  * V22-C MARKET INTELLIGENCE
- * GerÃ§ek CoinGecko global market verisi + deterministik analiz.
- * Sahte AI/LLM sonucu Ã¼retilmez.
+ * Gerçek CoinGecko global market verisi + deterministik analiz.
+ * Sahte AI/LLM sonucu üretilmez.
  */
 app.get('/api/market-intelligence', auth, async (req, res) => {
   const startedAt = Date.now();
@@ -1874,7 +1886,7 @@ app.get('/api/market-intelligence', auth, async (req, res) => {
     const data = payload?.data;
 
     if (!data) {
-      throw new Error('CoinGecko global market verisi bulunamadÄ±.');
+      throw new Error('CoinGecko global market verisi bulunamadı.');
     }
 
     const totalMarketCapUsd =
@@ -1929,27 +1941,27 @@ app.get('/api/market-intelligence', auth, async (req, res) => {
     const signals = [];
 
     if (marketCapChange24hPct > 0) {
-      signals.push('Toplam piyasa deÄŸeri son 24 saatte yÃ¼kseliyor.');
+      signals.push('Toplam piyasa değeri son 24 saatte yükseliyor.');
     } else if (marketCapChange24hPct < 0) {
-      signals.push('Toplam piyasa deÄŸeri son 24 saatte geriliyor.');
+      signals.push('Toplam piyasa değeri son 24 saatte geriliyor.');
     }
 
     if (volumeToMarketCapRatio >= 0.15) {
-      signals.push('Piyasa iÅŸlem hacmi gÃ¼Ã§lÃ¼.');
+      signals.push('Piyasa işlem hacmi güçlü.');
     } else if (volumeToMarketCapRatio < 0.05) {
-      signals.push('Piyasa iÅŸlem hacmi dÃ¼ÅŸÃ¼k.');
+      signals.push('Piyasa işlem hacmi düşük.');
     }
 
     if (btcDominancePct > 55) {
-      signals.push('BTC piyasa hakimiyeti yÃ¼ksek.');
+      signals.push('BTC piyasa hakimiyeti yüksek.');
     }
 
     const recommendation =
       sentiment === 'BULLISH'
-        ? 'Piyasa gÃ¶rÃ¼nÃ¼mÃ¼ pozitif; yine de iÅŸlem Ã¶ncesi varlÄ±k ve sÃ¶zleÅŸme bazlÄ± risk kontrolÃ¼ yapÄ±lmalÄ±dÄ±r.'
+        ? 'Piyasa görünümü pozitif; yine de işlem öncesi varlık ve sözleşme bazlı risk kontrolü yapılmalıdır.'
         : sentiment === 'BEARISH'
-          ? 'Piyasa gÃ¶rÃ¼nÃ¼mÃ¼ negatif; yÃ¼ksek riskli iÅŸlemlerde ekstra dikkat Ã¶nerilir.'
-          : 'Piyasa gÃ¶rÃ¼nÃ¼mÃ¼ nÃ¶tr; iÅŸlem Ã¶ncesi varlÄ±k ve sÃ¶zleÅŸme bazlÄ± risk kontrolÃ¼ yapÄ±lmalÄ±dÄ±r.';
+          ? 'Piyasa görünümü negatif; yüksek riskli işlemlerde ekstra dikkat önerilir.'
+          : 'Piyasa görünümü nötr; işlem öncesi varlık ve sözleşme bazlı risk kontrolü yapılmalıdır.';
 
     return res.json({
       success: true,
@@ -1979,7 +1991,7 @@ app.get('/api/market-intelligence', auth, async (req, res) => {
       signals,
 
       disclaimer:
-        'Bu sonuÃ§ gerÃ§ek piyasa verilerinden Ã¼retilen kural tabanlÄ± analizdir; yatÄ±rÄ±m tavsiyesi deÄŸildir.'
+        'Bu sonuç gerçek piyasa verilerinden üretilen kural tabanlı analizdir; yatırım tavsiyesi değildir.'
     });
   } catch (error) {
     console.error(
@@ -1990,7 +2002,7 @@ app.get('/api/market-intelligence', auth, async (req, res) => {
     return res.status(502).json({
       success: false,
       source: 'COINGECKO',
-      error: 'CanlÄ± piyasa verisi alÄ±namadÄ±.'
+      error: 'Canlı piyasa verisi alınamadı.'
     });
   }
 });
@@ -1998,7 +2010,7 @@ app.get('/api/market-intelligence', auth, async (req, res) => {
 app.get('/api/live-prices', async (req, res) => {
   try {
     const response = await fetch(
-      'https://api.coingecko.com/api/v3/simple/price?ids=tron,solana,bitcoin,avalanche-2,arbitrum,polygon-ecosystem-token,ethereum,binancecoin,pi-network,nft&vs_currencies=usd'
+      'https://api.coingecko.com/api/v3/simple/price?ids=tron,solana,bitcoin,avalanche-2,arbitrum,polygon-ecosystem-token,ethereum,binancecoin,pi-network&vs_currencies=usd'
     );
 
     if (!response.ok) {
@@ -2056,6 +2068,17 @@ app.post('/api/auth/logout',auth,async(req,res)=>{
   }
 });
 app.get('/api/me',auth,async(req,res)=>{const u=await db.user.findUnique({where:{id:req.user.id},include:{subscription:true}}); res.json({user:{id:u.id,name:u.name,email:u.email,status:u.subscription?.status==='ACTIVE'&&u.subscription.expiresAt>new Date()?'vip':'free',expiresAt:u.subscription?.expiresAt||null}})});
+app.delete('/api/me',auth,async(req,res)=>{
+  const parsed=z.object({confirmation:z.literal('DELETE')}).safeParse(req.body);
+  if(!parsed.success) return res.status(400).json({error:'Account deletion confirmation is required'});
+
+  await db.$transaction(async(tx)=>{
+    await tx.securityEvent.updateMany({where:{userId:req.user.id},data:{userId:null}});
+    await tx.user.delete({where:{id:req.user.id}});
+  });
+
+  return res.status(204).end();
+});
 app.post('/api/vip/verify',vipVerifyLimiter,auth,async(req,res)=>{
   try{
     const p=z.object({
@@ -2618,7 +2641,7 @@ app.post('/api/vip/verify',vipVerifyLimiter,auth,async(req,res)=>{
   }
 });/*
  * TRANSFER SHIELD
- * AlÄ±cÄ± adresini Scam Intelligence havuzunda kontrol eder.
+ * Alıcı adresini Scam Intelligence havuzunda kontrol eder.
  */
 /*
  * ============================================================
@@ -2626,10 +2649,10 @@ app.post('/api/vip/verify',vipVerifyLimiter,auth,async(req,res)=>{
  * URLhaus local threat-intelligence index.
  *
  * NOTE:
- * URLhaus malicious URL istihbaratÄ± saÄŸlar.
- * Bu endpoint sadece "phishing" etiketi taÅŸÄ±yan host eÅŸleÅŸmelerini
- * phishing olarak sÄ±nÄ±flandÄ±rÄ±r.
- * Bilinmeyen URL gÃ¼venli kabul edilmez.
+ * URLhaus malicious URL istihbaratı sağlar.
+ * Bu endpoint sadece "phishing" etiketi taşıyan host eşleşmelerini
+ * phishing olarak sınıflandırır.
+ * Bilinmeyen URL güvenli kabul edilmez.
  * ============================================================
  */
 
@@ -2831,8 +2854,8 @@ app.post('/api/check-phishing',auth,async(req,res)=>{
       phishing:isPhishing,
       malicious:true,
       summary:isPhishing
-        ? 'URLhaus verisinde bu URL iÃ§in phishing eÅŸleÅŸmesi bulundu.'
-        : 'URLhaus verisinde bu URL iÃ§in kÃ¶tÃ¼ amaÃ§lÄ± URL eÅŸleÅŸmesi bulundu.',
+        ? 'URLhaus verisinde bu URL için phishing eşleşmesi bulundu.'
+        : 'URLhaus verisinde bu URL için kötü amaçlı URL eşleşmesi bulundu.',
       matchedRecord:{
         url:exact.url,
         hostname:exact.hostname,
@@ -2863,7 +2886,7 @@ app.post('/api/check-phishing',auth,async(req,res)=>{
       source:'URLHAUS',
       phishing:true,
       malicious:true,
-      summary:'Alan adÄ± URLhaus phishing istihbaratÄ±nda eÅŸleÅŸti.',
+      summary:'Alan adı URLhaus phishing istihbaratında eşleşti.',
       matchedRecord:{
         url:record.url,
         hostname:record.hostname,
@@ -2886,7 +2909,7 @@ app.post('/api/check-phishing',auth,async(req,res)=>{
     source:'URLHAUS',
     phishing:false,
     malicious:false,
-    summary:'URLhaus verisinde eÅŸleÅŸme bulunamadÄ±. Bu sonuÃ§ URLnin gÃ¼venli olduÄŸunu garanti etmez.',
+    summary:'URLhaus verisinde eşleşme bulunamadı. Bu sonuç URLnin güvenli olduğunu garanti etmez.',
     matchedRecord:null
   });
 });
@@ -2957,7 +2980,7 @@ app.post('/api/check-transfer-recipient',auth,async(req,res)=>{
 });
 /*
  * CONTRACT ANALYSIS
- * GerÃ§ek RPC Ã¼zerinden temel kontrat / ERC20 analizi.
+ * Gerçek RPC üzerinden temel kontrat / ERC20 analizi.
  */
 const inspectContractSecurity = async ({contract,provider}) => {
   const result = {
@@ -3004,14 +3027,14 @@ const inspectContractSecurity = async ({contract,provider}) => {
       const finished=await mintAbi.mintingFinished();
       result.mint.mintingFinishedSupported=true;
       result.mint.mintingFinished=Boolean(finished);
-      result.mint.evidence.push('mintingFinished() RPC kontrolÃ¼ baÅŸarÄ±lÄ±');
+      result.mint.evidence.push('mintingFinished() RPC kontrolü başarılı');
     }catch(error){}
 
     try{
       const cap=await mintAbi.cap();
       result.mint.capSupported=true;
       result.mint.cap=cap.toString();
-      result.mint.evidence.push('cap() RPC kontrolÃ¼ baÅŸarÄ±lÄ±');
+      result.mint.evidence.push('cap() RPC kontrolü başarılı');
     }catch(error){}
 
     try{
@@ -3020,7 +3043,7 @@ const inspectContractSecurity = async ({contract,provider}) => {
         result.mint.minterSupported=true;
         result.mint.minter=minter;
         if(minter.toLowerCase()!==ethers.ZeroAddress.toLowerCase()){
-          result.mint.evidence.push('minter() sÄ±fÄ±r olmayan adres dÃ¶ndÃ¼rdÃ¼');
+          result.mint.evidence.push('minter() sıfır olmayan adres döndürdü');
         }
       }
     }catch(error){}
@@ -3028,12 +3051,12 @@ const inspectContractSecurity = async ({contract,provider}) => {
     try{
       const minterRole=await mintAbi.MINTER_ROLE();
       result.mint.minterRoleSupported=true;
-      result.mint.evidence.push('MINTER_ROLE() RPC kontrolÃ¼ baÅŸarÄ±lÄ±');
+      result.mint.evidence.push('MINTER_ROLE() RPC kontrolü başarılı');
       try{
         const count=await mintAbi.getRoleMemberCount(minterRole);
         result.mint.minterCountSupported=true;
         result.mint.minterCount=Number(count);
-        result.mint.evidence.push('getRoleMemberCount() RPC kontrolÃ¼ baÅŸarÄ±lÄ±');
+        result.mint.evidence.push('getRoleMemberCount() RPC kontrolü başarılı');
         try{
           const maxMembers=Math.min(Number(count),20);
           for(let i=0;i<maxMembers;i++){
@@ -3043,14 +3066,14 @@ const inspectContractSecurity = async ({contract,provider}) => {
               result.mint.minterAddresses.push(member);
             }
           }
-          result.mint.evidence.push('getRoleMember() RPC kontrolÃ¼ baÅŸarÄ±lÄ±');
+          result.mint.evidence.push('getRoleMember() RPC kontrolü başarılı');
         }catch(error){}
       }catch(error){}
     }catch(error){}
 
     result.mint.supported=Boolean(result.mint.mintingFinishedSupported || result.mint.capSupported || result.mint.minterSupported || result.mint.minterRoleSupported || result.mint.minterCountSupported);
   }catch(error){
-    // Mint kontrol yÃ¼zeyi desteklenmiyorsa analiz devam eder.
+    // Mint kontrol yüzeyi desteklenmiyorsa analiz devam eder.
   }
 
   try{
@@ -3072,17 +3095,17 @@ const inspectContractSecurity = async ({contract,provider}) => {
       result.owner.value = owner;
     }
   }catch(error){
-    // owner() bulunmamasÄ± normaldir.
+    // owner() bulunmaması normaldir.
 
   try{
     const adminAbi=new ethers.Contract(contract.target,['function DEFAULT_ADMIN_ROLE() view returns (bytes32)','function getRoleMemberCount(bytes32) view returns (uint256)','function getRoleMember(bytes32,uint256) view returns (address)'],provider);
     const adminRole=await adminAbi.DEFAULT_ADMIN_ROLE();
-    result.admin={supported:true,role:adminRole,countSupported:false,count:null,adminAddresses:[],evidence:['DEFAULT_ADMIN_ROLE() RPC kontrolÃ¼ baÅŸarÄ±lÄ±']};
+    result.admin={supported:true,role:adminRole,countSupported:false,count:null,adminAddresses:[],evidence:['DEFAULT_ADMIN_ROLE() RPC kontrolü başarılı']};
     try{
       const count=await adminAbi.getRoleMemberCount(adminRole);
       result.admin.countSupported=true;
       result.admin.count=Number(count);
-      result.admin.evidence.push('DEFAULT_ADMIN_ROLE Ã¼ye sayÄ±sÄ± RPC kontrolÃ¼ baÅŸarÄ±lÄ±');
+      result.admin.evidence.push('DEFAULT_ADMIN_ROLE üye sayısı RPC kontrolü başarılı');
       const maxMembers=Math.min(Number(count),20);
       for(let i=0;i<maxMembers;i++){
         try{
@@ -3101,7 +3124,7 @@ const inspectContractSecurity = async ({contract,provider}) => {
       const minterRole=await roleAbi.MINTER_ROLE();
       const ownerIsMinter=await roleAbi.hasRole(minterRole,result.owner.value);
       result.mint.ownerHasMinterRole=Boolean(ownerIsMinter);
-      result.mint.evidence.push(ownerIsMinter ? 'owner() adresi MINTER_ROLE sahibi' : 'owner() adresi MINTER_ROLE sahibi deÄŸil');
+      result.mint.evidence.push(ownerIsMinter ? 'owner() adresi MINTER_ROLE sahibi' : 'owner() adresi MINTER_ROLE sahibi değil');
     }catch(error){}
   }
   }
@@ -3120,7 +3143,7 @@ const inspectContractSecurity = async ({contract,provider}) => {
     result.paused.supported = true;
     result.paused.value = Boolean(paused);
   }catch(error){
-    // paused() bulunmamasÄ± normaldir.
+    // paused() bulunmaması normaldir.
   }
 
   return result;
@@ -3140,7 +3163,7 @@ const calculateContractRisk = ({
     signals.push({
       type:'SCAM_INTELLIGENCE_MATCH',
       weight:70,
-      description:'Kontrat adresi Scam Intelligence veritabanÄ±nda eÅŸleÅŸti.'
+      description:'Kontrat adresi Scam Intelligence veritabanında eşleşti.'
     });
   }
 
@@ -3157,7 +3180,7 @@ const calculateContractRisk = ({
       weight:evidenceScore,
       description:
         evidenceCount+
-        ' adet scam kanÄ±tÄ± bulundu.'
+        ' adet scam kanıtı bulundu.'
     });
   }
 
@@ -3170,7 +3193,7 @@ const calculateContractRisk = ({
     signals.push({
       type:'CONTRACT_PAUSED',
       weight:10,
-      description:'Kontrat paused() durumunda aktif olarak duraklatÄ±lmÄ±ÅŸ.'
+      description:'Kontrat paused() durumunda aktif olarak duraklatılmış.'
     });
   }
 
@@ -3191,7 +3214,7 @@ const calculateContractRisk = ({
       weight:metadataScore,
       description:
         metadataMissing+
-        ' metadata kontrolÃ¼ baÅŸarÄ±sÄ±z.'
+        ' metadata kontrolü başarısız.'
     });
   }
 
@@ -3201,7 +3224,7 @@ const calculateContractRisk = ({
     signals.push({
       type:'LARGE_BYTECODE',
       weight:5,
-      description:'Kontrat bytecode boyutu yÃ¼ksek.'
+      description:'Kontrat bytecode boyutu yüksek.'
     });
   }
 
@@ -3445,7 +3468,7 @@ app.post('/api/analyze-contract',auth,async(req,res)=>{
   }
 });/*
  * USER WALLET API
- * KullanÄ±cÄ±nÄ±n hesabÄ±na baÄŸlÄ± izlenen cÃ¼zdanlar.
+ * Kullanıcının hesabına bağlı izlenen cüzdanlar.
  */
 
 app.get('/api/wallets',auth,async(req,res)=>{
@@ -3492,8 +3515,8 @@ app.post('/api/wallets',auth,async(req,res)=>{
 
   try{
     /*
-     * VIP kontrolÃ¼ backend tarafÄ±nda yapÄ±lÄ±r.
-     * Frontend'deki userStatus'a gÃ¼venilmez.
+     * VIP kontrolü backend tarafında yapılır.
+     * Frontend'deki userStatus'a güvenilmez.
      */
     const subscription=await db.subscription.findUnique({
       where:{userId:req.user.id}
@@ -3512,7 +3535,7 @@ app.post('/api/wallets',auth,async(req,res)=>{
     }
 
     /*
-     * VIP kullanÄ±cÄ± baÅŸÄ±na maksimum 10 wallet.
+     * VIP kullanıcı başına maksimum 10 wallet.
      */
     const walletCount=await db.wallet.count({
       where:{userId:req.user.id}
@@ -3527,8 +3550,8 @@ app.post('/api/wallets',auth,async(req,res)=>{
     }
 
     /*
-     * AynÄ± network + address daha Ã¶nce kayÄ±tlÄ±ysa
-     * Prisma unique constraint tarafÄ±ndan da korunur.
+     * Aynı network + address daha önce kayıtlıysa
+     * Prisma unique constraint tarafından da korunur.
      */
     const wallet=await db.wallet.create({
       data:{
@@ -3624,8 +3647,8 @@ app.post('/api/check-wallet',walletScanLimiter,auth,async(req,res)=>{
   const address=p.data.address.trim();
 
   /*
-   * Adapter registry Ã¼zerinden ilgili blockchain
-   * adapter'Ä±nÄ± seÃ§iyoruz.
+   * Adapter registry üzerinden ilgili blockchain
+   * adapter'ını seçiyoruz.
    *
    * TRON:
    *   adapters.get('tron')
@@ -3675,7 +3698,7 @@ app.post('/api/check-wallet',walletScanLimiter,auth,async(req,res)=>{
     /*
      * Scam intelligence:
      * Blockchain adapter sonucunu ScamAddress /
-     * ScamEvidence veritabanÄ± ile karÅŸÄ±laÅŸtÄ±rÄ±yoruz.
+     * ScamEvidence veritabanı ile karşılaştırıyoruz.
      */
     const scamIntelligence =
       await lookupScamIntelligence({
@@ -3684,8 +3707,8 @@ app.post('/api/check-wallet',walletScanLimiter,auth,async(req,res)=>{
       });
 
     /*
-     * Transaction karÅŸÄ± taraflarÄ±nÄ± da scam havuzunda ara.
-     * Mevcut transaction listesini deÄŸiÅŸtirmiyoruz.
+     * Transaction karşı taraflarını da scam havuzunda ara.
+     * Mevcut transaction listesini değiştirmiyoruz.
      */
     const counterpartyScamIntelligence =
       await lookupTransactionScamIntelligence({
@@ -3695,7 +3718,7 @@ app.post('/api/check-wallet',walletScanLimiter,auth,async(req,res)=>{
       });
 
     /*
-     * TRON tarafÄ±ndaki mevcut risk motorunu
+     * TRON tarafındaki mevcut risk motorunu
      * aynen koruyoruz.
      */
     if(network==='tron'){
@@ -3738,7 +3761,7 @@ app.post('/api/check-wallet',walletScanLimiter,auth,async(req,res)=>{
     }
     /*
      * EVM risk motoru:
-     * YalnÄ±zca gerÃ§ek EVM aÄŸlarÄ±nda Ã§alÄ±ÅŸtÄ±rÄ±lÄ±r.
+     * Yalnızca gerçek EVM ağlarında çalıştırılır.
      */
     if(!['ethereum','bsc','polygon','arbitrum','base','optimism','avalanche'].includes(network)){
       return res.json({
@@ -3752,7 +3775,7 @@ app.post('/api/check-wallet',walletScanLimiter,auth,async(req,res)=>{
         risk:{
           score:0,
           level:'unknown',
-          reasons:['Bu aÄŸ iÃ§in Ã¶zel davranÄ±ÅŸsal risk motoru henÃ¼z uygulanmadÄ±.'],
+          reasons:['Bu ağ için özel davranışsal risk motoru henüz uygulanmadı.'],
           signals:['NETWORK_ADAPTER_ACTIVE'],
           network,
           totalTransactions:(result.transactions||[]).length
@@ -3810,14 +3833,14 @@ app.post('/api/check-wallet',walletScanLimiter,auth,async(req,res)=>{
  * ============================================================
  *
  * Durum:
- * - POST   /api/whale-watch              -> ğŸŸ¢ GerÃ§ek DB kaydÄ±
- * - GET    /api/whale-watch              -> ğŸŸ¢ GerÃ§ek DB listesi
- * - DELETE /api/whale-watch/:id          -> ğŸŸ¢ GerÃ§ek DB silme
- * - GET    /api/whale-watch/:id/activity -> ğŸŸ¢ GerÃ§ek adapter taramasÄ±
+ * - POST   /api/whale-watch              -> ğŸŸ¢ Gerçek DB kaydı
+ * - GET    /api/whale-watch              -> ğŸŸ¢ Gerçek DB listesi
+ * - DELETE /api/whale-watch/:id          -> ğŸŸ¢ Gerçek DB silme
+ * - GET    /api/whale-watch/:id/activity -> ğŸŸ¢ Gerçek adapter taraması
  *
  * Not:
- * GerÃ§ek zamanlÄ±/polling alarm sistemi bu katmanÄ±n sonraki
- * aÅŸamasÄ±dÄ±r. Bu endpoint mevcut blockchain tarama penceresini
+ * Gerçek zamanlı/polling alarm sistemi bu katmanın sonraki
+ * aşamasıdır. Bu endpoint mevcut blockchain tarama penceresini
  * sorgular.
  * ============================================================
  */
@@ -4142,7 +4165,7 @@ app.post('/api/monitor-vault-with-scam-pool',vaultMonitorLimiter,auth,async(req,
               : 'INCOMING';
 
           /*
-           * GerÃ§ek blockchain iÅŸlemindeki karÅŸÄ± tarafÄ±
+           * Gerçek blockchain işlemindeki karşı tarafı
            * ScamAddress havuzunda kontrol ediyoruz.
            */
           const scam=await lookupScamIntelligence({
@@ -4156,8 +4179,8 @@ app.post('/api/monitor-vault-with-scam-pool',vaultMonitorLimiter,auth,async(req,
             scam.matches?.[0]?.id || null;
 
           /*
-           * AynÄ± iÅŸlem daha Ã¶nce alarm oluÅŸturduysa
-           * tekrar SecurityAlert oluÅŸturulmaz.
+           * Aynı işlem daha önce alarm oluşturduysa
+           * tekrar SecurityAlert oluşturulmaz.
            */
           const existingAlert=
             await db.securityAlert.findFirst({
@@ -4189,15 +4212,15 @@ app.post('/api/monitor-vault-with-scam-pool',vaultMonitorLimiter,auth,async(req,
 
                   title:
                     direction==='INCOMING'
-                      ? 'âš ï¸ Scam Adresten Transfer'
-                      : 'ÄŸÅ¸Å¡Â¨ Scam Adrese Transfer',
+                      ? '⚠️ Scam Adresten Transfer'
+                      : 'Ÿš¨ Scam Adrese Transfer',
 
                   body:
-                    (wallet.label||'Vault cÃ¼zdanÄ±')+
+                    (wallet.label||'Vault cüzdanı')+
                     (
                       direction==='INCOMING'
-                        ? ' scam olarak iÅŸaretli bir adresten varlÄ±k aldÄ±.'
-                        : ' scam olarak iÅŸaretli bir adrese varlÄ±k gÃ¶nderdi.'
+                        ? ' scam olarak işaretli bir adresten varlık aldı.'
+                        : ' scam olarak işaretli bir adrese varlık gönderdi.'
                     ),
 
                   network,
@@ -4265,15 +4288,15 @@ app.post('/api/monitor-vault-with-scam-pool',vaultMonitorLimiter,auth,async(req,
 
             title:
               direction==='INCOMING'
-                ? 'âš ï¸ Scam Adresten Transfer'
-                : 'ÄŸÅ¸Å¡Â¨ Scam Adrese Transfer',
+                ? '⚠️ Scam Adresten Transfer'
+                : 'Ÿš¨ Scam Adrese Transfer',
 
             body:
-              (wallet.label||'Vault cÃ¼zdanÄ±')+
+              (wallet.label||'Vault cüzdanı')+
               (
                 direction==='INCOMING'
-                  ? ' scam olarak iÅŸaretli bir adresten varlÄ±k aldÄ±.'
-                  : ' scam olarak iÅŸaretli bir adrese varlÄ±k gÃ¶nderdi.'
+                  ? ' scam olarak işaretli bir adresten varlık aldı.'
+                  : ' scam olarak işaretli bir adrese varlık gönderdi.'
               ),
 
             network,
@@ -4972,12 +4995,12 @@ app.get('/api/live-gas-fees',auth,async(_,res)=>{
  * REALTIME WHALE ALERT ENGINE
  * ============================================================
  *
- * - TÃ¼m aktif WhaleWatch kayÄ±tlarÄ±nÄ± periyodik tarar.
- * - Ä°lk baÅŸarÄ±lÄ± tarama mevcut son iÅŸlemi baseline kabul eder.
- * - Sonraki taramalarda yeni iÅŸlemleri algÄ±lar.
- * - Yeni iÅŸlemleri SecurityAlert olarak kaydeder.
- * - lastSeenTxid / lastSeenAt cursor olarak kullanÄ±lÄ±r.
- * - Adapterlar gerÃ§ek blockchain verisini saÄŸlamaya devam eder.
+ * - Tüm aktif WhaleWatch kayıtlarını periyodik tarar.
+ * - İlk başarılı tarama mevcut son işlemi baseline kabul eder.
+ * - Sonraki taramalarda yeni işlemleri algılar.
+ * - Yeni işlemleri SecurityAlert olarak kaydeder.
+ * - lastSeenTxid / lastSeenAt cursor olarak kullanılır.
+ * - Adapterlar gerçek blockchain verisini sağlamaya devam eder.
  * ============================================================
  */
 
@@ -5043,9 +5066,9 @@ const createWhaleAlert = async ({
   }
 
   /*
-   * Whale Alert yalnÄ±zca gerÃ§ek transferleri alarm olarak Ã¼retir.
+   * Whale Alert yalnızca gerçek transferleri alarm olarak üretir.
    * Vote/contract/resource gibi aktiviteler:
-   * UNKNOWN + 0 miktar => alarm Ã¼retmez.
+   * UNKNOWN + 0 miktar => alarm üretmez.
    */
   const validDirections = [
     'INCOMING',
@@ -5110,20 +5133,20 @@ const createWhaleAlert = async ({
 
   const title =
     tx.direction === 'OUTGOING'
-      ? 'Ä°zlenen Whale Adresinden Transfer'
-      : 'Ä°zlenen Whale Adresine Transfer';
+      ? 'İzlenen Whale Adresinden Transfer'
+      : 'İzlenen Whale Adresine Transfer';
 
   const bodyParts = [
-    `${watch.network.toUpperCase()} aÄŸÄ± Ã¼zerinde izlenen adres iÃ§in yeni blockchain iÅŸlemi tespit edildi.`,
-    `Ä°ÅŸlem: ${tx.txid}`,
-    `YÃ¶n: ${tx.direction}`,
+    `${watch.network.toUpperCase()} ağı üzerinde izlenen adres için yeni blockchain işlemi tespit edildi.`,
+    `İşlem: ${tx.txid}`,
+    `Yön: ${tx.direction}`,
     amountText
       ? `Miktar: ${amountText}${tokenText ? ` ${tokenText}` : ''}`
       : null,
     counterparty
-      ? `KarÅŸÄ± taraf: ${counterparty}`
+      ? `Karşı taraf: ${counterparty}`
       : null,
-    `Ä°ÅŸlem tipi: ${tx.type}`
+    `İşlem tipi: ${tx.type}`
   ].filter(Boolean);
 
   const alert =
@@ -5245,9 +5268,9 @@ const processWhaleWatch = async (watch) => {
   const newest = transactions[0];
 
   /*
-   * Ä°lk baÅŸarÄ±lÄ± tarama:
+   * İlk başarılı tarama:
    * Mevcut blockchain durumunu baseline yap.
-   * GeÃ§miÅŸ iÅŸlemler iÃ§in alarm Ã¼retme.
+   * Geçmiş işlemler için alarm üretme.
    */
   if(!watch.lastSeenTxid){
     await db.whaleWatch.update({
@@ -5264,7 +5287,7 @@ const processWhaleWatch = async (watch) => {
     });
 
     console.log(
-      `[WHALE ALERT] Baseline oluÅŸturuldu: ${network} ${address} ${newest.txid}`
+      `[WHALE ALERT] Baseline oluşturuldu: ${network} ${address} ${newest.txid}`
     );
 
     return {
@@ -5284,7 +5307,7 @@ const processWhaleWatch = async (watch) => {
 
   /*
    * Cursor mevcut tarama penceresinde bulunuyorsa,
-   * onun Ã¶nÃ¼ndeki iÅŸlemler yenidir.
+   * onun önündeki işlemler yenidir.
    */
   let newTransactions;
 
@@ -5293,9 +5316,9 @@ const processWhaleWatch = async (watch) => {
       transactions.slice(0, cursorIndex);
   }else{
     /*
-     * Cursor mevcut pencerenin dÄ±ÅŸÄ±nda.
-     * Timestamp biliniyorsa yalnÄ±zca cursor'dan
-     * daha yeni iÅŸlemleri kabul et.
+     * Cursor mevcut pencerenin dışında.
+     * Timestamp biliniyorsa yalnızca cursor'dan
+     * daha yeni işlemleri kabul et.
      */
     const cursorTime =
       watch.lastSeenAt
@@ -5311,9 +5334,9 @@ const processWhaleWatch = async (watch) => {
         );
     }else{
       /*
-       * GÃ¼venli fallback:
-       * Eski cursor bilinmiyorsa geÃ§miÅŸ iÅŸlemleri
-       * topluca alarm olarak Ã¼retme.
+       * Güvenli fallback:
+       * Eski cursor bilinmiyorsa geçmiş işlemleri
+       * topluca alarm olarak üretme.
        */
       newTransactions = [];
     }
@@ -5322,9 +5345,9 @@ const processWhaleWatch = async (watch) => {
   let alertsCreated = 0;
 
   /*
-   * Eski iÅŸlemden yeniye doÄŸru iÅŸle.
-   * BÃ¶ylece birden fazla yeni iÅŸlem varsa
-   * hepsi sÄ±rayla alarm Ã¼retir.
+   * Eski işlemden yeniye doğru işle.
+   * Böylece birden fazla yeni işlem varsa
+   * hepsi sırayla alarm üretir.
    */
   const chronologicalNewTransactions =
     [...newTransactions].sort((a,b) => {
@@ -5351,7 +5374,7 @@ const processWhaleWatch = async (watch) => {
         alertsCreated += 1;
 
         console.log(
-          `[WHALE ALERT] Yeni iÅŸlem alarmÄ±: ${network} ${address} ${transaction.txid}`
+          `[WHALE ALERT] Yeni işlem alarmı: ${network} ${address} ${transaction.txid}`
         );
       }
     }catch(error){
@@ -5361,9 +5384,9 @@ const processWhaleWatch = async (watch) => {
       );
 
       /*
-       * Alarm kaydÄ± baÅŸarÄ±sÄ±z olursa cursor ilerletme.
-       * BÃ¶ylece iÅŸlem bir sonraki polling'de tekrar
-       * gÃ¼venli biÃ§imde ele alÄ±nabilir.
+       * Alarm kaydı başarısız olursa cursor ilerletme.
+       * Böylece işlem bir sonraki polling'de tekrar
+       * güvenli biçimde ele alınabilir.
        */
       return {
         success: false,
@@ -5374,8 +5397,8 @@ const processWhaleWatch = async (watch) => {
   }
 
   /*
-   * Yeni iÅŸlem varsa en gÃ¼ncel yeni iÅŸlemi cursor yap.
-   * Yeni iÅŸlem yoksa cursor'a dokunma.
+   * Yeni işlem varsa en güncel yeni işlemi cursor yap.
+   * Yeni işlem yoksa cursor'a dokunma.
    */
   if(chronologicalNewTransactions.length > 0){
     const latestNew =
@@ -5462,7 +5485,7 @@ if(typeof whaleAlertInterval?.unref === 'function'){
 }
 
 console.log(
-  `[WHALE ALERT] Realtime polling hazÄ±r: ${WHALE_ALERT_POLL_MS / 1000}s`
+  `[WHALE ALERT] Realtime polling hazır: ${WHALE_ALERT_POLL_MS / 1000}s`
 );
 
 /*
@@ -5657,10 +5680,10 @@ const syncSecurityAlertsToCentralNotifications = async () => {
         alert.title ||
         alert.name ||
         (type === 'WHALE_ALERT'
-          ? 'Balina Ä°ÅŸlemi'
+          ? 'Balina İşlemi'
           : type === 'SCAM_ALERT'
-            ? 'GÃ¼venlik UyarÄ±sÄ±'
-            : 'GÃ¼venlik Bildirimi');
+            ? 'Güvenlik Uyarısı'
+            : 'Güvenlik Bildirimi');
 
       let body =
         alert.body ||
@@ -5676,7 +5699,7 @@ const syncSecurityAlertsToCentralNotifications = async () => {
       }
 
       if (!body) {
-        body = `${title} kaydÄ± oluÅŸturuldu.`;
+        body = `${title} kaydı oluşturuldu.`;
       }
 
       try {
@@ -5882,9 +5905,9 @@ const runPriceAlertPolling = async () => {
                 userId: alert.userId,
                 type: 'PRICE_ALERT',
                 severity: 'WARNING',
-                title: `Fiyat AlarmÄ±: ${alert.asset}`,
+                title: `Fiyat Alarmı: ${alert.asset}`,
                 body:
-                  `${alert.asset} fiyatÄ± $${price} seviyesine ulaÅŸtÄ±. ` +
+                  `${alert.asset} fiyatı $${price} seviyesine ulaştı. ` +
                   `Hedef: $${alert.targetPrice} (${alert.direction}).`,
                 eventKey,
                 asset: alert.asset,
@@ -5938,7 +5961,7 @@ if (typeof priceAlertInterval?.unref === 'function') {
 }
 
 console.log(
-  `[PRICE ALERT] Polling hazÄ±r: ${PRICE_ALERT_POLL_MS / 1000}s`
+  `[PRICE ALERT] Polling hazır: ${PRICE_ALERT_POLL_MS / 1000}s`
 );
 const PRICE_ALERT_SUPPORTED_ASSETS = new Set([
   'tron',
@@ -5949,8 +5972,7 @@ const PRICE_ALERT_SUPPORTED_ASSETS = new Set([
   'polygon-ecosystem-token',
   'ethereum',
   'binancecoin',
-  'pi-network',
-  'nft'
+  'pi-network'
 ]);
 
 const normalizePriceAlertAsset = (value) => {

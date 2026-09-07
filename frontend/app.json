@@ -3,16 +3,29 @@
                  "name":  "Safe Sentinel",
                  "slug":  "safe-sentinel",
                  "version":  "1.0.0",
+                 "scheme":  "safe-sentinel",
                  "orientation":  "portrait",
                  "userInterfaceStyle":  "automatic",
+                 "icon":  "./assets/yenilogo.png",
                  "assetBundlePatterns":  [
                                              "**/*"
                                          ],
                  "plugins":  [
-                                 "expo-secure-store"
+                                 "expo-secure-store",
+                                 "expo-notifications"
                              ],
                  "android":  {
-                                 "package":  "com.fiko93.safesentinel"
+                                 "package":  "com.fiko93.safesentinel",
+                                 "versionCode":  1,
+                                 "permissions":  [
+                                                      "android.permission.INTERNET",
+                                                      "android.permission.VIBRATE",
+                                                      "android.permission.POST_NOTIFICATIONS"
+                                                  ],
+                                 "adaptiveIcon":  {
+                                                        "foregroundImage":  "./assets/yenilogo.png",
+                                                        "backgroundColor":  "#07111F"
+                                                    }
                              },
                  "extra":  {
                                "eas":  {
