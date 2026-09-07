@@ -10,7 +10,16 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "environment": "production",
+      "env": {
+        "EXPO_PUBLIC_PLAY_STORE_BUILD": "true",
+        "EXPO_PUBLIC_BACKEND_URL": "https://safe-sentinel-pro-1.onrender.com"
+      },
+      "android": {
+        "buildType": "apk",
+        "credentialsSource": "remote"
+      }
     },
     "production": {
       "autoIncrement": true,
