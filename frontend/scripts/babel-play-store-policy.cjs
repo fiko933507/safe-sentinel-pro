@@ -27,7 +27,10 @@ module.exports = function safeSentinelPlayStorePolicyPlugin({ types: t }) {
     });
   };
 
-  const isVipGate = (node) => containsIdentifier(node, 'userStatus') && containsVipLiteral(node);
+  const isFreeScanPaywall = (node) =>
+    containsIdentifier(node, 'userStatus') &&
+    containsIdentifier(node, 'queryCount') &&
+    containsVipLiteral(node);
 
   const isVipRouteElement = (element) => {
     if (!element) return false;
@@ -57,7 +60,7 @@ module.exports = function safeSentinelPlayStorePolicyPlugin({ types: t }) {
       },
 
       IfStatement(path) {
-        if (isVipGate(path.node.test)) {
+        if (isFreeScanPaywall(path.node.test)) {
           path.node.test = t.booleanLiteral(false);
         }
       },
@@ -73,7 +76,7 @@ module.exports = function safeSentinelPlayStorePolicyPlugin({ types: t }) {
               t.memberExpression(t.identifier('Alert'), t.identifier('alert')),
               [
                 t.stringLiteral('Safe Sentinel Pro'),
-                t.stringLiteral('Play Store sürümünde doğrudan kripto abonelik satın alma kapalıdır. Bu sürümde güvenlik özellikleri ödeme duvarı olmadan kullanılabilir.')
+                t.stringLiteral('Play Store sürümünde doğrudan kripto abonelik satın alma kapalıdır. Premium satın alma Google Play Billing entegrasyonu tamamlandıktan sonra sunulacaktır.')
               ]
             )
           );
