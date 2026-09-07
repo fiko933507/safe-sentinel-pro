@@ -2,6 +2,7 @@ import fs from 'node:fs';
 
 const read = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 const eas = JSON.parse(read('eas.json'));
+const policy = JSON.parse(read('production-feature-registry.json'));
 const manifest = read('android/app/src/main/AndroidManifest.xml');
 const gradle = read('android/app/build.gradle');
 const source = read('App.js');
@@ -9,6 +10,7 @@ const babelConfig = read('babel.config.js');
 const productionUiPlugin = read('scripts/babel-supported-languages.cjs');
 const playStorePlugin = read('scripts/babel-play-store-policy.cjs');
 const structuralPlugin = read('scripts/babel-structural-fixes.cjs');
+const secureStoreRules = read('android/app/src/main/res/xml/secure_store_data_extraction_rules.xml');
 const failures = [];
 
 const check = (condition, message) => {
@@ -26,12 +28,30 @@ check(!manifest.includes('READ_EXTERNAL_STORAGE'), 'READ_EXTERNAL_STORAGE izni k
 check(!manifest.includes('WRITE_EXTERNAL_STORAGE'), 'WRITE_EXTERNAL_STORAGE izni kaldırılmamış.');
 check(manifest.includes('android:allowBackup="false"'), 'Android yedekleme kapatılmamış.');
 check(manifest.includes('android:usesCleartextTraffic="false"'), 'Cleartext HTTP kapatılmamış.');
+check(manifest.includes('android:dataExtractionRules="@xml/secure_store_data_extraction_rules"'), 'SecureStore data extraction rule manifestte bağlı değil.');
+check(secureStoreRules.includes('<exclude domain="sharedpref" path="SecureStore"/>'), 'SecureStore backup/device-transfer dışlaması eksik.');
 check(manifest.includes('android:icon="@mipmap/ic_launcher"'), 'Native launcher icon kaynağı tanımlı değil.');
 check(!/release\s*\{[\s\S]*?signingConfig\s+signingConfigs\.debug/.test(gradle), 'Release hâlâ debug anahtarıyla imzalanıyor.');
 check(gradle.includes('targetSdkVersion 36'), 'targetSdkVersion 36 değil.');
 check(gradle.includes('compileSdk 36'), 'compileSdk 36 değil.');
 check(!/https?:\/\/(localhost|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01]))/.test(source), 'App.js içinde yerel/LAN API adresi var.');
 check(source.includes('EXPO_PUBLIC_BACKEND_URL'), 'Production backend ortam değişkeni kullanılmıyor.');
+
+check(
+  Array.isArray(policy.supportedProductionLanguages) &&
+    policy.supportedProductionLanguages.length === 2 &&
+    policy.supportedProductionLanguages[0] === 'tr' &&
+    policy.supportedProductionLanguages[1] === 'en',
+  'Production dil registry yalnızca tr/en değil.'
+);
+const requiredHiddenModules = [
+  'whaleWatchView', 'emergencyLockView', 'taxReportView', 'dexOrdersView',
+  'gasTimeView', 'deepIntelView', 'autoPhishView'
+];
+check(
+  requiredHiddenModules.every((moduleName) => policy.hiddenProductionModules?.includes(moduleName)),
+  'Production feature registry gizlenmesi gereken modüllerin tamamını içermiyor.'
+);
 
 check(
   babelConfig.includes('./scripts/babel-structural-fixes.cjs') &&
@@ -45,19 +65,9 @@ check(
   'Security address delete handler için structural hoist düzeltmesi eksik.'
 );
 check(
-  productionUiPlugin.includes("new Set(['tr', 'en'])"),
-  'Eksik locale filtrelemesi TR/EN ile sınırlandırılmamış.'
-);
-check(
-  productionUiPlugin.includes("currentStateName === 'whaleWatchList'") &&
-    productionUiPlugin.includes("'whaleWatchView'") &&
-    productionUiPlugin.includes("'emergencyLockView'") &&
-    productionUiPlugin.includes("'taxReportView'") &&
-    productionUiPlugin.includes("'dexOrdersView'") &&
-    productionUiPlugin.includes("'gasTimeView'") &&
-    productionUiPlugin.includes("'deepIntelView'") &&
-    productionUiPlugin.includes("'autoPhishView'"),
-  'Yarım araçlar production görünümünden izole edilmemiş.'
+  productionUiPlugin.includes("require('../production-feature-registry.cjs')") ||
+    productionUiPlugin.includes("new Set(['tr', 'en'])"),
+  'Production UI hardening merkezi feature/dil politikasına bağlı değil.'
 );
 check(
   productionUiPlugin.includes("currentStateName === 'networkGasFees'") &&
@@ -65,7 +75,7 @@ check(
   'Gas ekranı canlı veri öncesi sabit ücretlerden arındırılmamış.'
 );
 check(
-  !source.includes('Share.share') || productionUiPlugin.includes("name: 'Share'"),
+  !source.includes('Share.share') || productionUiPlugin.includes("name: 'Share'") || source.includes('Share,'),
   'Mobil portfolio export Share import koruması eksik.'
 );
 check(
