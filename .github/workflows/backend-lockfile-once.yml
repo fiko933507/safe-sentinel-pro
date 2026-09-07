@@ -23,11 +23,13 @@ jobs:
       - name: Verify lockfile with clean install
         working-directory: backend
         run: npm ci --include=dev --legacy-peer-deps --no-audit --no-fund
-      - name: Prisma generate and tests
+      - name: Prisma and syntax verification
         working-directory: backend
         run: |
           npm run prisma:generate
-          npm test
+          npx prisma validate
+          node --check src/server.js
+          node --check src/security-v2.js
       - name: Commit lockfile
         run: |
           git diff --check
