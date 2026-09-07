@@ -16,6 +16,9 @@
       "autoIncrement": true,
       "distribution": "store",
       "environment": "production",
+      "env": {
+        "EXPO_PUBLIC_PLAY_STORE_BUILD": "true"
+      },
       "android": {
         "buildType": "app-bundle",
         "credentialsSource": "remote"
