@@ -1,40 +1,14 @@
 {
-    "expo":  {
-                 "name":  "Safe Sentinel",
-                 "slug":  "safe-sentinel",
-                 "version":  "1.0.0",
-                 "scheme":  "safe-sentinel",
-                 "orientation":  "portrait",
-                 "userInterfaceStyle":  "automatic",
-                 "icon":  "./assets/yenilogo.png",
-                 "assetBundlePatterns":  [
-                                             "**/*"
-                                         ],
-                 "plugins":  [
-                                 "expo-secure-store",
-                                 "expo-notifications"
-                             ],
-                 "android":  {
-                                 "package":  "com.fiko93.safesentinel",
-                                 "versionCode":  1,
-                                 "permissions":  [
-                                                      "android.permission.INTERNET",
-                                                      "android.permission.VIBRATE",
-                                                      "android.permission.POST_NOTIFICATIONS"
-                                                  ],
-                                 "adaptiveIcon":  {
-                                                        "foregroundImage":  "./assets/yenilogo.png",
-                                                        "backgroundColor":  "#07111F"
-                                                    }
-                             },
-                 "extra":  {
-                               "eas":  {
-                                           "projectId":  "ee6d3d46-e340-43d4-9eef-4b6ad4427452"
-                                       }
-                           },
-                 "owner":  "fiko93",
-                 "ios":  {
-                             "bundleIdentifier":  "com.fiko93.safesentinel"
-                         }
-             }
+  "expo": {
+    "name": "Safe Sentinel",
+    "slug": "safe-sentinel",
+    "version": "1.0.0",
+    "assetBundlePatterns": ["**/*"],
+    "extra": {
+      "eas": {
+        "projectId": "ee6d3d46-e340-43d4-9eef-4b6ad4427452"
+      }
+    },
+    "owner": "fiko93"
+  }
 }
