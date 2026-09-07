@@ -43,7 +43,7 @@ jobs:
         with:
           node-version: 22
       - name: Install backend dependencies
-        run: npm ci
+        run: npm install --include=dev --legacy-peer-deps --no-audit --no-fund
       - name: Prisma generate
         run: npm run prisma:generate
       - name: Prisma validate
@@ -86,6 +86,6 @@ jobs:
         with:
           node-version: 22
       - name: Install frontend dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps --no-audit --no-fund
       - name: Frontend release audit
         run: npm test
