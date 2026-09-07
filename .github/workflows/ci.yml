@@ -148,7 +148,9 @@ jobs:
         run: npm ci --legacy-peer-deps --no-audit --no-fund
 
       - name: Build Android release bundle
-        run: ./android/gradlew --no-daemon -p android bundleRelease
+        run: |
+          chmod +x android/gradlew
+          ./android/gradlew --no-daemon -p android bundleRelease
 
       - name: Verify AAB
         run: test -s android/app/build/outputs/bundle/release/app-release.aab
