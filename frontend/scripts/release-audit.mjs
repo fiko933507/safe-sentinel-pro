@@ -6,6 +6,8 @@ const eas = JSON.parse(read('eas.json'));
 const manifest = read('android/app/src/main/AndroidManifest.xml');
 const gradle = read('android/app/build.gradle');
 const source = read('App.js');
+const babelConfig = read('babel.config.js');
+const productionUiPlugin = read('scripts/babel-supported-languages.cjs');
 const failures = [];
 
 const check = (condition, message) => {
@@ -25,6 +27,29 @@ check(!/release\s*\{[\s\S]*?signingConfig\s+signingConfigs\.debug/.test(gradle),
 check(gradle.includes('targetSdkVersion 36'), 'targetSdkVersion 36 değil.');
 check(!/https?:\/\/(localhost|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01]))/.test(source), 'App.js içinde yerel/LAN API adresi var.');
 check(source.includes('EXPO_PUBLIC_BACKEND_URL'), 'Production backend ortam değişkeni kullanılmıyor.');
+
+check(
+  babelConfig.includes('./scripts/babel-supported-languages.cjs'),
+  'Production UI/i18n hardening Babel plugin etkin değil.'
+);
+check(
+  productionUiPlugin.includes("new Set(['tr', 'en'])"),
+  'Eksik locale filtrelemesi TR/EN ile sınırlandırılmamış.'
+);
+check(
+  productionUiPlugin.includes("currentStateName === 'whaleWatchList'") &&
+    productionUiPlugin.includes("value: 'whaleWatchView'"),
+  'Whale Watch placeholder frontend production görünümünden izole edilmemiş.'
+);
+check(
+  productionUiPlugin.includes("currentStateName === 'networkGasFees'") &&
+    productionUiPlugin.includes("t.stringLiteral('—')"),
+  'Gas ekranı canlı veri öncesi sabit ücretlerden arındırılmamış.'
+);
+check(
+  !source.includes('Share.share') || productionUiPlugin.includes("name: 'Share'"),
+  'Mobil portfolio export Share import koruması eksik.'
+);
 
 if (failures.length) {
   console.error('RELEASE AUDIT FAILED');
