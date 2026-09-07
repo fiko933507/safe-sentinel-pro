@@ -4594,24 +4594,24 @@ function App() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
         <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
-        <View style={[styles.card, { backgroundColor: theme.cardBg, alignItems: 'center', paddingVertical: 8, paddingHorizontal: 8, width: '100%', maxWidth: 360, alignSelf: 'center' }]}>
+        <View style={[styles.card, { backgroundColor: theme.cardBg, alignItems: 'center', paddingVertical: 22, paddingHorizontal: 18, width: '100%', maxWidth: 430, alignSelf: 'center', marginTop: 36, borderRadius: 18, borderWidth: 1, borderColor: theme.borderCol }]}>
 
-          <View style={{ width: '100%', alignItems: 'center', marginBottom: 4 }}>
+          <View style={{ width: '100%', alignItems: 'center', marginBottom: 12 }}>
             <Image
               source={require('./assets/yenilogo.png')}
-              style={{ width: 54, height: 54, borderRadius: 10 }}
+              style={{ width: 150, height: 108, borderRadius: 18 }}
               resizeMode="contain" />
 
           </View>
 
-          <Text style={{ color: theme.primary, fontSize: 13, fontWeight: '800', textAlign: 'center', marginBottom: 4, letterSpacing: 0.5 }}>SAFE SENTINEL PRO</Text>
+          <Text style={{ color: theme.primary, fontSize: 22, fontWeight: '900', textAlign: 'center', marginBottom: 8, letterSpacing: 0.9 }}>SAFE SENTINEL PRO</Text>
 
-          <View style={{ width: '100%', marginBottom: 7 }}>
+          <View style={{ width: '100%', marginBottom: 14 }}>
             <Text style={{
               color: theme.textSub,
-              fontSize: 8,
-              fontWeight: '600',
-              marginBottom: 4,
+              fontSize: 10,
+              fontWeight: '700',
+              marginBottom: 7,
               textAlign: 'center'
             }}>
               {t('language')}
@@ -4636,9 +4636,9 @@ function App() {
                       backgroundColor: active ? theme.primary : theme.inputBg,
                       borderWidth: 1,
                       borderColor: active ? theme.primary : theme.borderCol,
-                      borderRadius: 6,
-                      paddingHorizontal: 7,
-                      height: 24,
+                      borderRadius: 10,
+                      paddingHorizontal: 14,
+                      height: 38,
                       justifyContent: 'center',
                       alignItems: 'center',
                       marginRight: 4
@@ -4646,8 +4646,8 @@ function App() {
 
                     <Text style={{
                       color: active ? '#FFFFFF' : theme.textMain,
-                      fontSize: 8,
-                      fontWeight: active ? '800' : '600'
+                      fontSize: 12,
+                      fontWeight: active ? '800' : '700'
                     }}>
                       {item.nativeName}
                     </Text>
@@ -4656,12 +4656,12 @@ function App() {
               })}
             </ScrollView>
           </View>
-          <Text style={{ color: theme.textSub, fontSize: 8, textAlign: 'center', marginBottom: 7 }}>{t('loginDescription')}</Text>
+          <Text style={{ color: theme.textSub, fontSize: 11, lineHeight: 17, textAlign: 'center', marginBottom: 18 }}>{t('loginDescription')}</Text>
 
           <View style={{ width: '100%', marginBottom: 6 }}>
-            <Text style={{ color: theme.textMain, fontSize: 9, fontWeight: '600', marginBottom: 3 }}>{t('emailAddress')}</Text>
+            <Text style={{ color: theme.textMain, fontSize: 12, fontWeight: '800', marginBottom: 7 }}>{t('emailAddress')}</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, width: '100%', height: 28, fontSize: 9, paddingVertical: 0, textAlignVertical: 'center' }]}
+              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, width: '100%', height: 50, fontSize: 13, paddingHorizontal: 14, paddingVertical: 0, borderRadius: 12, textAlignVertical: 'center' }]}
               placeholder="ornek@mail.com"
               placeholderTextColor="#9CA3AF"
               value={email}
@@ -4671,7 +4671,7 @@ function App() {
           </View>
 
           <View style={{ width: '100%', marginBottom: 8 }}>
-            <Text style={{ color: theme.textMain, fontSize: 9, fontWeight: '600', marginBottom: 3 }}>{t('loginPassword')}</Text>
+            <Text style={{ color: theme.textMain, fontSize: 12, fontWeight: '800', marginBottom: 7 }}>{t('loginPassword')}</Text>
             <TextInput
               style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, width: '100%', height: 28, fontSize: 9, paddingVertical: 0, textAlignVertical: 'center' }]}
               placeholder="••••••••"
@@ -4682,15 +4682,15 @@ function App() {
 
           </View>
 
-          <TouchableOpacity style={[styles.button, { width: '100%', height: 25, backgroundColor: theme.primary, marginBottom: 8, borderRadius: 6, shadowColor: theme.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4, elevation: 3 }]} onPress={handleLogin}>
-            <Text style={[styles.buttonText, { fontSize: 8 }]}>{t('secureLogin')}</Text>
+          <TouchableOpacity style={[styles.button, { width: '100%', height: 48, backgroundColor: theme.primary, marginBottom: 11, borderRadius: 12, shadowColor: theme.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4, elevation: 3 }]} onPress={handleLogin}>
+            <Text style={[styles.buttonText, { fontSize: 13, fontWeight: '900' }]}>{t('secureLogin')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.button, { width: '100%', height: 25, backgroundColor: 'transparent', borderWidth: 1.5, borderColor: theme.borderCol, borderRadius: 6 }]}
+            style={[styles.button, { width: '100%', height: 46, backgroundColor: 'transparent', borderWidth: 1.5, borderColor: theme.borderCol, borderRadius: 12 }]}
             onPress={() => setCurrentScreen('register')}>
 
-            <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 9 }}>{t('createAccount')}</Text>
+            <Text style={{ color: theme.primary, fontWeight: '800', fontSize: 12 }}>{t('createAccount')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>);
