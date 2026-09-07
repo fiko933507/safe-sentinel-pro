@@ -41,5 +41,9 @@ const result = transformSync(original, {
 });
 
 if (!result?.code) throw new Error('Source-level production transform returned no code.');
-fs.writeFileSync(appPath, `${result.code}\n`);
+const normalized = result.code
+  .replace(/[ \t]+$/gm, '')
+  .replace(/\n{3,}/g, '\n\n')
+  .trimEnd();
+fs.writeFileSync(appPath, `${normalized}\n`);
 console.log('SOURCE PLAY STORE POLICY APPLIED');
