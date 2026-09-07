@@ -17,7 +17,8 @@
       "distribution": "store",
       "environment": "production",
       "env": {
-        "EXPO_PUBLIC_PLAY_STORE_BUILD": "true"
+        "EXPO_PUBLIC_PLAY_STORE_BUILD": "true",
+        "EXPO_PUBLIC_BACKEND_URL": "https://safe-sentinel-pro-1.onrender.com"
       },
       "android": {
         "buildType": "app-bundle",
