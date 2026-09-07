@@ -6,6 +6,7 @@
   "scripts": {
     "test": "node scripts/release-audit.mjs",
     "release:audit": "node scripts/release-audit.mjs",
+    "i18n:audit": "node scripts/i18n-audit.mjs",
     "doctor": "expo-doctor",
     "start": "expo start",
     "android": "expo run:android",
