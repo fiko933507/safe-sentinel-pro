@@ -11,4 +11,12 @@
 -keep class com.swmansion.reanimated.** { *; }
 -keep class com.facebook.react.turbomodule.** { *; }
 
+# JNA on Android
+# JNA contains optional desktop/AWT entry points that are not present on Android.
+# Keep JNA JNI-facing classes and ignore only the unavailable java.awt package.
+-dontwarn java.awt.**
+-keep class com.sun.jna.** { *; }
+-keep class * extends com.sun.jna.** { *; }
+-keepclassmembers class * extends com.sun.jna.** { public *; }
+
 # Add any project specific keep options here:
