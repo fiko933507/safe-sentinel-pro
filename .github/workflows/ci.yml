@@ -13,9 +13,32 @@ jobs:
   backend:
     name: Backend tests and Prisma validation
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
     defaults:
       run:
         working-directory: backend
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
+      JWT_SECRET: ci-only-jwt-secret-safe-sentinel-1234567890
+      CORS_ORIGIN: https://example.invalid
+      VIP_TRON_ADDRESS: TExampleOnlyNotARealProductionAddress1234
+      TRONGRID_API_KEY: ci-placeholder
+      PORT: 4000
+      TEST_API_BASE_URL: http://127.0.0.1:4000
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,29 +53,39 @@ jobs:
 
       - name: Generate Prisma client
         run: npm run prisma:generate
-        env:
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
 
       - name: Validate Prisma schema
         run: npx prisma validate
-        env:
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+
+      - name: Apply CI migrations
+        run: npm run prisma:migrate:deploy
+
+      - name: Start backend for HTTP protection tests
+        run: |
+          npm start > /tmp/safe-sentinel-backend.log 2>&1 &
+          echo $! > /tmp/safe-sentinel-backend.pid
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4000/health >/dev/null; then
+              echo "Backend ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/safe-sentinel-backend.log
+          exit 1
 
       - name: Run backend tests
         run: npm test
-        env:
-          NODE_ENV: test
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
-          JWT_SECRET: ci-only-jwt-secret-safe-sentinel-1234567890
-          CORS_ORIGIN: https://example.invalid
-          VIP_TRON_ADDRESS: TExampleOnlyNotARealProductionAddress1234
-          TRONGRID_API_KEY: ci-placeholder
 
       - name: Syntax-check production server
         run: node --check src/server.js
 
       - name: Syntax-check security engine
         run: node --check src/security-v2.js
+
+      - name: Show backend logs on failure
+        if: failure()
+        run: cat /tmp/safe-sentinel-backend.log || true
 
   frontend:
     name: Frontend release and i18n audit
