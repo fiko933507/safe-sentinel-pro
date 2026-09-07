@@ -1,0 +1,95 @@
+name: Safe Sentinel Release Audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  backend:
+    name: Backend + PostgreSQL
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: safesentinel
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d safesentinel"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/safesentinel?schema=public
+      JWT_SECRET: ci-only-safe-sentinel-jwt-secret-64-characters-minimum-2026-test
+      CORS_ORIGIN: https://example.com
+      VIP_TRON_ADDRESS: TY8UwgeCoEog8Lz6BseBXfaBRoZMG28QNn
+      TRONGRID_API_KEY: ci-placeholder-not-a-production-secret
+      TRON_RPC: https://api.trongrid.io
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install backend dependencies
+        run: npm ci
+      - name: Prisma generate
+        run: npm run prisma:generate
+      - name: Prisma validate
+        run: npx prisma validate
+      - name: Apply migrations to disposable CI database
+        run: npm run prisma:migrate:deploy
+      - name: Backend tests
+        run: npm test
+      - name: Start backend
+        run: |
+          npm run railway:start > /tmp/safe-sentinel-backend.log 2>&1 &
+          echo $! > /tmp/safe-sentinel-backend.pid
+      - name: Wait for database-ready health endpoint
+        run: |
+          for i in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4000/health | grep -q '"database":"connected"'; then
+              echo "Backend health check passed"
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/safe-sentinel-backend.log || true
+          exit 1
+      - name: Stop backend
+        if: always()
+        run: |
+          if [ -f /tmp/safe-sentinel-backend.pid ]; then
+            kill -TERM "$(cat /tmp/safe-sentinel-backend.pid)" || true
+          fi
+
+  frontend:
+    name: Frontend release + i18n audit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Frontend release audit
+        run: npm test
