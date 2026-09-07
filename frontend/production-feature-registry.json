@@ -1,0 +1,37 @@
+{
+  "supportedProductionLanguages": ["tr", "en"],
+  "hiddenProductionModules": [
+    "whaleWatchView",
+    "emergencyLockView",
+    "taxReportView",
+    "dexOrdersView",
+    "gasTimeView",
+    "deepIntelView",
+    "autoPhishView"
+  ],
+  "backendReadyUiDeferred": [
+    "walletBehavioralFingerprint",
+    "scamDna",
+    "walletSecurityGraph",
+    "earlyWarning",
+    "whaleWatch"
+  ],
+  "corePlayStoreFeatures": [
+    "auth",
+    "accountDeletion",
+    "walletRiskScan",
+    "manualPhishingScan",
+    "transferRecipientRisk",
+    "smartContractAnalysis",
+    "revokeCenter",
+    "portfolio",
+    "liveGas",
+    "priceAlerts",
+    "vault",
+    "whitelist",
+    "blacklist",
+    "guardian",
+    "inheritance",
+    "notifications"
+  ]
+}
