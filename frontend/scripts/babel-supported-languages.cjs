@@ -1,5 +1,14 @@
 module.exports = function safeSentinelProductionUiPlugin({ types: t }) {
   const supported = new Set(['tr', 'en']);
+  const hiddenProductionModules = new Set([
+    'whaleWatchView',
+    'emergencyLockView',
+    'taxReportView',
+    'dexOrdersView',
+    'gasTimeView',
+    'deepIntelView',
+    'autoPhishView'
+  ]);
 
   const runtimeTranslations = {
     runtimeWalletNotConnected: ['EVM cüzdan bağlı değil.', 'EVM wallet is not connected.'],
@@ -186,7 +195,9 @@ module.exports = function safeSentinelProductionUiPlugin({ types: t }) {
       ArrayExpression(path) {
         path.node.elements = path.node.elements.filter((element) => {
           if (!t.isArrayExpression(element)) return true;
-          return !element.elements.some((item) => t.isStringLiteral(item, { value: 'whaleWatchView' }));
+          return !element.elements.some(
+            (item) => t.isStringLiteral(item) && hiddenProductionModules.has(item.value)
+          );
         });
       }
     }

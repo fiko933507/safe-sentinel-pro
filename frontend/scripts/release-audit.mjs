@@ -50,8 +50,14 @@ check(
 );
 check(
   productionUiPlugin.includes("currentStateName === 'whaleWatchList'") &&
-    productionUiPlugin.includes("value: 'whaleWatchView'"),
-  'Whale Watch placeholder frontend production görünümünden izole edilmemiş.'
+    productionUiPlugin.includes("'whaleWatchView'") &&
+    productionUiPlugin.includes("'emergencyLockView'") &&
+    productionUiPlugin.includes("'taxReportView'") &&
+    productionUiPlugin.includes("'dexOrdersView'") &&
+    productionUiPlugin.includes("'gasTimeView'") &&
+    productionUiPlugin.includes("'deepIntelView'") &&
+    productionUiPlugin.includes("'autoPhishView'"),
+  'Yarım araçlar production görünümünden izole edilmemiş.'
 );
 check(
   productionUiPlugin.includes("currentStateName === 'networkGasFees'") &&

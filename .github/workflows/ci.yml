@@ -116,3 +116,47 @@ jobs:
 
       - name: Expo dependency check
         run: npx expo-doctor
+
+  android-release:
+    name: Android release AAB
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      EXPO_PUBLIC_BACKEND_URL: https://example.invalid
+      EXPO_PUBLIC_PLAY_STORE_BUILD: 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
+
+      - name: Build Android release bundle
+        run: ./android/gradlew --no-daemon -p android bundleRelease
+
+      - name: Verify AAB
+        run: test -s android/app/build/outputs/bundle/release/app-release.aab
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: safe-sentinel-pro-release-aab
+          path: frontend/android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 14
