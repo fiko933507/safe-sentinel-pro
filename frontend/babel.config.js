@@ -3,6 +3,9 @@ module.exports = function(api) {
 
   return {
     presets: ['babel-preset-expo'],
-    plugins: ['./scripts/babel-supported-languages.cjs'],
+    plugins: [
+      './scripts/babel-supported-languages.cjs',
+      './scripts/babel-play-store-policy.cjs'
+    ],
   };
 };
