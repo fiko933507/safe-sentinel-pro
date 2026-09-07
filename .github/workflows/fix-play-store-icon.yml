@@ -1,0 +1,51 @@
+name: Fix Play Store Icon Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-play-store-icon.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix-icon:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Install ImageMagick
+        run: sudo apt-get update && sudo apt-get install -y imagemagick
+
+      - name: Create 1024x1024 production icon
+        working-directory: frontend
+        run: |
+          set -euo pipefail
+          cp assets/yenilogo.png assets/yenilogo.original.png
+          bg=$(magick assets/yenilogo.original.png -resize 1x1! -format '%[pixel:p{0,0}]' info:)
+          magick assets/yenilogo.original.png \
+            -resize '820x820>' \
+            -background "$bg" \
+            -gravity center \
+            -extent 1024x1024 \
+            -strip \
+            PNG24:assets/yenilogo.png
+          rm assets/yenilogo.original.png
+          dims=$(identify -format '%wx%h' assets/yenilogo.png)
+          echo "Generated icon: $dims"
+          test "$dims" = "1024x1024"
+          file assets/yenilogo.png
+
+      - name: Commit production icon
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add frontend/assets/yenilogo.png
+          git diff --cached --quiet && exit 0
+          git commit -m 'Fix Play Store icon to 1024x1024'
+          git pull --rebase origin main
+          git push origin HEAD:main
