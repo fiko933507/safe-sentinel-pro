@@ -87,9 +87,7 @@ module.exports = function safeSentinelProductionUiPlugin({ types: t }) {
       property.value = t.stringLiteral(value);
       return;
     }
-    languageObject.properties.push(
-      t.objectProperty(t.identifier(key), t.stringLiteral(value))
-    );
+    languageObject.properties.push(t.objectProperty(t.identifier(key), t.stringLiteral(value)));
   };
 
   const stateName = (node) => {
@@ -98,9 +96,8 @@ module.exports = function safeSentinelProductionUiPlugin({ types: t }) {
     return t.isIdentifier(first) ? first.name : null;
   };
 
-  const canUseRuntimeTranslator = (path) => {
-    return path.scope.hasBinding('t');
-  };
+  const canUseRuntimeTranslator = (path) => path.scope.hasBinding('t');
+  const translatedCall = (key) => t.callExpression(t.identifier('t'), [t.stringLiteral(key)]);
 
   return {
     name: 'safe-sentinel-production-ui-hardening',
@@ -110,9 +107,7 @@ module.exports = function safeSentinelProductionUiPlugin({ types: t }) {
         const hasShare = path.node.specifiers.some(
           (specifier) => t.isImportSpecifier(specifier) && t.isIdentifier(specifier.imported, { name: 'Share' })
         );
-        if (!hasShare) {
-          path.node.specifiers.push(t.importSpecifier(t.identifier('Share'), t.identifier('Share')));
-        }
+        if (!hasShare) path.node.specifiers.push(t.importSpecifier(t.identifier('Share'), t.identifier('Share')));
       },
 
       VariableDeclarator(path) {
@@ -128,21 +123,16 @@ module.exports = function safeSentinelProductionUiPlugin({ types: t }) {
           for (const languageProperty of path.node.init.properties) {
             const language = getPropertyKey(languageProperty);
             if (!t.isObjectProperty(languageProperty) || !t.isObjectExpression(languageProperty.value)) continue;
-
             if (language === 'tr' || language === 'en') {
               const valueIndex = language === 'tr' ? 0 : 1;
-              for (const [key, values] of Object.entries(runtimeTranslations)) {
-                setTranslation(languageProperty.value, key, values[valueIndex]);
-              }
+              for (const [key, values] of Object.entries(runtimeTranslations)) setTranslation(languageProperty.value, key, values[valueIndex]);
             }
-
             if (language === 'tr') {
               setTranslation(languageProperty.value, 'toolTitleAiMarket', 'Piyasa İstihbaratı');
               setTranslation(languageProperty.value, 'aiMarketDescription', 'Canlı piyasa verilerinden üretilen kural tabanlı duyarlılık ve risk göstergelerini görüntüleyin.');
               setTranslation(languageProperty.value, 'dashboardAiBehavior', 'Davranış Analizi');
               setTranslation(languageProperty.value, 'dashboardAnalyzeWalletBehavior', 'Cüzdan davranış sinyallerini analiz et');
             }
-
             if (language === 'en') {
               setTranslation(languageProperty.value, 'toolTitleAiMarket', 'Market Intelligence');
               setTranslation(languageProperty.value, 'aiMarketDescription', 'View rule-based sentiment and risk indicators generated from live market data.');
@@ -154,30 +144,15 @@ module.exports = function safeSentinelProductionUiPlugin({ types: t }) {
         }
 
         const currentStateName = stateName(path.node.id);
-        if (
-          currentStateName === 'whaleWatchList' &&
-          t.isCallExpression(path.node.init) &&
-          t.isIdentifier(path.node.init.callee, { name: 'useState' })
-        ) {
+        if (currentStateName === 'whaleWatchList' && t.isCallExpression(path.node.init) && t.isIdentifier(path.node.init.callee, { name: 'useState' })) {
           path.node.init.arguments = [t.arrayExpression([])];
           return;
         }
-
-        if (
-          currentStateName === 'networkGasFees' &&
-          t.isCallExpression(path.node.init) &&
-          t.isIdentifier(path.node.init.callee, { name: 'useState' }) &&
-          t.isObjectExpression(path.node.init.arguments[0])
-        ) {
-          for (const property of path.node.init.arguments[0].properties) {
-            if (t.isObjectProperty(property)) property.value = t.stringLiteral('—');
-          }
+        if (currentStateName === 'networkGasFees' && t.isCallExpression(path.node.init) && t.isIdentifier(path.node.init.callee, { name: 'useState' }) && t.isObjectExpression(path.node.init.arguments[0])) {
+          for (const property of path.node.init.arguments[0].properties) if (t.isObjectProperty(property)) property.value = t.stringLiteral('—');
           return;
         }
-
-        if (t.isIdentifier(path.node.id, { name: 'priceAlertsMode' })) {
-          path.node.init = t.stringLiteral('SERVER_MONITORED');
-        }
+        if (t.isIdentifier(path.node.id, { name: 'priceAlertsMode' })) path.node.init = t.stringLiteral('SERVER_MONITORED');
       },
 
       StringLiteral(path) {
@@ -185,19 +160,18 @@ module.exports = function safeSentinelProductionUiPlugin({ types: t }) {
         if (!key || !canUseRuntimeTranslator(path)) return;
 
         const variableDeclarator = path.findParent((parent) => parent.isVariableDeclarator());
-        if (
-          variableDeclarator &&
-          t.isIdentifier(variableDeclarator.node.id, { name: 'V26_TRANSLATIONS' })
-        ) return;
+        if (variableDeclarator && t.isIdentifier(variableDeclarator.node.id, { name: 'V26_TRANSLATIONS' })) return;
 
-        const useStateCall = path.findParent(
-          (parent) => parent.isCallExpression() && t.isIdentifier(parent.node.callee, { name: 'useState' })
-        );
+        const useStateCall = path.findParent((parent) => parent.isCallExpression() && t.isIdentifier(parent.node.callee, { name: 'useState' }));
         if (useStateCall) return;
 
-        path.replaceWith(
-          t.callExpression(t.identifier('t'), [t.stringLiteral(key)])
-        );
+        if (path.parentPath && path.parentPath.isJSXAttribute() && path.parentPath.node.value === path.node) {
+          path.parentPath.node.value = t.jsxExpressionContainer(translatedCall(key));
+          path.skip();
+          return;
+        }
+
+        path.replaceWith(translatedCall(key));
         path.skip();
       },
 
@@ -205,21 +179,14 @@ module.exports = function safeSentinelProductionUiPlugin({ types: t }) {
         const normalized = String(path.node.value || '').replace(/\s+/g, ' ').trim();
         const key = sourceToKey.get(normalized);
         if (!key || !canUseRuntimeTranslator(path)) return;
-
-        path.replaceWith(
-          t.jsxExpressionContainer(
-            t.callExpression(t.identifier('t'), [t.stringLiteral(key)])
-          )
-        );
+        path.replaceWith(t.jsxExpressionContainer(translatedCall(key)));
         path.skip();
       },
 
       ArrayExpression(path) {
         path.node.elements = path.node.elements.filter((element) => {
           if (!t.isArrayExpression(element)) return true;
-          return !element.elements.some(
-            (item) => t.isStringLiteral(item, { value: 'whaleWatchView' })
-          );
+          return !element.elements.some((item) => t.isStringLiteral(item, { value: 'whaleWatchView' }));
         });
       }
     }
