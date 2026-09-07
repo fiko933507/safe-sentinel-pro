@@ -13,11 +13,20 @@ const registryHeader = `const {\n  SUPPORTED_PRODUCTION_LANGUAGES,\n  HIDDEN_PRO
 
 if (pluginSource.includes(legacyHeader)) {
   pluginSource = pluginSource.replace(legacyHeader, registryHeader);
-  fs.writeFileSync(pluginPath, pluginSource);
 } else if (!pluginSource.includes("require('../production-feature-registry.cjs')")) {
   throw new Error('Production UI plugin header could not be migrated safely.');
 }
 
+const legacyArrayVisitor = `      ArrayExpression(path) {\n        path.node.elements = path.node.elements.filter((element) => {\n          if (!t.isArrayExpression(element)) return true;\n          return !element.elements.some(\n            (item) => t.isStringLiteral(item) && hiddenProductionModules.has(item.value)\n          );\n        });\n      }`;
+const hardenedArrayVisitor = `      ArrayExpression(path) {\n        path.node.elements = path.node.elements.filter((element) => {\n          if (t.isArrayExpression(element)) {\n            return !element.elements.some(\n              (item) => t.isStringLiteral(item) && hiddenProductionModules.has(item.value)\n            );\n          }\n          if (t.isObjectExpression(element)) {\n            const moduleProperty = element.properties.find(\n              (property) => t.isObjectProperty(property) && getPropertyKey(property) === 'mod'\n            );\n            if (moduleProperty && t.isStringLiteral(moduleProperty.value)) {\n              return !hiddenProductionModules.has(moduleProperty.value.value);\n            }\n          }\n          return true;\n        });\n      }`;
+
+if (pluginSource.includes(legacyArrayVisitor)) {
+  pluginSource = pluginSource.replace(legacyArrayVisitor, hardenedArrayVisitor);
+} else if (!pluginSource.includes("getPropertyKey(property) === 'mod'")) {
+  throw new Error('Production menu object filter could not be migrated safely.');
+}
+
+fs.writeFileSync(pluginPath, pluginSource);
 delete require.cache[require.resolve(pluginPath)];
 const productionUiPlugin = require(pluginPath);
 const { transformSync } = require('@babel/core');
