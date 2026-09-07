@@ -47,9 +47,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
-        run: npm install --include=dev --legacy-peer-deps --no-audit --no-fund
+        run: npm ci --include=dev --legacy-peer-deps --no-audit --no-fund
 
       - name: Generate Prisma client
         run: npm run prisma:generate
@@ -101,9 +103,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        run: npm install --legacy-peer-deps --no-audit --no-fund
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
 
       - name: Release and i18n audit
         run: npm test
@@ -115,7 +119,7 @@ jobs:
           EXPO_PUBLIC_PLAY_STORE_BUILD: 'true'
 
       - name: Expo dependency check
-        run: npx expo-doctor
+        run: npx --yes expo-doctor@1.20.4
 
   android-release:
     name: Android release AAB
@@ -152,13 +156,25 @@ jobs:
           chmod +x android/gradlew
           ./android/gradlew --no-daemon -p android bundleRelease
 
-      - name: Verify AAB
-        run: test -s android/app/build/outputs/bundle/release/app-release.aab
+      - name: Verify AAB and release metadata
+        run: |
+          test -s android/app/build/outputs/bundle/release/app-release.aab
+          grep -q "applicationId 'com.fiko93.safesentinel'" android/app/build.gradle
+          grep -q 'versionCode 1' android/app/build.gradle
+          grep -q 'targetSdkVersion 36' android/app/build.gradle
+          grep -q 'compileSdk 36' android/app/build.gradle
+          grep -q 'android:allowBackup="false"' android/app/src/main/AndroidManifest.xml
+          grep -q 'android:usesCleartextTraffic="false"' android/app/src/main/AndroidManifest.xml
+          ! grep -q 'SYSTEM_ALERT_WINDOW' android/app/src/main/AndroidManifest.xml
+          ! grep -q 'READ_EXTERNAL_STORAGE' android/app/src/main/AndroidManifest.xml
+          ! grep -q 'WRITE_EXTERNAL_STORAGE' android/app/src/main/AndroidManifest.xml
+          file assets/yenilogo.png | grep -q 'PNG image data'
+          file assets/yenilogo.png | grep -Eq ', ([0-9]+) x \1,'
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
-          name: safe-sentinel-pro-release-aab
+          name: safe-sentinel-play-store-aab-${{ github.sha }}
           path: frontend/android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 14
