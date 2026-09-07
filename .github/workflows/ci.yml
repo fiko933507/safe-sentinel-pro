@@ -87,7 +87,7 @@ jobs:
         working-directory: frontend
     env:
       NODE_ENV: production
-      EXPO_PUBLIC_BACKEND_URL: https://example.invalid
+      EXPO_PUBLIC_BACKEND_URL: https://safe-sentinel-pro-1.onrender.com
       EXPO_PUBLIC_PLAY_STORE_BUILD: 'true'
     steps:
       - name: Checkout
@@ -119,7 +119,7 @@ jobs:
         working-directory: frontend
     env:
       NODE_ENV: production
-      EXPO_PUBLIC_BACKEND_URL: https://example.invalid
+      EXPO_PUBLIC_BACKEND_URL: https://safe-sentinel-pro-1.onrender.com
       EXPO_PUBLIC_PLAY_STORE_BUILD: 'true'
     steps:
       - name: Checkout
