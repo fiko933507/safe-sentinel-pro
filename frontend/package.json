@@ -4,7 +4,7 @@
   "description": "Set EXPO_PUBLIC_BACKEND_URL to the deployed backend HTTPS URL. Store only JWT/session tokens in expo-secure-store. Do not ship backend provider secrets in the mobile app.",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "test": "node scripts/release-audit.mjs",
+    "test": "node scripts/release-audit.mjs && node scripts/i18n-audit.mjs",
     "release:audit": "node scripts/release-audit.mjs",
     "i18n:audit": "node scripts/i18n-audit.mjs",
     "doctor": "expo-doctor",
