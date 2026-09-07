@@ -1,0 +1,102 @@
+name: Safe Sentinel One-Time I18N Fix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/i18n-fix-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Move remaining Turkish UI literals into translation system
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const file = 'frontend/App.js';
+          let s = fs.readFileSync(file, 'utf8');
+
+          const replaceOne = (from, to, label) => {
+            if (!s.includes(from)) {
+              throw new Error(`Expected source not found: ${label}`);
+            }
+            s = s.replace(from, to);
+          };
+          const replaceAll = (from, to) => {
+            s = s.split(from).join(to);
+          };
+
+          const trKeys = `    registerStrongPasswordPlaceholder: 'Güçlü bir şifre belirleyin',\n    registerVaultOptional: 'Kasaya Eklenecek Cüzdan (Opsiyonel)',\n    registerVaultPlaceholder: 'T... veya 0x... adresiniz',\n    registerVipQuestion: 'Kayıt Sırasında VIP Olmak İster misiniz?',\n    commonErrorTitle: 'Hata',\n    commonInfoTitle: 'Bilgi',\n    commonSuccessTitle: 'Başarılı',\n    commonConflictTitle: 'Çakışma Hatası',\n    commonInvalidAddress: 'Geçersiz adres.',\n    commonAddressRequired: 'Adres alanı boş olamaz!',\n    whitelistNotFound: 'Adres Whitelist listesinde bulunamadı.',\n    whitelistRemoved: 'Adres Güvenli Adresler listesinden kaldırıldı.',\n    whitelistAlready: 'Bu adres zaten Whitelist listesinde ekli.',\n    whitelistConflict: 'Bu adres zaten Blacklist listesinde kayıtlı!',\n    whitelistAdded: 'Adres Whitelist listesine eklendi.',\n    blacklistNotFound: 'Adres Blacklist listesinde bulunamadı.',\n    blacklistRemoved: 'Adres Engellenen Adresler listesinden kaldırıldı.',\n    blacklistAlready: 'Bu adres zaten Blacklist listesinde ekli.',\n    blacklistConflict: 'Bu adres zaten Whitelist listesinde kayıtlı!',\n    blacklistRiskAdded: 'Adres riskli olarak işaretlendi ve güvenlik kontrollerine eklendi.',\n    vaultRemoveTitle: 'Kasa Adresini Kaldır',\n    vaultRemoveConfirm: 'Bu cüzdanı Kasa izleme listesinden kaldırmak istediğinizden emin misiniz?',\n    commonCancel: 'Vazgeç',\n    commonRemove: 'Kaldır',\n    vaultRemoved: 'Cüzdan Kasa izleme listesinden kaldırıldı.',\n    vaultVipRequired: 'Vault cüzdanı eklemek için aktif VIP aboneliğiniz bulunmalıdır.',\n    vaultAlready: 'Bu adres zaten kasada izleniyor.',\n    vaultLimitTitle: 'Limit Doldu',\n    vaultLimitMessage: 'VIP hesaplar kasaya en fazla 10 adet cüzdan ekleyebilir.',\n    vaultAdded: 'Adres kasaya ve dinamik varlık/yetki yöneticisine eklendi.',\n    inheritWalletMissingTitle: 'Cüzdan Adresi Eksik',\n    inheritWalletMissingMessage: 'Miras protokolü için önce ana cüzdan adresini girin.',\n    inheritBeneficiaryMissingMessage: 'Lütfen geçerli bir varis cüzdan adresi girin.',\n    inheritInvalidDaysTitle: 'Geçersiz Süre',\n    inheritInvalidDaysMessage: 'Sinyal yokluğu süresi 1 ile 3650 gün arasında olmalıdır.',\n    inheritCreatedTitle: 'Miras Protokolü Oluşturuldu',\n    inheritCreateFailedTitle: 'Miras Protokolü Hatası',\n    inheritCreateFailed: 'Miras protokolü oluşturulamadı.',\n    inheritHeartbeatUpdatedTitle: 'Heartbeat Güncellendi',\n    inheritHeartbeatUpdated: 'Miras protokolünün yaşam sinyali backend üzerinde güncellendi.',\n    inheritHeartbeatFailedTitle: 'Heartbeat Hatası',\n    inheritHeartbeatFailed: 'Heartbeat güncellenemedi.',\n    inheritCancelledTitle: 'Miras Protokolü İptal Edildi',\n    inheritCancelled: 'Protokol backend üzerinde iptal edildi.',\n    inheritCancelFailedTitle: 'İptal Hatası',\n    inheritCancelFailed: 'Miras protokolü iptal edilemedi.',\n`;
+
+          const enKeys = `    registerStrongPasswordPlaceholder: 'Choose a strong password',\n    registerVaultOptional: 'Wallet to Add to Vault (Optional)',\n    registerVaultPlaceholder: 'Your T... or 0x... address',\n    registerVipQuestion: 'Become VIP During Registration?',\n    commonErrorTitle: 'Error',\n    commonInfoTitle: 'Info',\n    commonSuccessTitle: 'Success',\n    commonConflictTitle: 'Conflict',\n    commonInvalidAddress: 'Invalid address.',\n    commonAddressRequired: 'Address cannot be empty.',\n    whitelistNotFound: 'Address was not found in the whitelist.',\n    whitelistRemoved: 'Address was removed from Safe Addresses.',\n    whitelistAlready: 'This address is already in the whitelist.',\n    whitelistConflict: 'This address is already in the blacklist.',\n    whitelistAdded: 'Address was added to the whitelist.',\n    blacklistNotFound: 'Address was not found in the blacklist.',\n    blacklistRemoved: 'Address was removed from Blocked Addresses.',\n    blacklistAlready: 'This address is already in the blacklist.',\n    blacklistConflict: 'This address is already in the whitelist.',\n    blacklistRiskAdded: 'Address was marked as risky and added to security checks.',\n    vaultRemoveTitle: 'Remove Vault Address',\n    vaultRemoveConfirm: 'Are you sure you want to remove this wallet from Vault monitoring?',\n    commonCancel: 'Cancel',\n    commonRemove: 'Remove',\n    vaultRemoved: 'Wallet was removed from Vault monitoring.',\n    vaultVipRequired: 'An active VIP subscription is required to add a Vault wallet.',\n    vaultAlready: 'This address is already monitored in the Vault.',\n    vaultLimitTitle: 'Limit Reached',\n    vaultLimitMessage: 'VIP accounts can monitor up to 10 wallets in the Vault.',\n    vaultAdded: 'Address was added to the Vault and dynamic asset/permission manager.',\n    inheritWalletMissingTitle: 'Wallet Address Missing',\n    inheritWalletMissingMessage: 'Enter the primary wallet address before creating an inheritance protocol.',\n    inheritBeneficiaryMissingMessage: 'Enter a valid beneficiary wallet address.',\n    inheritInvalidDaysTitle: 'Invalid Duration',\n    inheritInvalidDaysMessage: 'The inactivity period must be between 1 and 3650 days.',\n    inheritCreatedTitle: 'Inheritance Protocol Created',\n    inheritCreateFailedTitle: 'Inheritance Protocol Error',\n    inheritCreateFailed: 'The inheritance protocol could not be created.',\n    inheritHeartbeatUpdatedTitle: 'Heartbeat Updated',\n    inheritHeartbeatUpdated: 'The inheritance protocol heartbeat was updated on the backend.',\n    inheritHeartbeatFailedTitle: 'Heartbeat Error',\n    inheritHeartbeatFailed: 'The heartbeat could not be updated.',\n    inheritCancelledTitle: 'Inheritance Protocol Cancelled',\n    inheritCancelled: 'The protocol was cancelled on the backend.',\n    inheritCancelFailedTitle: 'Cancellation Error',\n    inheritCancelFailed: 'The inheritance protocol could not be cancelled.',\n`;
+
+          replaceOne("    dexCancel: 'İptal'\n  },\n  en: {", "    dexCancel: 'İptal',\n" + trKeys + "  },\n  en: {", 'TR translation anchor');
+          replaceOne("    dexCancel: 'Cancel'\n  },\n  fr: {", "    dexCancel: 'Cancel',\n" + enKeys + "  },\n  fr: {", 'EN translation anchor');
+
+          replaceOne('placeholder="Güçlü bir şifre belirleyin"', "placeholder={t('registerStrongPasswordPlaceholder')}", 'register password placeholder');
+          replaceOne('>Kasaya Eklenecek Cüzdan (Opsiyonel)</Text>', ">{t('registerVaultOptional')}</Text>", 'register vault label');
+          replaceOne('placeholder="T... veya 0x... adresiniz"', "placeholder={t('registerVaultPlaceholder')}", 'register vault placeholder');
+          replaceOne('>Kayıt Sırasında VIP Olmak İster misiniz?</Text>', ">{t('registerVipQuestion')}</Text>", 'register VIP question');
+
+          replaceAll('Alert.alert("Hata", "Geçersiz adres.");', "Alert.alert(t('commonErrorTitle'), t('commonInvalidAddress'));" );
+          replaceAll('Alert.alert("Hata", "Adres alanı boş olamaz!")', "Alert.alert(t('commonErrorTitle'), t('commonAddressRequired'))");
+          replaceAll('Alert.alert("Bilgi", "Adres Whitelist listesinde bulunamadı.");', "Alert.alert(t('commonInfoTitle'), t('whitelistNotFound'));" );
+          replaceAll('Alert.alert(\n        "Başarılı",\n        "Adres Güvenli Adresler listesinden kaldırıldı."\n      );', "Alert.alert(t('commonSuccessTitle'), t('whitelistRemoved'));" );
+          replaceAll('Alert.alert("Bilgi", "Bu adres zaten Whitelist listesinde ekli.")', "Alert.alert(t('commonInfoTitle'), t('whitelistAlready'))");
+          replaceAll('Alert.alert("Çakışma Hatası", "Bu adres zaten Blacklist listesinde kayıtlı!")', "Alert.alert(t('commonConflictTitle'), t('whitelistConflict'))");
+          replaceAll('Alert.alert("Başarılı", "Adres Whitelist listesine eklendi.");', "Alert.alert(t('commonSuccessTitle'), t('whitelistAdded'));" );
+          replaceAll('Alert.alert("Bilgi", "Adres Blacklist listesinde bulunamadı.");', "Alert.alert(t('commonInfoTitle'), t('blacklistNotFound'));" );
+          replaceAll('Alert.alert(\n        "Başarılı",\n        "Adres Engellenen Adresler listesinden kaldırıldı."\n      );', "Alert.alert(t('commonSuccessTitle'), t('blacklistRemoved'));" );
+          replaceAll('Alert.alert("Bilgi", "Bu adres zaten Blacklist listesinde ekli.")', "Alert.alert(t('commonInfoTitle'), t('blacklistAlready'))");
+          replaceAll('Alert.alert("Çakışma Hatası", "Bu adres zaten Whitelist listesinde kayıtlı!")', "Alert.alert(t('commonConflictTitle'), t('blacklistConflict'))");
+          replaceAll('Alert.alert("Güvenlik Uyarısı", "Adres riskli olarak işaretlendi ve güvenlik kontrollerine eklendi.");', "Alert.alert(t('commonSuccessTitle'), t('blacklistRiskAdded'));" );
+          replaceAll('"Kasa Adresini Kaldır",\n        "Bu cüzdanı Kasa izleme listesinden kaldırmak istediğinizden emin misiniz?"', "t('vaultRemoveTitle'),\n        t('vaultRemoveConfirm')");
+          replaceAll('text: "Vazgeç"', "text: t('commonCancel')");
+          replaceAll('text: "Kaldır"', "text: t('commonRemove')");
+          replaceAll('Alert.alert(\n                "Başarılı",\n                "Cüzdan Kasa izleme listesinden kaldırıldı."\n              );', "Alert.alert(t('commonSuccessTitle'), t('vaultRemoved'));" );
+          replaceAll('Alert.alert("VIP Yönlendirmesi", "Müşteri bir cüzdanı kasaya eklemek istediği için doğrudan VIP ödeme ekranına yönlendiriliyorsunuz.");', "Alert.alert('VIP', t('vaultVipRequired'));" );
+          replaceAll('Alert.alert("Bilgi", "Bu adres zaten kasada izleniyor.")', "Alert.alert(t('commonInfoTitle'), t('vaultAlready'))");
+          replaceAll('Alert.alert("Limit Doldu", "VIP hesaplar kasaya en fazla 10 adet cüzdan ekleyebilir.");', "Alert.alert(t('vaultLimitTitle'), t('vaultLimitMessage'));" );
+          replaceAll('Alert.alert("Başarılı", "Adres kasaya ve dinamik varlık/yetki yöneticisine eklendi.");', "Alert.alert(t('commonSuccessTitle'), t('vaultAdded'));" );
+
+          replaceAll("'Cüzdan Adresi Eksik',\n        'Miras protokolü için önce ana cüzdan adresini girin.'", "t('inheritWalletMissingTitle'),\n        t('inheritWalletMissingMessage')");
+          replaceAll("'Eksik Bilgi',\n        'Lütfen geçerli bir varis cüzdan adresi girin.'", "t('commonMissingInfo'),\n        t('inheritBeneficiaryMissingMessage')");
+          replaceAll("'Geçersiz Süre',\n        'Sinyal yokluğu süresi 1 ile 3650 gün arasında olmalıdır.'", "t('inheritInvalidDaysTitle'),\n        t('inheritInvalidDaysMessage')");
+          replaceAll("'Miras Protokolü Hatası'", "t('inheritCreateFailedTitle')");
+          replaceAll("'Miras protokolü oluşturulamadı.'", "t('inheritCreateFailed')");
+          replaceAll("'Heartbeat Güncellendi',\n        'Miras protokolünün yaşam sinyali backend üzerinde güncellendi.'", "t('inheritHeartbeatUpdatedTitle'),\n        t('inheritHeartbeatUpdated')");
+          replaceAll("'Heartbeat Hatası'", "t('inheritHeartbeatFailedTitle')");
+          replaceAll("'Heartbeat güncellenemedi.'", "t('inheritHeartbeatFailed')");
+          replaceAll("'Miras Protokolü İptal Edildi',\n        'Protokol backend üzerinde iptal edildi.'", "t('inheritCancelledTitle'),\n        t('inheritCancelled')");
+          replaceAll("'İptal Hatası'", "t('inheritCancelFailedTitle')");
+          replaceAll("'Miras protokolü iptal edilemedi.'", "t('inheritCancelFailed')");
+
+          fs.writeFileSync(file, s, 'utf8');
+          NODE
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Validate frontend after i18n changes
+        working-directory: frontend
+        run: npm test
+      - name: Validate diff
+        run: git diff --check
+      - name: Commit verified i18n fixes
+        run: |
+          if git diff --quiet; then
+            echo "No changes required"
+            exit 0
+          fi
+          git config user.name "safe-sentinel-ci"
+          git config user.email "actions@users.noreply.github.com"
+          git add frontend/App.js
+          git commit -m "Move remaining core UI text into i18n"
+          git push
