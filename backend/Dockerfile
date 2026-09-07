@@ -10,4 +10,4 @@ COPY . .
 RUN npm run prisma:generate
 
 EXPOSE 3000
-CMD ["npm", "run", "railway:start"]
+CMD ["sh", "-c", "npm run railway:predeploy && npm start"]
