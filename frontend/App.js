@@ -1,24 +1,24 @@
 import '@walletconnect/react-native-compat';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { 
-  SafeAreaView, 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
-  StatusBar, 
-  FlatList, 
+import {
+  SafeAreaView,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  StatusBar,
+  FlatList,
   ScrollView,
   Dimensions,
   Linking,
   Platform,
   Alert,
   Image,
-  Switch 
+  Switch
 } from 'react-native';
-import * as SecureStore from 'expo-secure-store'; 
+import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import * as Clipboard from 'expo-clipboard';
@@ -650,7 +650,53 @@ const V26_TRANSLATIONS = {
     dexLowestGas: 'Canlı gas verilerindeki en düşük değer.',
     dexActiveOrders: 'Aktif Emir Taslakları',
     dexNoOrders: 'Kayıtlı emir taslağı bulunmuyor.',
-    dexCancel: 'İptal'
+    dexCancel: 'İptal',
+    registerStrongPasswordPlaceholder: 'Güçlü bir şifre belirleyin',
+    registerVaultOptional: 'Kasaya Eklenecek Cüzdan (Opsiyonel)',
+    registerVaultPlaceholder: 'T... veya 0x... adresiniz',
+    registerVipQuestion: 'Kayıt Sırasında VIP Olmak İster misiniz?',
+    commonErrorTitle: 'Hata',
+    commonInfoTitle: 'Bilgi',
+    commonSuccessTitle: 'Başarılı',
+    commonConflictTitle: 'Çakışma Hatası',
+    commonInvalidAddress: 'Geçersiz adres.',
+    commonAddressRequired: 'Adres alanı boş olamaz!',
+    whitelistNotFound: 'Adres Whitelist listesinde bulunamadı.',
+    whitelistRemoved: 'Adres Güvenli Adresler listesinden kaldırıldı.',
+    whitelistAlready: 'Bu adres zaten Whitelist listesinde ekli.',
+    whitelistConflict: 'Bu adres zaten Blacklist listesinde kayıtlı!',
+    whitelistAdded: 'Adres Whitelist listesine eklendi.',
+    blacklistNotFound: 'Adres Blacklist listesinde bulunamadı.',
+    blacklistRemoved: 'Adres Engellenen Adresler listesinden kaldırıldı.',
+    blacklistAlready: 'Bu adres zaten Blacklist listesinde ekli.',
+    blacklistConflict: 'Bu adres zaten Whitelist listesinde kayıtlı!',
+    blacklistRiskAdded: 'Adres riskli olarak işaretlendi ve güvenlik kontrollerine eklendi.',
+    vaultRemoveTitle: 'Kasa Adresini Kaldır',
+    vaultRemoveConfirm: 'Bu cüzdanı Kasa izleme listesinden kaldırmak istediğinizden emin misiniz?',
+    commonCancel: 'Vazgeç',
+    commonRemove: 'Kaldır',
+    vaultRemoved: 'Cüzdan Kasa izleme listesinden kaldırıldı.',
+    vaultVipRequired: 'Vault cüzdanı eklemek için aktif VIP aboneliğiniz bulunmalıdır.',
+    vaultAlready: 'Bu adres zaten kasada izleniyor.',
+    vaultLimitTitle: 'Limit Doldu',
+    vaultLimitMessage: 'VIP hesaplar kasaya en fazla 10 adet cüzdan ekleyebilir.',
+    vaultAdded: 'Adres kasaya ve dinamik varlık/yetki yöneticisine eklendi.',
+    inheritWalletMissingTitle: 'Cüzdan Adresi Eksik',
+    inheritWalletMissingMessage: 'Miras protokolü için önce ana cüzdan adresini girin.',
+    inheritBeneficiaryMissingMessage: 'Lütfen geçerli bir varis cüzdan adresi girin.',
+    inheritInvalidDaysTitle: 'Geçersiz Süre',
+    inheritInvalidDaysMessage: 'Sinyal yokluğu süresi 1 ile 3650 gün arasında olmalıdır.',
+    inheritCreatedTitle: 'Miras Protokolü Oluşturuldu',
+    inheritCreateFailedTitle: t('inheritCreateFailedTitle'),
+    inheritCreateFailed: t('inheritCreateFailed'),
+    inheritHeartbeatUpdatedTitle: 'Heartbeat Güncellendi',
+    inheritHeartbeatUpdated: 'Miras protokolünün yaşam sinyali backend üzerinde güncellendi.',
+    inheritHeartbeatFailedTitle: t('inheritHeartbeatFailedTitle'),
+    inheritHeartbeatFailed: t('inheritHeartbeatFailed'),
+    inheritCancelledTitle: 'Miras Protokolü İptal Edildi',
+    inheritCancelled: 'Protokol backend üzerinde iptal edildi.',
+    inheritCancelFailedTitle: t('inheritCancelFailedTitle'),
+    inheritCancelFailed: t('inheritCancelFailed'),
   },
   en: {
     settings: 'Application Settings',
@@ -1066,7 +1112,53 @@ const V26_TRANSLATIONS = {
     dexLowestGas: 'Lowest value in the live gas data.',
     dexActiveOrders: 'Active Order Drafts',
     dexNoOrders: 'No order drafts have been saved.',
-    dexCancel: 'Cancel'
+    dexCancel: 'Cancel',
+    registerStrongPasswordPlaceholder: 'Choose a strong password',
+    registerVaultOptional: 'Wallet to Add to Vault (Optional)',
+    registerVaultPlaceholder: 'Your T... or 0x... address',
+    registerVipQuestion: 'Become VIP During Registration?',
+    commonErrorTitle: 'Error',
+    commonInfoTitle: 'Info',
+    commonSuccessTitle: 'Success',
+    commonConflictTitle: 'Conflict',
+    commonInvalidAddress: 'Invalid address.',
+    commonAddressRequired: 'Address cannot be empty.',
+    whitelistNotFound: 'Address was not found in the whitelist.',
+    whitelistRemoved: 'Address was removed from Safe Addresses.',
+    whitelistAlready: 'This address is already in the whitelist.',
+    whitelistConflict: 'This address is already in the blacklist.',
+    whitelistAdded: 'Address was added to the whitelist.',
+    blacklistNotFound: 'Address was not found in the blacklist.',
+    blacklistRemoved: 'Address was removed from Blocked Addresses.',
+    blacklistAlready: 'This address is already in the blacklist.',
+    blacklistConflict: 'This address is already in the whitelist.',
+    blacklistRiskAdded: 'Address was marked as risky and added to security checks.',
+    vaultRemoveTitle: 'Remove Vault Address',
+    vaultRemoveConfirm: 'Are you sure you want to remove this wallet from Vault monitoring?',
+    commonCancel: 'Cancel',
+    commonRemove: 'Remove',
+    vaultRemoved: 'Wallet was removed from Vault monitoring.',
+    vaultVipRequired: 'An active VIP subscription is required to add a Vault wallet.',
+    vaultAlready: 'This address is already monitored in the Vault.',
+    vaultLimitTitle: 'Limit Reached',
+    vaultLimitMessage: 'VIP accounts can monitor up to 10 wallets in the Vault.',
+    vaultAdded: 'Address was added to the Vault and dynamic asset/permission manager.',
+    inheritWalletMissingTitle: 'Wallet Address Missing',
+    inheritWalletMissingMessage: 'Enter the primary wallet address before creating an inheritance protocol.',
+    inheritBeneficiaryMissingMessage: 'Enter a valid beneficiary wallet address.',
+    inheritInvalidDaysTitle: 'Invalid Duration',
+    inheritInvalidDaysMessage: 'The inactivity period must be between 1 and 3650 days.',
+    inheritCreatedTitle: 'Inheritance Protocol Created',
+    inheritCreateFailedTitle: 'Inheritance Protocol Error',
+    inheritCreateFailed: 'The inheritance protocol could not be created.',
+    inheritHeartbeatUpdatedTitle: 'Heartbeat Updated',
+    inheritHeartbeatUpdated: 'The inheritance protocol heartbeat was updated on the backend.',
+    inheritHeartbeatFailedTitle: 'Heartbeat Error',
+    inheritHeartbeatFailed: 'The heartbeat could not be updated.',
+    inheritCancelledTitle: 'Inheritance Protocol Cancelled',
+    inheritCancelled: 'The protocol was cancelled on the backend.',
+    inheritCancelFailedTitle: 'Cancellation Error',
+    inheritCancelFailed: 'The inheritance protocol could not be cancelled.',
   },
   fr: {
     settings: 'Paramètres de l\'application',
@@ -1358,7 +1450,7 @@ useEffect(() => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  
+
   const [regName, setRegName] = useState('');
   const [regSurname, setRegSurname] = useState('');
   const [regEmail, setRegEmail] = useState('');
@@ -1367,9 +1459,9 @@ useEffect(() => {
   const [regWantVip, setRegWantVip] = useState(false);
 
   const [name, setName] = useState('Fikret Bulat');
-  const [userStatus, setUserStatus] = useState('free'); 
-  const [queryCount, setQueryCount] = useState(0); 
-  const [queryWarning, setQueryWarning] = useState(""); 
+  const [userStatus, setUserStatus] = useState('free');
+  const [queryCount, setQueryCount] = useState(0);
+  const [queryWarning, setQueryWarning] = useState("");
   const [address, setAddress] = useState("");
   const [selectedNetwork, setSelectedNetwork] = useState("tron");
   const [contractNetwork, setContractNetwork] = useState("ethereum");
@@ -1476,7 +1568,7 @@ const getFeatureRealityLabel = (feature) => {
       return "DURUM BİLİNMİYOR";
   }
 };
- 
+
 
   const [contractAddress, setContractAddress] = useState('');
   const [contractAnalysisResult, setContractAnalysisResult] = useState(null);
@@ -1548,16 +1640,16 @@ const getFeatureRealityLabel = (feature) => {
 
     if (!cleanWalletAddress) {
       Alert.alert(
-        'Cüzdan Adresi Eksik',
-        'Miras protokolü için önce ana cüzdan adresini girin.'
+        t('inheritWalletMissingTitle'),
+        t('inheritWalletMissingMessage')
       );
       return false;
     }
 
     if (!cleanBeneficiary) {
       Alert.alert(
-        'Eksik Bilgi',
-        'Lütfen geçerli bir varis cüzdan adresi girin.'
+        t('commonMissingInfo'),
+        t('inheritBeneficiaryMissingMessage')
       );
       return false;
     }
@@ -1566,8 +1658,8 @@ const getFeatureRealityLabel = (feature) => {
 
     if (!Number.isInteger(days) || days < 1 || days > 3650) {
       Alert.alert(
-        'Geçersiz Süre',
-        'Sinyal yokluğu süresi 1 ile 3650 gün arasında olmalıdır.'
+        t('inheritInvalidDaysTitle'),
+        t('inheritInvalidDaysMessage')
       );
       return false;
     }
@@ -1584,7 +1676,7 @@ const getFeatureRealityLabel = (feature) => {
 
       if (!response.data?.success || !response.data?.protocol) {
         throw new Error(
-          response.data?.error || 'Miras protokolü oluşturulamadı.'
+          response.data?.error || t('inheritCreateFailed')
         );
       }
 
@@ -1603,10 +1695,10 @@ const getFeatureRealityLabel = (feature) => {
       return protocol;
     } catch (error) {
       Alert.alert(
-        'Miras Protokolü Hatası',
+        t('inheritCreateFailedTitle'),
         error?.response?.data?.error ||
           error?.message ||
-          'Miras protokolü oluşturulamadı.'
+          t('inheritCreateFailed')
       );
       return false;
     } finally {
@@ -1646,17 +1738,17 @@ const getFeatureRealityLabel = (feature) => {
       setInheritEnabled(protocol.status === 'ACTIVE');
 
       Alert.alert(
-        'Heartbeat Güncellendi',
-        'Miras protokolünün yaşam sinyali backend üzerinde güncellendi.'
+        t('inheritHeartbeatUpdatedTitle'),
+        t('inheritHeartbeatUpdated')
       );
 
       return protocol;
     } catch (error) {
       Alert.alert(
-        'Heartbeat Hatası',
+        t('inheritHeartbeatFailedTitle'),
         error?.response?.data?.error ||
           error?.message ||
-          'Heartbeat güncellenemedi.'
+          t('inheritHeartbeatFailed')
       );
       return false;
     } finally {
@@ -1676,7 +1768,7 @@ const getFeatureRealityLabel = (feature) => {
 
       if (!response.data?.success || !response.data?.protocol) {
         throw new Error(
-          response.data?.error || 'Miras protokolü iptal edilemedi.'
+          response.data?.error || t('inheritCancelFailed')
         );
       }
 
@@ -1691,17 +1783,17 @@ const getFeatureRealityLabel = (feature) => {
       setInheritEnabled(false);
 
       Alert.alert(
-        'Miras Protokolü İptal Edildi',
-        'Protokol backend üzerinde iptal edildi.'
+        t('inheritCancelledTitle'),
+        t('inheritCancelled')
       );
 
       return protocol;
     } catch (error) {
       Alert.alert(
-        'İptal Hatası',
+        t('inheritCancelFailedTitle'),
         error?.response?.data?.error ||
           error?.message ||
-          'Miras protokolü iptal edilemedi.'
+          t('inheritCancelFailed')
       );
       return false;
     } finally {
@@ -2008,7 +2100,7 @@ const getFeatureRealityLabel = (feature) => {
       RateLimiterGuard.checkLimit('live-gas-fees');
       const response = await api.get(`/api/live-gas-fees`, {
         headers: {
-          ...SecurityScannerMiddleware.auditHeaders 
+          ...SecurityScannerMiddleware.auditHeaders
         },
         timeout: 5000
       });
@@ -3119,7 +3211,7 @@ const triggerLocalNotification = async (title, body) => {
     setActiveModule('vipView');
   };
 
-  
+
   const fetchPortfolioData = useCallback(async () => {
     const addressValue = String(address || '').trim();
 
@@ -3175,7 +3267,7 @@ const triggerLocalNotification = async (title, body) => {
     api
   ]);
 
-  
+
   const inheritanceModuleEffect = useEffect(() => {
     if (activeModule === 'inheritView') {
       loadInheritanceProtocols();
@@ -3190,7 +3282,7 @@ const triggerLocalNotification = async (title, body) => {
     fetchPortfolioData
   ]);
 
-  
+
   const exportPortfolioJSON = async () => {
     const data = await fetchPortfolioData();
 
@@ -3392,7 +3484,7 @@ const triggerLocalNotification = async (title, body) => {
 
     setLoading(true);
     setCurrentBalanceText("Backend sunucusundan gerçek zincir verileri çekiliyor...");
-    setTransactionHistory([]); 
+    setTransactionHistory([]);
 
     try {
       RateLimiterGuard.checkLimit('check-wallet');
@@ -3400,9 +3492,9 @@ const triggerLocalNotification = async (title, body) => {
       const response = await api.post(`/api/check-wallet`, {
         network: backendNetwork,
         address: cleanAddr
-      }, { 
+      }, {
         headers: {
-          ...SecurityScannerMiddleware.auditHeaders 
+          ...SecurityScannerMiddleware.auditHeaders
         },
         timeout: 15000
       });
@@ -3437,32 +3529,32 @@ const triggerLocalNotification = async (title, body) => {
           const formattedBal = rawBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 });
           setCurrentBalanceText(`Bakiye: ${formattedBal} ${NETWORKS[selectedNetwork].symbol}`);
         }
-        
+
         const rawTxList = response.data.transactions || [];
 
-        
+
         const counterpartyIntel =
-        
+
           response.data.counterpartyScamIntelligence || null;
 
-        
+
         const counterpartyTransactionMatches =
-        
+
           Array.isArray(counterpartyIntel?.transactionMatches)
-        
+
             ? counterpartyIntel.transactionMatches
-        
+
             : [];
 
-        
+
         const counterpartyMatchByTxid = new Map(
-        
+
           counterpartyTransactionMatches
-        
+
             .filter(match => match?.txid)
-        
+
             .map(match => [String(match.txid).toLowerCase(), match])
-        
+
         );
         const formattedTx = rawTxList.map((tx, idx) => {
           let rawAmount = tx.amount ?? tx.value ?? "0.00";
@@ -3524,10 +3616,10 @@ const triggerLocalNotification = async (title, body) => {
         throw new Error("Zincir verisi alınamadı");
       }
     } catch (err) {
-      const userFriendlyMsg = err.response?.status === 429 
-        ? "Çok fazla istek gönderildi. Lütfen birkaç saniye bekleyin." 
+      const userFriendlyMsg = err.response?.status === 429
+        ? "Çok fazla istek gönderildi. Lütfen birkaç saniye bekleyin."
         : "Bağlantı hatası: Sunucuya ulaşılamıyor. Lütfen internet bağlantınızı kontrol edin.";
-      
+
       setCurrentBalanceText('Bakiye alınamadı');
       setQueryWarning(userFriendlyMsg);
       handleIsolatedError("Cüzdan Sorgulama", err);
@@ -4422,7 +4514,7 @@ const handleBehavioralAnalysis = async () => {
       const cleanAddr = SecurityScannerMiddleware.sanitizeInput(addr || "");
 
       if (!cleanAddr) {
-        Alert.alert("Hata", "Geçersiz adres.");
+        Alert.alert(t('commonErrorTitle'), t('commonInvalidAddress'));
         return;
       }
 
@@ -4431,17 +4523,14 @@ const handleBehavioralAnalysis = async () => {
       );
 
       if (updated.length === whitelist.length) {
-        Alert.alert("Bilgi", "Adres Whitelist listesinde bulunamadı.");
+        Alert.alert(t('commonInfoTitle'), t('whitelistNotFound'));
         return;
       }
 
       setWhitelist(updated);
       await saveWhitelist(updated);
 
-      Alert.alert(
-        "Başarılı",
-        "Adres Güvenli Adresler listesinden kaldırıldı."
-      );
+      Alert.alert(t('commonSuccessTitle'), t('whitelistRemoved'));
     } catch (e) {
       handleIsolatedError("Whitelist Silme", e);
     }
@@ -4452,7 +4541,7 @@ const handleBehavioralAnalysis = async () => {
       const cleanAddr = SecurityScannerMiddleware.sanitizeInput(addr || "");
 
       if (!cleanAddr) {
-        Alert.alert("Hata", "Geçersiz adres.");
+        Alert.alert(t('commonErrorTitle'), t('commonInvalidAddress'));
         return;
       }
 
@@ -4461,17 +4550,14 @@ const handleBehavioralAnalysis = async () => {
       );
 
       if (updated.length === blacklist.length) {
-        Alert.alert("Bilgi", "Adres Blacklist listesinde bulunamadı.");
+        Alert.alert(t('commonInfoTitle'), t('blacklistNotFound'));
         return;
       }
 
       setBlacklist(updated);
       await saveBlacklist(updated);
 
-      Alert.alert(
-        "Başarılı",
-        "Adres Engellenen Adresler listesinden kaldırıldı."
-      );
+      Alert.alert(t('commonSuccessTitle'), t('blacklistRemoved'));
     } catch (e) {
       handleIsolatedError("Blacklist Silme", e);
     }
@@ -4480,21 +4566,21 @@ const handleBehavioralAnalysis = async () => {
   const removeFromVault = async (addr) => {
     try {
       Alert.alert(
-        "Kasa Adresini Kaldır",
-        "Bu cüzdanı Kasa izleme listesinden kaldırmak istediğinizden emin misiniz?",
+        t('vaultRemoveTitle'),
+        t('vaultRemoveConfirm'),
         [
           {
-            text: "Vazgeç",
+            text: t('commonCancel'),
             style: "cancel"
           },
           {
-            text: "Kaldır",
+            text: t('commonRemove'),
             style: "destructive",
             onPress: async () => {
               const cleanAddr = SecurityScannerMiddleware.sanitizeInput(addr || "");
 
               if (!cleanAddr) {
-                Alert.alert("Hata", "Geçersiz adres.");
+                Alert.alert(t('commonErrorTitle'), t('commonInvalidAddress'));
                 return;
               }
 
@@ -4505,10 +4591,7 @@ const handleBehavioralAnalysis = async () => {
               setVault(updated);
               await saveVault(updated);
 
-              Alert.alert(
-                "Başarılı",
-                "Cüzdan Kasa izleme listesinden kaldırıldı."
-              );
+              Alert.alert(t('commonSuccessTitle'), t('vaultRemoved'));
             }
           }
         ]
@@ -4519,48 +4602,48 @@ const handleBehavioralAnalysis = async () => {
   };
   const addToWhitelist = () => {
     const cleanAddr = address ? SecurityScannerMiddleware.sanitizeInput(address) : "";
-    if (!cleanAddr) return Alert.alert("Hata", "Adres alanı boş olamaz!");
+    if (!cleanAddr) return Alert.alert(t('commonErrorTitle'), t('commonAddressRequired'));
     if (blacklist.includes(cleanAddr)) {
-      return Alert.alert("Çakışma Hatası", "Bu adres zaten Blacklist listesinde kayıtlı!");
+      return Alert.alert(t('commonConflictTitle'), t('whitelistConflict'));
     }
-    if (whitelist.includes(cleanAddr)) return Alert.alert("Bilgi", "Bu adres zaten Whitelist listesinde ekli.");
-    
+    if (whitelist.includes(cleanAddr)) return Alert.alert(t('commonInfoTitle'), t('whitelistAlready'));
+
     const updated = [...whitelist, cleanAddr];
     saveWhitelist(updated);
-    Alert.alert("Başarılı", "Adres Whitelist listesine eklendi.");
+    Alert.alert(t('commonSuccessTitle'), t('whitelistAdded'));
   };
 
   const addToBlacklist = () => {
     const cleanAddr = address ? SecurityScannerMiddleware.sanitizeInput(address) : "";
-    if (!cleanAddr) return Alert.alert("Hata", "Adres alanı boş olamaz!");
+    if (!cleanAddr) return Alert.alert(t('commonErrorTitle'), t('commonAddressRequired'));
     if (whitelist.includes(cleanAddr)) {
-      return Alert.alert("Çakışma Hatası", "Bu adres zaten Whitelist listesinde kayıtlı!");
+      return Alert.alert(t('commonConflictTitle'), t('blacklistConflict'));
     }
-    if (blacklist.includes(cleanAddr)) return Alert.alert("Bilgi", "Bu adres zaten Blacklist listesinde ekli.");
+    if (blacklist.includes(cleanAddr)) return Alert.alert(t('commonInfoTitle'), t('blacklistAlready'));
 
     const updated = [...blacklist, cleanAddr];
     saveBlacklist(updated);
-    Alert.alert("Güvenlik Uyarısı", "Adres riskli olarak işaretlendi ve güvenlik kontrollerine eklendi.");
+    Alert.alert(t('commonSuccessTitle'), t('blacklistRiskAdded'));
   };
 
   const addToVault = () => {
     const cleanAddr = address ? SecurityScannerMiddleware.sanitizeInput(address) : "";
-    if (!cleanAddr) return Alert.alert("Hata", "Adres alanı boş olamaz!");
+    if (!cleanAddr) return Alert.alert(t('commonErrorTitle'), t('commonAddressRequired'));
     if (userStatus !== 'vip') {
-      Alert.alert("VIP Yönlendirmesi", "Müşteri bir cüzdanı kasaya eklemek istediği için doğrudan VIP ödeme ekranına yönlendiriliyorsunuz.");
+      Alert.alert('VIP', t('vaultVipRequired'));
       setActiveModule('vipView');
       return;
     }
-    if (vault.includes(cleanAddr)) return Alert.alert("Bilgi", "Bu adres zaten kasada izleniyor.");
-    
+    if (vault.includes(cleanAddr)) return Alert.alert(t('commonInfoTitle'), t('vaultAlready'));
+
     if (vault.length >= 10) {
-      Alert.alert("Limit Doldu", "VIP hesaplar kasaya en fazla 10 adet cüzdan ekleyebilir.");
+      Alert.alert(t('vaultLimitTitle'), t('vaultLimitMessage'));
       return;
     }
 
     const updated = [...vault, cleanAddr];
     saveVault(updated);
-    Alert.alert("Başarılı", "Adres kasaya ve dinamik varlık/yetki yöneticisine eklendi.");
+    Alert.alert(t('commonSuccessTitle'), t('vaultAdded'));
   };
 
   if (currentScreen === 'login') {
@@ -4568,11 +4651,11 @@ const handleBehavioralAnalysis = async () => {
       <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
         <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
         <View style={[styles.card, { backgroundColor: theme.cardBg, alignItems: 'center', paddingVertical: 8, paddingHorizontal: 8, width: '100%', maxWidth: 360, alignSelf: 'center' }]}>
-          
+
           <View style={{ width: '100%', alignItems: 'center', marginBottom: 4 }}>
-            <Image 
-              source={require('./assets/yenilogo.png')} 
-              style={{ width: 54, height: 54, borderRadius: 10 }} 
+            <Image
+              source={require('./assets/yenilogo.png')}
+              style={{ width: 54, height: 54, borderRadius: 10 }}
               resizeMode="contain"
             />
           </View>
@@ -4630,37 +4713,37 @@ const handleBehavioralAnalysis = async () => {
             </ScrollView>
           </View>
           <Text style={{ color: theme.textSub, fontSize: 8, textAlign: 'center', marginBottom: 7 }}>{t('loginDescription')}</Text>
-          
+
           <View style={{ width: '100%', marginBottom: 6 }}>
             <Text style={{ color: theme.textMain, fontSize: 9, fontWeight: '600', marginBottom: 3 }}>{t('emailAddress')}</Text>
-            <TextInput 
-              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, width: '100%', height: 28, fontSize: 9, paddingVertical: 0, textAlignVertical: 'center' }]} 
-              placeholder="ornek@mail.com" 
-              placeholderTextColor="#9CA3AF" 
-              value={email} 
-              onChangeText={setEmail} 
-              autoCapitalize="none" 
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, width: '100%', height: 28, fontSize: 9, paddingVertical: 0, textAlignVertical: 'center' }]}
+              placeholder="ornek@mail.com"
+              placeholderTextColor="#9CA3AF"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
             />
           </View>
 
           <View style={{ width: '100%', marginBottom: 8 }}>
             <Text style={{ color: theme.textMain, fontSize: 9, fontWeight: '600', marginBottom: 3 }}>{t('loginPassword')}</Text>
-            <TextInput 
-              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, width: '100%', height: 28, fontSize: 9, paddingVertical: 0, textAlignVertical: 'center' }]} 
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, width: '100%', height: 28, fontSize: 9, paddingVertical: 0, textAlignVertical: 'center' }]}
               placeholder="••••••••"
-              placeholderTextColor="#9CA3AF" 
-              value={password} 
-              onChangeText={setPassword} 
-              secureTextEntry 
+              placeholderTextColor="#9CA3AF"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
             />
           </View>
-          
+
           <TouchableOpacity style={[styles.button, { width: '100%', height: 25, backgroundColor: theme.primary, marginBottom: 8, borderRadius: 6, shadowColor: theme.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4, elevation: 3 }]} onPress={handleLogin}>
             <Text style={[styles.buttonText, { fontSize: 8 }]}>{t('secureLogin')}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.button, { width: '100%', height: 25, backgroundColor: 'transparent', borderWidth: 1.5, borderColor: theme.borderCol, borderRadius: 6 }]} 
+          <TouchableOpacity
+            style={[styles.button, { width: '100%', height: 25, backgroundColor: 'transparent', borderWidth: 1.5, borderColor: theme.borderCol, borderRadius: 6 }]}
             onPress={() => setCurrentScreen('register')}
           >
             <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 9 }}>{t('createAccount')}</Text>
@@ -4676,68 +4759,68 @@ const handleBehavioralAnalysis = async () => {
         <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
         <ScrollView contentContainerStyle={{ paddingVertical: 15, alignItems: 'center', width: '100%' }} showsVerticalScrollIndicator={false}>
           <View style={[styles.card, { backgroundColor: theme.cardBg }]}>
-            
+
             <Text style={{ color: theme.primary, fontSize: 13, fontWeight: '800', textAlign: 'center', marginBottom: 4 }}>{t('registerTitle')}</Text>
             <Text style={{ color: theme.textSub, fontSize: 8, textAlign: 'center', marginBottom: 7 }}>{t('registerDescription')}</Text>
 
             <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '600', marginBottom: 2 }}>{t('firstName')}</Text>
-            <TextInput 
-              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, height: 36, fontSize: 10, paddingVertical: 0, textAlignVertical: 'center' }]} 
-              placeholder={t('exampleFirstName')} 
-              placeholderTextColor="#9CA3AF" 
-              value={regName} 
-              onChangeText={setRegName} 
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, height: 36, fontSize: 10, paddingVertical: 0, textAlignVertical: 'center' }]}
+              placeholder={t('exampleFirstName')}
+              placeholderTextColor="#9CA3AF"
+              value={regName}
+              onChangeText={setRegName}
             />
 
             <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '600', marginBottom: 2 }}>{t('lastName')}</Text>
-            <TextInput 
-              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, height: 36, fontSize: 10, paddingVertical: 0, textAlignVertical: 'center' }]} 
-              placeholder={t('exampleLastName')} 
-              placeholderTextColor="#9CA3AF" 
-              value={regSurname} 
-              onChangeText={setRegSurname} 
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, height: 36, fontSize: 10, paddingVertical: 0, textAlignVertical: 'center' }]}
+              placeholder={t('exampleLastName')}
+              placeholderTextColor="#9CA3AF"
+              value={regSurname}
+              onChangeText={setRegSurname}
             />
 
             <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '600', marginBottom: 2 }}>{t('emailAddress')}</Text>
-            <TextInput 
-              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, height: 36, fontSize: 10, paddingVertical: 0, textAlignVertical: 'center' }]} 
-              placeholder="ornek@mail.com" 
-              placeholderTextColor="#9CA3AF" 
-              value={regEmail} 
-              onChangeText={setRegEmail} 
-              autoCapitalize="none" 
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, height: 36, fontSize: 10, paddingVertical: 0, textAlignVertical: 'center' }]}
+              placeholder="ornek@mail.com"
+              placeholderTextColor="#9CA3AF"
+              value={regEmail}
+              onChangeText={setRegEmail}
+              autoCapitalize="none"
             />
 
             <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '600', marginBottom: 2 }}>{t('loginPassword')}</Text>
-            <TextInput 
-              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, height: 36, fontSize: 10, paddingVertical: 0, textAlignVertical: 'center' }]} 
-              placeholder="Güçlü bir şifre belirleyin" 
-              placeholderTextColor="#9CA3AF" 
-              value={regPassword} 
-              onChangeText={setRegPassword} 
-              secureTextEntry 
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, height: 36, fontSize: 10, paddingVertical: 0, textAlignVertical: 'center' }]}
+              placeholder={t('registerStrongPasswordPlaceholder')}
+              placeholderTextColor="#9CA3AF"
+              value={regPassword}
+              onChangeText={setRegPassword}
+              secureTextEntry
             />
 
-            <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '600', marginBottom: 2 }}>Kasaya Eklenecek Cüzdan (Opsiyonel)</Text>
-            <TextInput 
-              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, height: 36, fontSize: 10, paddingVertical: 0, textAlignVertical: 'center' }]} 
-              placeholder="T... veya 0x... adresiniz" 
-              placeholderTextColor="#9CA3AF" 
-              value={regVaultAddress} 
+            <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '600', marginBottom: 2 }}>{t('registerVaultOptional')}</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, height: 36, fontSize: 10, paddingVertical: 0, textAlignVertical: 'center' }]}
+              placeholder={t('registerVaultPlaceholder')}
+              placeholderTextColor="#9CA3AF"
+              value={regVaultAddress}
               onChangeText={(text) => {
                 setRegVaultAddress(text);
                 if (text.trim().length > 0) {
                   setRegWantVip(true);
                 }
-              }} 
+              }}
             />
 
             <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol, marginVertical: 8, padding: 10 }]}>
               <View style={styles.prefCardHeader}>
                 <View style={{ flex: 1, marginRight: 10 }}>
-                  <Text style={[styles.prefCardTitle, { color: theme.textMain, fontSize: 10, fontWeight: '700' }]}>Kayıt Sırasında VIP Olmak İster misiniz?</Text>
+                  <Text style={[styles.prefCardTitle, { color: theme.textMain, fontSize: 10, fontWeight: '700' }]}>{t('registerVipQuestion')}</Text>
                 </View>
-                <Switch 
+                <Switch
                   trackColor={{ false: '#374151', true: theme.primary }}
                   thumbColor={regWantVip ? '#FFFFFF' : '#9CA3AF'}
                   onValueChange={() => setRegWantVip(!regWantVip)}
@@ -4750,8 +4833,8 @@ const handleBehavioralAnalysis = async () => {
               <Text style={[styles.buttonText, { fontSize: 10 }]}>{t('completeRegistration')}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={[styles.button, { width: '100%', height: 25, backgroundColor: 'transparent', borderWidth: 1, borderColor: theme.borderCol, borderRadius: 6, marginTop: 8 }]} 
+            <TouchableOpacity
+              style={[styles.button, { width: '100%', height: 25, backgroundColor: 'transparent', borderWidth: 1, borderColor: theme.borderCol, borderRadius: 6, marginTop: 8 }]}
               onPress={() => setCurrentScreen('login')}
             >
               <Text style={{ color: theme.textSub, fontWeight: '600', fontSize: 11 }}>{t('backToLogin')}</Text>
@@ -4766,7 +4849,7 @@ const handleBehavioralAnalysis = async () => {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
       <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
-      
+
       {activeModule !== 'dashboard' ? (
         <SafeAreaView style={[styles.card, { backgroundColor: theme.cardBg, flex: 1, width: '100%', maxHeight: '100%', borderRadius: 0, marginVertical: 0 }]}>
           <View style={[styles.headerRow, { paddingHorizontal: 12, paddingTop: Math.max(8, insets.top + 4), paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: theme.borderCol }]}>
@@ -5794,8 +5877,8 @@ const handleBehavioralAnalysis = async () => {
                 <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: '#EF4444', alignItems: 'center', padding: 16 }]}>
                   <Text style={{ color: '#EF4444', fontWeight: 'bold', fontSize: 12, marginBottom: 4 }}>{t('portfolioNoAssets')}</Text>
                   <Text style={{ color: theme.textSub, fontSize: 11, textAlign: 'center', marginBottom: 10 }}>{t('portfolioNoAssetsDescription')}</Text>
-                  <TouchableOpacity 
-                    style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6 }]} 
+                  <TouchableOpacity
+                    style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6 }]}
                     onPress={() => {
                       if (userStatus !== 'vip') {
                         setActiveModule('vipView');
@@ -5811,7 +5894,7 @@ const handleBehavioralAnalysis = async () => {
                 <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol, alignItems: 'center' }]}>
                   <Text style={{ color: theme.textSub, fontSize: 11, marginBottom: 4 }}>{t('portfolioVaultValue')} ({vault.length}/10 {t('portfolioAssetsMonitored')})</Text>
                   <Text style={{ color: theme.primary, fontSize: 20, fontWeight: 'bold', marginBottom: 12 }}>${portfolioUsdValue > 0 ? portfolioUsdValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '--'} USD</Text>
-                  
+
                   <LineChart
                     data={getChartDataForRange(selectedChartRange)}
                     color={theme.primary}
@@ -5860,7 +5943,7 @@ const handleBehavioralAnalysis = async () => {
                     <Text style={[styles.prefCardTitle, { color: theme.textMain, fontSize: 12, fontWeight: 'bold' }]}>{t('priceSystemTitle')}</Text>
                     <Text style={[styles.prefCardSub, { color: theme.textSub, fontSize: 10 }]}>{t('priceSystemDescription')}</Text>
                   </View>
-                  <Switch 
+                  <Switch
                     trackColor={{ false: '#374151', true: theme.primary }}
                     thumbColor={priceAlertsEnabled ? '#FFFFFF' : '#9CA3AF'}
                     onValueChange={() => setPriceAlertsEnabled(!priceAlertsEnabled)}
@@ -5869,7 +5952,7 @@ const handleBehavioralAnalysis = async () => {
                 </View>
 
                 <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: 'bold', marginTop: 6, marginBottom: 4 }}>{t('priceSelectCrypto')}</Text>
-                
+
                 <View style={styles.gridContainer}>
                   {Object.keys(NETWORKS).filter((key) => key !== 'nft').map((key) => {
                     const sym = NETWORKS[key].symbol;
@@ -5896,17 +5979,17 @@ const handleBehavioralAnalysis = async () => {
                   })}
                 </View>
 
-                <TextInput 
-                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, marginTop: 4, height: 36, fontSize: 11 }]} 
-                  placeholder={`${t("priceTargetPlaceholder")} ${alertTargetCrypto} ($)...`} 
-                  placeholderTextColor="#888" 
-                  value={targetAlertPrice} 
-                  onChangeText={setTargetAlertPrice} 
+                <TextInput
+                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, marginTop: 4, height: 36, fontSize: 11 }]}
+                  placeholder={`${t("priceTargetPlaceholder")} ${alertTargetCrypto} ($)...`}
+                  placeholderTextColor="#888"
+                  value={targetAlertPrice}
+                  onChangeText={setTargetAlertPrice}
                   keyboardType="numeric"
                 />
 
-                <TouchableOpacity 
-                  style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6 }]} 
+                <TouchableOpacity
+                  style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6 }]}
                   onPress={async () => {
                     if (userStatus !== 'vip' && savedPriceAlerts.length >= 8) {
                       Alert.alert(t("priceVipLimitTitle"), t("priceVipLimitMessage"));
@@ -5989,7 +6072,7 @@ const handleBehavioralAnalysis = async () => {
                   savedPriceAlerts.map((item) => (
                     <View key={item.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: theme.inputBg, padding: 6, borderRadius: 6, marginBottom: 4 }}>
                       <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: 'bold' }}> {item.crypto} : ${item.price}</Text>
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         onPress={() => setSavedPriceAlerts(savedPriceAlerts.filter(a => a.id !== item.id))}
                         style={{ backgroundColor: '#EF4444', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}
                       >
@@ -6304,7 +6387,7 @@ const handleBehavioralAnalysis = async () => {
                   <View style={{ flex: 1, marginRight: 10 }}>
                     <Text style={[styles.prefCardTitle, { color: theme.textMain, fontSize: 12, fontWeight: 'bold' }]}>{t('inheritProtocolTitle')}</Text>
                   </View>
-                  <Switch 
+                  <Switch
                     trackColor={{ false: '#374151', true: theme.primary }}
                     thumbColor={inheritEnabled ? '#FFFFFF' : '#9CA3AF'}
                     onValueChange={setInheritEnabled}
@@ -6315,26 +6398,26 @@ const handleBehavioralAnalysis = async () => {
                 {inheritEnabled && (
                   <>
                 <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: 'bold', marginTop: 6, marginBottom: 2 }}>{t('inheritInactivityDays')}:</Text>
-                <TextInput 
-                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder={t('inheritDaysPlaceholder')} 
-                  placeholderTextColor="#888" 
-                  value={inheritDays} 
-                  onChangeText={setInheritDays} 
+                <TextInput
+                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]}
+                  placeholder={t('inheritDaysPlaceholder')}
+                  placeholderTextColor="#888"
+                  value={inheritDays}
+                  onChangeText={setInheritDays}
                   keyboardType="numeric"
                 />
 
                 <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: 'bold', marginBottom: 2 }}>{t('inheritBeneficiary')}:</Text>
-                <TextInput 
-                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 10, height: 36, fontSize: 11 }]} 
-                  placeholder={t('inheritBeneficiaryPlaceholder')} 
-                  placeholderTextColor="#888" 
-                  value={inheritBeneficiary} 
-                  onChangeText={setInheritBeneficiary} 
+                <TextInput
+                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 10, height: 36, fontSize: 11 }]}
+                  placeholder={t('inheritBeneficiaryPlaceholder')}
+                  placeholderTextColor="#888"
+                  value={inheritBeneficiary}
+                  onChangeText={setInheritBeneficiary}
                 />
 
-                <TouchableOpacity 
-                  style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6 }]} 
+                <TouchableOpacity
+                  style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6 }]}
                   onPress={createInheritanceProtocol}
                   disabled={inheritanceLoading}
                   activeOpacity={0.8}
@@ -6424,12 +6507,12 @@ const handleBehavioralAnalysis = async () => {
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
               <Text style={styles.prefDescription}>{t('quickDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
-                <TextInput 
-                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 10, height: 36, fontSize: 11 }]} 
-                  placeholder={t("quickWalletPlaceholder")} 
-                  placeholderTextColor="#888" 
-                  value={address} 
-                  onChangeText={setAddress} 
+                <TextInput
+                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 10, height: 36, fontSize: 11 }]}
+                  placeholder={t("quickWalletPlaceholder")}
+                  placeholderTextColor="#888"
+                  value={address}
+                  onChangeText={setAddress}
                 />
                 <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary, width: '85%', alignSelf: 'center', height: 36, borderRadius: 6 }]} onPress={handleAddressCheck}>
                   <Text style={[styles.buttonText, { fontSize: 11 }]}>{t('quickStartTest')}</Text>
@@ -6499,7 +6582,7 @@ const handleBehavioralAnalysis = async () => {
             </ScrollView>
           ) : activeModule === 'preferencesView' ? (
             <>
-            
+
             <View
               style={[
                 styles.prefCard,
@@ -6691,12 +6774,12 @@ const handleBehavioralAnalysis = async () => {
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
               <Text style={styles.prefDescription}>{t('outboundDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
-                <TextInput 
-                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder={t("outboundRecipientPlaceholder")} 
-                  placeholderTextColor="#888" 
-                  value={outboundRecipient} 
-                  onChangeText={setOutboundRecipient} 
+                <TextInput
+                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]}
+                  placeholder={t("outboundRecipientPlaceholder")}
+                  placeholderTextColor="#888"
+                  value={outboundRecipient}
+                  onChangeText={setOutboundRecipient}
                 />
                 <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary, width: '85%', alignSelf: 'center', height: 36, borderRadius: 6 }]} onPress={handleOutboundShieldCheck}>
                   <Text style={[styles.buttonText, { fontSize: 11 }]}>{checkingOutbound ? t("commonScanning") : t("outboundTestTransfer")}</Text>
@@ -6742,12 +6825,12 @@ const handleBehavioralAnalysis = async () => {
                 ))}
               </ScrollView>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
-                <TextInput 
-                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder={t("contractAddressPlaceholder")} 
-                  placeholderTextColor="#888" 
-                  value={contractAddress} 
-                  onChangeText={setContractAddress} 
+                <TextInput
+                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]}
+                  placeholder={t("contractAddressPlaceholder")}
+                  placeholderTextColor="#888"
+                  value={contractAddress}
+                  onChangeText={setContractAddress}
                 />
                 <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary, width: '85%', alignSelf: 'center', height: 36, borderRadius: 6 }]} onPress={handleSmartContractAnalysis}>
                   <Text style={[styles.buttonText, { fontSize: 11 }]}>{analyzingContract ? t("commonAnalyzing") : t("contractAnalyze")}</Text>
@@ -6789,12 +6872,12 @@ const handleBehavioralAnalysis = async () => {
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
               <Text style={styles.prefDescription}>{t('behaviorDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
-                <TextInput 
-                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder={t("behaviorWalletPlaceholder")} 
-                  placeholderTextColor="#888" 
-                  value={address} 
-                  onChangeText={setAddress} 
+                <TextInput
+                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]}
+                  placeholder={t("behaviorWalletPlaceholder")}
+                  placeholderTextColor="#888"
+                  value={address}
+                  onChangeText={setAddress}
                 />
                 <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary, width: '85%', alignSelf: 'center', height: 36, borderRadius: 6 }]} onPress={handleBehavioralAnalysis}>
                    <Text style={[styles.buttonText, { fontSize: 11 }]}>{analyzingBehavior ? t('commonAnalyzing') : t('behaviorRun')}</Text>
@@ -7052,12 +7135,12 @@ const handleBehavioralAnalysis = async () => {
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
               <Text style={styles.prefDescription}>{t('phishingDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
-                <TextInput 
-                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder="https://example-dapp.com..." 
-                  placeholderTextColor="#888" 
-                  value={phishingUrl} 
-                  onChangeText={setPhishingUrl} 
+                <TextInput
+                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]}
+                  placeholder="https://example-dapp.com..."
+                  placeholderTextColor="#888"
+                  value={phishingUrl}
+                  onChangeText={setPhishingUrl}
                 />
                 <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary, width: '85%', alignSelf: 'center', height: 36, borderRadius: 6 }]} onPress={handlePhishingAnalysis}>
                   <Text style={[styles.buttonText, { fontSize: 11 }]}>{analyzingPhishing ? t("commonScanning") : t("phishingScanSite")}</Text>
@@ -7088,8 +7171,8 @@ const handleBehavioralAnalysis = async () => {
                     <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11, marginBottom: 2 }}>{t('revokeAsset')}: {item.token}</Text>
                     <Text style={{ color: theme.textMain, fontSize: 10, marginBottom: 2 }}>{t('revokeSpenderContract')}: {item.spender}</Text>
                     <Text style={{ color: theme.textSub, fontSize: 10, marginBottom: 6 }}>{t('commonStatus')}: {item.allowance}</Text>
-                    <TouchableOpacity 
-                      style={{ backgroundColor: '#EF4444', height: 34, borderRadius: 6, justifyContent: 'center', alignItems: 'center' }} 
+                    <TouchableOpacity
+                      style={{ backgroundColor: '#EF4444', height: 34, borderRadius: 6, justifyContent: 'center', alignItems: 'center' }}
                       onPress={() => handleRevokeApproval(index)}
                     >
                       <Text style={{ color: '#FFF', fontSize: 10, fontWeight: 'bold' }}>
@@ -7104,15 +7187,15 @@ const handleBehavioralAnalysis = async () => {
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
               <Text style={styles.prefDescription}>{t('whaleDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
-                <TextInput 
-                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder={t("whalePlaceholder")} 
-                  placeholderTextColor="#888" 
-                  value={newWhaleAddress} 
-                  onChangeText={setNewWhaleAddress} 
+                <TextInput
+                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]}
+                  placeholder={t("whalePlaceholder")}
+                  placeholderTextColor="#888"
+                  value={newWhaleAddress}
+                  onChangeText={setNewWhaleAddress}
                 />
-                <TouchableOpacity 
-                  style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6 }]} 
+                <TouchableOpacity
+                  style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6 }]}
                   onPress={() => {
                     if (!newWhaleAddress.trim()) return Alert.alert(t("commonError"), t("whaleEmptyAddress"));
                     setWhaleWatchList([SecurityScannerMiddleware.sanitizeInput(newWhaleAddress), ...whaleWatchList]);
@@ -7139,15 +7222,15 @@ const handleBehavioralAnalysis = async () => {
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
                 <Text style={{ color: theme.textMain, fontWeight: 'bold', fontSize: 11, marginBottom: 6 }}>{t('gasTimeMode')}:</Text>
                 {[t('gasTimeStandard'), t('gasTimeEconomic'), t('gasTimeEmergency')].map((mode) => (
-                  <TouchableOpacity 
-                    key={mode} 
+                  <TouchableOpacity
+                    key={mode}
                     style={{ padding: 6, backgroundColor: gasOptimizerTarget === mode ? theme.primary : theme.inputBg, borderRadius: 6, marginBottom: 4 }}
                     onPress={() => setGasOptimizerTarget(mode)}
                   >
                     <Text style={{ color: gasOptimizerTarget === mode ? '#FFF' : theme.textMain, fontSize: 10, fontWeight: 'bold' }}>{mode}</Text>
                   </TouchableOpacity>
                 ))}
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6, marginTop: 4 }]}
                   onPress={() => Alert.alert(t("commonSuccess"), `${t("gasTimeConfigured")} ${gasOptimizerTarget}`)}
                 >
@@ -7159,7 +7242,7 @@ const handleBehavioralAnalysis = async () => {
             <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
                <Text style={styles.prefDescription}>🧠 {t('aiMarketDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6, marginBottom: 8 }]}
                   onPress={fetchMarketIntelligence}
                 >
@@ -7275,7 +7358,7 @@ const handleBehavioralAnalysis = async () => {
               <Text style={styles.prefDescription}>{t('taxDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
                 <Text style={{ color: theme.textMain, fontWeight: 'bold', fontSize: 11, marginBottom: 6 }}>{t('taxPeriod')}:</Text>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[styles.button, { backgroundColor: '#6B7280', width: '100%', height: 36, borderRadius: 6 }]}
                   onPress={() => Alert.alert(t('taxReadyTitle'), t('taxReadyMessage'))}
                   disabled={true}
@@ -7289,30 +7372,30 @@ const handleBehavioralAnalysis = async () => {
               <Text style={styles.prefDescription}>{t('dexDescription')}</Text>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
                 <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: 'bold', marginBottom: 4 }}>{t('dexSelectAsset')}:</Text>
-                <TextInput 
-                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder={t('dexAssetPlaceholder')} 
-                  placeholderTextColor="#888" 
-                  value={slCrypto} 
-                  onChangeText={setSlCrypto} 
+                <TextInput
+                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]}
+                  placeholder={t('dexAssetPlaceholder')}
+                  placeholderTextColor="#888"
+                  value={slCrypto}
+                  onChangeText={setSlCrypto}
                 />
-                <TextInput 
-                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder={t('dexStopLossPlaceholder')} 
-                  placeholderTextColor="#888" 
-                  value={slPrice} 
-                  onChangeText={setSlPrice} 
+                <TextInput
+                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]}
+                  placeholder={t('dexStopLossPlaceholder')}
+                  placeholderTextColor="#888"
+                  value={slPrice}
+                  onChangeText={setSlPrice}
                   keyboardType="numeric"
                 />
-                <TextInput 
-                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder={t('dexTakeProfitPlaceholder')} 
-                  placeholderTextColor="#888" 
-                  value={tpPrice} 
-                  onChangeText={setTpPrice} 
+                <TextInput
+                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]}
+                  placeholder={t('dexTakeProfitPlaceholder')}
+                  placeholderTextColor="#888"
+                  value={tpPrice}
+                  onChangeText={setTpPrice}
                   keyboardType="numeric"
                 />
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6 }]}
                   onPress={() => {
                     if (!slCrypto.trim() || !slPrice || !tpPrice) {
@@ -7366,7 +7449,7 @@ const handleBehavioralAnalysis = async () => {
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.primary, alignItems: 'center', padding: 16 }]}>
                 <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 12, marginBottom: 2 }}>{t('vipMembershipTitle')}</Text>
                 <Text style={{ color: theme.textSub, fontSize: 11, textAlign: 'center', marginBottom: 12 }}>{t('vipMembershipDescription')}</Text>
-                
+
                 <View style={{ width: '100%', marginBottom: 12, alignItems: 'center' }}>
                   <QRCode value={VIP_PAYMENT_USDT_ADDRESS} size={130} />
                   <Text style={{ color: theme.textMain, fontSize: 9, marginTop: 6, textAlign: 'center' }}>{VIP_PAYMENT_USDT_ADDRESS}</Text>
@@ -7376,12 +7459,12 @@ const handleBehavioralAnalysis = async () => {
                   <Text style={[styles.buttonText, { fontSize: 11 }]}>{t('vipPayTrc20')}</Text>
                 </TouchableOpacity>
 
-                <TextInput 
-                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, width: '100%', marginBottom: 8, height: 36, fontSize: 11 }]} 
-                  placeholder={t("vipTxidPlaceholder")} 
-                  placeholderTextColor="#888" 
-                  value={paymentTxHashInput} 
-                  onChangeText={setPaymentTxHashInput} 
+                <TextInput
+                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, width: '100%', marginBottom: 8, height: 36, fontSize: 11 }]}
+                  placeholder={t("vipTxidPlaceholder")}
+                  placeholderTextColor="#888"
+                  value={paymentTxHashInput}
+                  onChangeText={setPaymentTxHashInput}
                 />
 
                 <TouchableOpacity style={[styles.button, { backgroundColor: '#10B981', width: '100%', height: 36, borderRadius: 6 }]} onPress={submitPaymentNotificationToSystem}>
@@ -7393,7 +7476,7 @@ const handleBehavioralAnalysis = async () => {
         </SafeAreaView>
       ) : (
         <ScrollView contentContainerStyle={styles.dashboardContainer} showsVerticalScrollIndicator={false}>
-          
+
           {/* SAFE SENTINEL SECURITY COMMAND CENTER */}
           <View
             style={{
