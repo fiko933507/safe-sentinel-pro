@@ -1,14 +1,11 @@
+const {
+  SUPPORTED_PRODUCTION_LANGUAGES,
+  HIDDEN_PRODUCTION_MODULES
+} = require('../production-feature-registry.cjs');
+
 module.exports = function safeSentinelProductionUiPlugin({ types: t }) {
-  const supported = new Set(['tr', 'en']);
-  const hiddenProductionModules = new Set([
-    'whaleWatchView',
-    'emergencyLockView',
-    'taxReportView',
-    'dexOrdersView',
-    'gasTimeView',
-    'deepIntelView',
-    'autoPhishView'
-  ]);
+  const supported = new Set(SUPPORTED_PRODUCTION_LANGUAGES);
+  const hiddenProductionModules = new Set(HIDDEN_PRODUCTION_MODULES);
 
   const runtimeTranslations = {
     runtimeWalletNotConnected: ['EVM cüzdan bağlı değil.', 'EVM wallet is not connected.'],
@@ -71,6 +68,20 @@ module.exports = function safeSentinelProductionUiPlugin({ types: t }) {
     runtimeInvalidSpenderContract: ['Spender kontrat adresi geçersiz.', 'The spender contract address is invalid.'],
     runtimeRevokePrepareFailed: ['Revoke işlemi backend tarafından hazırlanamadı.', 'The backend could not prepare the revoke transaction.'],
     runtimeRevokeAllowanceMissing: ['Backend revoke hazırlığında allowance değeri bulunamadı.', 'The backend revoke preparation did not return an allowance value.'],
+    runtimeRevokeSentTitle: ['Revoke İşlemi Gönderildi', 'Revoke Transaction Sent'],
+    runtimeRevokeConfirmedTitle: ['Revoke Doğrulandı', 'Revoke Confirmed'],
+    runtimeRevokePrepareErrorTitle: ['Revoke Hazırlama Hatası', 'Revoke Preparation Error'],
+    runtimeInvalidAddressTitle: ['Geçersiz Adres', 'Invalid Address'],
+    runtimeAnalysisFailedTitle: ['Analiz Başarısız', 'Analysis Failed'],
+    runtimeBehaviorAnalysisFailedTitle: ['Davranış Analizi Başarısız', 'Behavior Analysis Failed'],
+    runtimeInvalidUrlTitle: ['Geçersiz URL', 'Invalid URL'],
+    runtimePhishingAnalysisFailedTitle: ['Phishing Analizi Başarısız', 'Phishing Analysis Failed'],
+    runtimeTrc20PaymentTitle: ['TRC20 USDT Ödeme', 'TRC20 USDT Payment'],
+    runtimeErrorTitle: ['Hata', 'Error'],
+    runtimeInvalidTxidTitle: ['Geçersiz TXID', 'Invalid TXID'],
+    runtimeVipActivatedTitle: ['VIP Aktivasyonu Başarılı', 'VIP Activation Successful'],
+    runtimeVerificationCompleteTitle: ['Doğrulama Tamamlandı', 'Verification Complete'],
+    runtimeVipVerificationFailedTitle: ['VIP Doğrulama Başarısız', 'VIP Verification Failed'],
     runtimeSecurityCommandCenter: ['SECURITY COMMAND CENTER', 'SECURITY COMMAND CENTER'],
     runtimeScamIntelligenceTitle: ['SCAM INTELLIGENCE', 'SCAM INTELLIGENCE'],
     runtimeBlockedAddressesTitle: ['Engellenen Adresler', 'Blocked Addresses']
@@ -194,10 +205,20 @@ module.exports = function safeSentinelProductionUiPlugin({ types: t }) {
 
       ArrayExpression(path) {
         path.node.elements = path.node.elements.filter((element) => {
-          if (!t.isArrayExpression(element)) return true;
-          return !element.elements.some(
-            (item) => t.isStringLiteral(item) && hiddenProductionModules.has(item.value)
-          );
+          if (t.isArrayExpression(element)) {
+            return !element.elements.some(
+              (item) => t.isStringLiteral(item) && hiddenProductionModules.has(item.value)
+            );
+          }
+          if (t.isObjectExpression(element)) {
+            const moduleProperty = element.properties.find(
+              (property) => t.isObjectProperty(property) && getPropertyKey(property) === 'mod'
+            );
+            if (moduleProperty && t.isStringLiteral(moduleProperty.value)) {
+              return !hiddenProductionModules.has(moduleProperty.value.value);
+            }
+          }
+          return true;
         });
       }
     }
