@@ -7,6 +7,9 @@
                     "start":  "node src/server.js",
                     "db:push":  "prisma db push",
                     "prisma:migrate:deploy":  "prisma migrate deploy",
+                    "production:preflight":  "node scripts/production-preflight.mjs",
+                    "railway:predeploy":  "npm run production:preflight && npm run prisma:migrate:deploy",
+                    "railway:start":  "npm run production:preflight && npm start",
                     "prisma:generate":  "prisma generate",
                     "test":  "node --test tests/*.test.js"
                 },

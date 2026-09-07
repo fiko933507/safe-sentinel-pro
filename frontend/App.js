@@ -8380,9 +8380,7 @@ const handleBehavioralAnalysis = async () => {
                 [t("dashboardPortfolio"), t("dashboardViewVaultAssets"), "portfolioView"],
                 [t("dashboardGasOptimization"), t("dashboardCompareNetworkFees"), "gasOptView"],
                 [t("dashboardPriceAlert"), t("dashboardTrackTargetPrices"), "priceAlertsView"],
-                [t("dashboardTaxReport"), t("dashboardReportTransactionHistory"), "taxReportView", t("dashboardPlanned")],
-                [t("toolTitleAiMarket"), t("dashboardMarketSentimentAnalysis"), "aiMarketView"],
-                [t("toolTitleDexOrders"), t("dashboardStopLossTakeProfit"), "dexOrdersView"]
+                [t("toolTitleAiMarket"), t("dashboardMarketSentimentAnalysis"), "aiMarketView"]
               ].map((item, index) => (
                 <TouchableOpacity
                   key={index}
@@ -8431,7 +8429,6 @@ const handleBehavioralAnalysis = async () => {
 
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
               {[
-                [t("dashboardEmergencyAssetLock"), t("dashboardEmergencyProtectionMode"), "emergencyLockView", t("dashboardAvailable")],
                 ["Guardian", t("dashboardSecurityCircle"), "guardianView", t("dashboardAvailable")],
                 [t("dashboardCryptoInheritance"), "Dead Man's Switch", "inheritView", t("dashboardAvailable")]
               ].map((item, index) => (
@@ -8796,12 +8793,6 @@ const DASHBOARD_TOOL_GROUPS = [
         subtitle: "Hedef fiyatları takip et",
         mod: "priceAlertsView",
         icon: ""
-      },
-      {
-        title: "Vergi Raporu",
-        subtitle: "İşlem geçmişini dışa aktar",
-        mod: "taxReportView",
-        icon: ""
       }
     ]
   }
@@ -8944,7 +8935,6 @@ export default function SafeSentinelApp() {
     </SafeAreaProvider>
   );
 }
-
 
 
 

@@ -1859,7 +1859,15 @@ const token=async(u,req)=>{
     .sign(secret);
 };
 
-app.get('/health',(_,res)=>res.json({ok:true}));
+app.get('/health',async(_,res)=>{
+  try{
+    await db.$queryRaw`SELECT 1`;
+    return res.json({ok:true,database:'connected'});
+  }catch(error){
+    console.error('Health database check failed:',error?.code||error?.name||'unknown');
+    return res.status(503).json({ok:false,database:'unavailable'});
+  }
+});
 /*
  * V22-C MARKET INTELLIGENCE
  * Gerçek CoinGecko global market verisi + deterministik analiz.
@@ -6490,7 +6498,17 @@ registerSecurityV2({
   lookupScamIntelligence,
   lookupTransactionScamIntelligence
 });
-app.use((err,req,res,next)=>{console.error(err);res.status(500).json({error:'Internal server error'})}); app.listen(process.env.PORT||3000,()=>console.log('Safe Sentinel API listening'));
+app.use((err,req,res,next)=>{console.error(err);res.status(500).json({error:'Internal server error'})});
+const server=app.listen(process.env.PORT||3000,()=>console.log('Safe Sentinel API listening'));
+const shutdown=signal=>{
+  console.log(`${signal} received; shutting down safely`);
+  server.close(async()=>{
+    await db.$disconnect();
+    process.exit(0);
+  });
+};
+process.on('SIGTERM',()=>shutdown('SIGTERM'));
+process.on('SIGINT',()=>shutdown('SIGINT'));
 
 
 
