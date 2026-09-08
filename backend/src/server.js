@@ -4769,6 +4769,18 @@ app.get('/api/live-gas-fees',auth,async(_,res)=>{
     }
 
     try{
+      const conflictingBlacklist = await db.blacklistAddress.findFirst({
+        where:{ userId:req.user.id, network, address }
+      });
+
+      if(conflictingBlacklist){
+        await createAddressListEvent(req,req.user.id,'WHITELIST_ADD',false,{reason:'BLACKLIST_CONFLICT',network,address});
+        return res.status(409).json({
+          success:false,
+          error:'Address is already present in blacklist. Remove it from blacklist before adding to whitelist.'
+        });
+      }
+
       const row=await db.whitelistAddress.create({
         data:{
           userId:req.user.id,
@@ -4909,6 +4921,18 @@ app.get('/api/live-gas-fees',auth,async(_,res)=>{
     }
 
     try{
+      const conflictingWhitelist = await db.whitelistAddress.findFirst({
+        where:{ userId:req.user.id, network, address }
+      });
+
+      if(conflictingWhitelist){
+        await createAddressListEvent(req,req.user.id,'BLACKLIST_ADD',false,{reason:'WHITELIST_CONFLICT',network,address});
+        return res.status(409).json({
+          success:false,
+          error:'Address is already present in whitelist. Remove it from whitelist before adding to blacklist.'
+        });
+      }
+
       const row=await db.blacklistAddress.create({
         data:{
           userId:req.user.id,
