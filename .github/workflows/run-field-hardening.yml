@@ -25,8 +25,8 @@ jobs:
             backend/package-lock.json
             frontend/package-lock.json
 
-      - name: Apply consolidated production hardening
-        run: python .github/scripts/consolidated-production-hardening.py
+      - name: Apply final production hardening
+        run: python .github/scripts/final-production-hardening.py
 
       - name: JavaScript syntax checks
         run: |
@@ -61,7 +61,7 @@ jobs:
           node scripts/release-audit.mjs
           node -e "require('@babel/core').transformFileSync('App.js',{configFile:'./babel.config.js'}); console.log('BABEL PARSE PASSED')"
 
-      - name: Commit consolidated hardening
+      - name: Commit final hardening
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -70,6 +70,6 @@ jobs:
             echo "No changes to commit"
             exit 0
           fi
-          git commit -m "Consolidate real-device production hardening"
+          git commit -m "Finalize production hardening before preview build"
           git pull --rebase origin main
           git push origin HEAD:main
