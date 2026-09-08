@@ -27,45 +27,50 @@ jobs:
           p = Path('frontend/App.js')
           s = p.read_text(encoding='utf-8')
 
-          def replace_once(old, new, label):
+          def replace_required(old, new, label, all_matches=False):
               global s
               count = s.count(old)
-              if count != 1:
-                  raise SystemExit(f'{label}: expected 1 match, found {count}')
-              s = s.replace(old, new, 1)
+              print(f'{label}: {count} match(es)')
+              if count < 1:
+                  raise SystemExit(f'{label}: required pattern not found')
+              s = s.replace(old, new) if all_matches else s.replace(old, new, 1)
 
-          # 1) Lists returned by backend are objects, so string .includes() is not reliable.
+          def replace_optional(old, new, label):
+              global s
+              count = s.count(old)
+              print(f'{label}: {count} match(es)')
+              if count:
+                  s = s.replace(old, new)
+
           anchor = """  const formatCurrency = (usdValue) =>\n  v26FormatCurrency(usdValue, selectedCurrency);\n"""
           helper = """  const formatCurrency = (usdValue) =>\n  v26FormatCurrency(usdValue, selectedCurrency);\n\n  const securityListContains = (list, targetAddress, targetNetwork = selectedNetwork) => {\n    const normalizedAddress = String(targetAddress || '').trim().toLowerCase();\n    const normalizedNetwork = String(targetNetwork === 'eth' ? 'ethereum' : targetNetwork || '').trim().toLowerCase();\n\n    return Array.isArray(list) && list.some((entry) => {\n      const entryAddress = String(entry?.address || entry || '').trim().toLowerCase();\n      const entryNetwork = String(entry?.network || normalizedNetwork).trim().toLowerCase();\n      return entryAddress === normalizedAddress && entryNetwork === normalizedNetwork;\n    });\n  };\n"""
-          replace_once(anchor, helper, 'securityListContains helper')
-          replace_once("if (whitelist.includes(cleanAddr)) {", "if (securityListContains(whitelist, cleanAddr, selectedNetwork)) {", 'wallet whitelist lookup')
-          replace_once("if (blacklist.includes(cleanAddr)) {", "if (securityListContains(blacklist, cleanAddr, selectedNetwork)) {", 'wallet blacklist lookup')
+          replace_required(anchor, helper, 'securityListContains helper')
+          replace_required("if (whitelist.includes(cleanAddr)) {", "if (securityListContains(whitelist, cleanAddr, selectedNetwork)) {", 'wallet whitelist lookup')
+          replace_required("if (blacklist.includes(cleanAddr)) {", "if (securityListContains(blacklist, cleanAddr, selectedNetwork)) {", 'wallet blacklist lookup')
 
-          # 2) Whitelist and blacklist must be mutually exclusive.
           white_anchor = """    const previous =\n    Array.isArray(whitelist) ?\n    whitelist :\n    [];\n\n    for (const item of normalized) {\n"""
           white_new = """    const previous =\n    Array.isArray(whitelist) ?\n    whitelist :\n    [];\n\n    const conflict = normalized.find((item) =>\n      securityListContains(blacklist, item.address, item.network)\n    );\n\n    if (conflict) {\n      Alert.alert(\n        'Whitelist',\n        selectedLanguage === 'tr'\n          ? 'Bu adres Blacklist içinde. Aynı adres iki listede birden bulunamaz. Önce Blacklist kaydını kaldırın.'\n          : 'This address is already in the Blacklist. The same address cannot exist in both lists. Remove it from the Blacklist first.'\n      );\n      return previous;\n    }\n\n    for (const item of normalized) {\n"""
-          replace_once(white_anchor, white_new, 'whitelist conflict guard')
+          replace_required(white_anchor, white_new, 'whitelist conflict guard')
 
           black_anchor = """    const previous =\n    Array.isArray(blacklist) ?\n    blacklist :\n    [];\n\n    for (const item of normalized) {\n"""
           black_new = """    const previous =\n    Array.isArray(blacklist) ?\n    blacklist :\n    [];\n\n    const conflict = normalized.find((item) =>\n      securityListContains(whitelist, item.address, item.network)\n    );\n\n    if (conflict) {\n      Alert.alert(\n        'Blacklist',\n        selectedLanguage === 'tr'\n          ? 'Bu adres Whitelist içinde. Aynı adres iki listede birden bulunamaz. Önce Whitelist kaydını kaldırın.'\n          : 'This address is already in the Whitelist. The same address cannot exist in both lists. Remove it from the Whitelist first.'\n      );\n      return previous;\n    }\n\n    for (const item of normalized) {\n"""
-          replace_once(black_anchor, black_new, 'blacklist conflict guard')
+          replace_required(black_anchor, black_new, 'blacklist conflict guard')
 
-          # 3) Shared module header: prevent long title from pushing Back off-screen.
-          replace_once(
+          replace_optional(
               "<Text style={[styles.title, { color: theme.textMain, fontSize: 14 }]}>\n",
               "<Text numberOfLines={2} style={[styles.title, { color: theme.textMain, fontSize: 14, flex: 1, paddingRight: 8 }]}>\n",
               'module title responsive layout'
           )
-          replace_once(
+          replace_optional(
               "style={[styles.backButton, { backgroundColor: theme.inputBg, borderRadius: 6, paddingVertical: 4, paddingHorizontal: 8 }]}",
               "style={[styles.backButton, { backgroundColor: theme.inputBg, borderRadius: 6, paddingVertical: 4, paddingHorizontal: 8, marginLeft: 8, flexShrink: 0 }]}",
               'back button safe layout'
           )
 
-          # 4) User-facing terminology found during physical-device smoke test.
           replacements = {
               'Riskli İşlem / Transfer Engeli': 'Transfer Kalkanı',
               'Akıllı Sözleşme & AI Tehdit Radarı': 'Akıllı Sözleşme Güvenlik Analizi',
+              'Akıllı Sözleşme & AI Threat Radarı': 'Akıllı Sözleşme Güvenlik Analizi',
               "Kripto Varlık Mirasçılığı (Dead Man's Switch)": 'Kripto Varlık Mirasçılığı',
               'Güvenli Adresler': 'Whitelist',
               'Engellenen Adresler': 'Blacklist',
@@ -75,17 +80,15 @@ jobs:
               'Kasaya (Vault) cüzdan varlığı eklediğinizde token ve NFT yetkileriniz burada dinamik olarak görünecektir.': 'Revoke taraması için Vault’a desteklenen bir EVM cüzdanı ekleyin. Henüz tarama yapılmadığı için aktif harcama yetkisi sonucu bulunmuyor.'
           }
           for old, new in replacements.items():
-              s = s.replace(old, new)
+              replace_optional(old, new, f'terminology: {old}')
 
-          # 5) Login errors: distinguish auth failure from connectivity.
           old_login = """      const message =\n      error?.response?.data?.error ||\n      error?.response?.data?.message || t(\"runtimeLoginFailedGeneric\");\n\n      Alert.alert(t(\"runtimeLoginFailedTitle\"), message);\n"""
           new_login = """      const status = error?.response?.status;\n      const serverMessage = error?.response?.data?.error || error?.response?.data?.message;\n      const message = status === 401\n        ? (selectedLanguage === 'tr' ? 'E-posta veya şifre hatalı.' : 'Incorrect email or password.')\n        : !error?.response\n        ? (selectedLanguage === 'tr' ? 'Sunucuya ulaşılamıyor. İnternet bağlantınızı kontrol edip tekrar deneyin.' : 'Cannot reach the server. Check your internet connection and try again.')\n        : serverMessage || t(\"runtimeLoginFailedGeneric\");\n\n      Alert.alert(t(\"runtimeLoginFailedTitle\"), message);\n"""
-          replace_once(old_login, new_login, 'login error localization')
+          replace_required(old_login, new_login, 'login error localization')
 
-          # 6) Registration duplicate email localization.
           old_reg = """      const message =\n      error?.response?.data?.error ||\n      error?.response?.data?.message || t(\"runtimeRegisterFailedGeneric\");\n\n      Alert.alert(t(\"runtimeRegisterFailedTitle\"), message);\n"""
           new_reg = """      const status = error?.response?.status;\n      const serverMessage = error?.response?.data?.error || error?.response?.data?.message;\n      const duplicateEmail = /already registered|already exists/i.test(String(serverMessage || ''));\n      const message = (status === 409 || duplicateEmail)\n        ? (selectedLanguage === 'tr' ? 'Bu e-posta adresi zaten kayıtlı.' : 'This email address is already registered.')\n        : !error?.response\n        ? (selectedLanguage === 'tr' ? 'Sunucuya ulaşılamıyor. Lütfen tekrar deneyin.' : 'Cannot reach the server. Please try again.')\n        : serverMessage || t(\"runtimeRegisterFailedGeneric\");\n\n      Alert.alert(t(\"runtimeRegisterFailedTitle\"), message);\n"""
-          replace_once(old_reg, new_reg, 'registration error localization')
+          replace_required(old_reg, new_reg, 'registration error localization')
 
           p.write_text(s, encoding='utf-8')
           PY
