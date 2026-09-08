@@ -1,0 +1,61 @@
+name: Universal Safe Scan Product Upgrade
+
+on:
+  push:
+    paths:
+      - '.github/universal-safe-scan-trigger'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Apply Universal Safe Scan upgrade
+        run: python .github/scripts/universal-safe-scan-upgrade.py
+
+      - name: JavaScript syntax checks
+        run: |
+          node --check frontend/App.js
+          node --check frontend/AppKitConfig.js
+          node --check backend/src/server.js
+
+      - name: Frontend production audits
+        working-directory: frontend
+        env:
+          NODE_ENV: production
+          EXPO_PUBLIC_BACKEND_URL: https://safe-sentinel-pro-1.onrender.com
+          EXPO_PUBLIC_PLAY_STORE_BUILD: 'true'
+        run: |
+          npm ci --legacy-peer-deps --no-audit --no-fund
+          npx expo install --check
+          node scripts/i18n-audit.mjs
+          node scripts/release-audit.mjs
+          node -e "require('@babel/core').transformFileSync('App.js',{configFile:'./babel.config.js'}); console.log('BABEL PARSE PASSED')"
+
+      - name: Commit product upgrade
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/App.js
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Add Universal Safe Scan and Sentinel Score"
+          git pull --rebase origin main
+          git push origin HEAD:main
