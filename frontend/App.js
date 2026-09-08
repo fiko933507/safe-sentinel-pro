@@ -282,8 +282,8 @@ const V26_TRANSLATIONS = {
     dashboardPlanned: 'PLANLANDI',
     dashboardWalletProtection: 'Cüzdan Koruma',
     dashboardWalletProtectionDescription: 'Adres, kasa ve acil durum güvenliği',
-    dashboardSafeAddressesTitle: 'Güvenli Adresler',
-    dashboardBlockedAddressesTitle: 'Engellenen Adresler',
+    dashboardSafeAddressesTitle: 'Whitelist',
+    dashboardBlockedAddressesTitle: 'Blacklist',
     dashboardRecordLower: 'kayıt',
     dashboardVaultAssets: 'Kasa Varlıkları',
     dashboardMonitored: 'izleniyor',
@@ -339,13 +339,13 @@ const V26_TRANSLATIONS = {
     toolTitleCryptoPolicies: 'Kripto Para ve Finansal Politikalar',
     toolTitlePortfolio: 'Portföy Değer Grafikleri (Kasa Varlıkları)',
     toolTitlePriceAlerts: 'Anlık Fiyat Alarmları',
-    toolTitleOutboundShield: 'Riskli İşlem / Transfer Engeli',
-    toolTitleWhitelist: 'Güvenli Adresler',
-    toolTitleBlacklist: 'Engellenen Adresler',
+    toolTitleOutboundShield: 'Transfer Kalkanı',
+    toolTitleWhitelist: 'Whitelist',
+    toolTitleBlacklist: 'Blacklist',
     toolTitleVault: 'Kasa Varlık Yönetimi',
-    toolTitleNotifications: 'Bildirimler & Scam Uyarıları',
+    toolTitleNotifications: 'Bildirimler ve Dolandırıcılık Uyarıları',
     toolTitleVip: 'VIP Ödeme ve Hızlı Bildirim',
-    toolTitleSmartContract: 'Akıllı Sözleşme & AI Tehdit Radarı',
+    toolTitleSmartContract: 'Akıllı Sözleşme Güvenlik Analizi',
     toolTitleBehavioral: 'AI Cüzdan Davranış Analizi',
     toolTitlePhishing: 'Phishing & DApp Kalkanı',
     toolTitleQuickTest: 'Hızlı Cüzdan Testi',
@@ -354,7 +354,7 @@ const V26_TRANSLATIONS = {
     toolTitleDeepIntel: 'Derin Zincir İstihbaratı',
     toolTitleAutoPhish: 'Otomatik Phishing Kalkanı',
     toolTitleGuardian: 'Safe Sentinel Guardian — Akıllı Cüzdan Koruma Merkezi',
-    toolTitleInheritance: "Kripto Varlık Mirasçılığı (Dead Man's Switch)",
+    toolTitleInheritance: "Kripto Varlık Mirasçılığı",
     toolTitleRevoke: 'Token & NFT Yetki İptal (Revoke)',
     toolTitleWhaleWatch: 'Riskli Adres / Whale (Balina) Takibi',
     toolTitleGasTime: 'Gas Ücreti Optimizatörü ve Zamanlayıcı',
@@ -369,7 +369,7 @@ const V26_TRANSLATIONS = {
     contractDefaultAdminDetected: 'DEFAULT_ADMIN_ROLE TESPİT EDİLDİ',
     wlDescription1: 'Güvenilir olarak işaretlediğiniz cüzdan adresleri burada yönetilir.',
     wlDescription2: 'Whitelist adresleri güvenlik sorgularında öncelikli olarak değerlendirilir.',
-    wlSafeAddresses: 'Güvenli Adresler',
+    wlSafeAddresses: 'Whitelist',
     wlRegistered: 'Kayıtlı güvenilir adresleriniz',
     wlEmpty: 'Henüz güvenli adres eklenmedi.',
     wlEmptyHelp1: 'Bir cüzdan adresini güvenli listeye eklemek için',
@@ -535,8 +535,8 @@ const V26_TRANSLATIONS = {
     phishingScanSite: 'Bağlantıyı ve Siteyi Tara',
     phishingDomainAge: 'Alan Adı Yaşı',
     revokeDescription: "Kasaya (Vault) eklediğiniz kripto varlıklara ve NFT'lere ait aktif akıllı sözleşme harcama izinleri.",
-    revokeNoAllowance: 'Aktif Harcama Yetkisi Bulunamadı',
-    revokeEmptyDescription: 'Kasaya (Vault) cüzdan varlığı eklediğinizde token ve NFT yetkileriniz burada dinamik olarak görünecektir.',
+    revokeNoAllowance: 'Revoke Taraması İçin Cüzdan Gerekli',
+    revokeEmptyDescription: 'Revoke taraması için Vault’a desteklenen bir EVM cüzdanı ekleyin. Henüz tarama yapılmadığı için aktif harcama yetkisi sonucu bulunmuyor.',
     revokeAsset: 'Varlık',
     revokeSpenderContract: 'Spender / Kontrat',
     commonStatus: 'Durum',
@@ -627,12 +627,12 @@ const V26_TRANSLATIONS = {
     commonInvalidAddress: 'Geçersiz adres.',
     commonAddressRequired: 'Adres alanı boş olamaz!',
     whitelistNotFound: 'Adres Whitelist listesinde bulunamadı.',
-    whitelistRemoved: 'Adres Güvenli Adresler listesinden kaldırıldı.',
+    whitelistRemoved: 'Adres Whitelist listesinden kaldırıldı.',
     whitelistAlready: 'Bu adres zaten Whitelist listesinde ekli.',
     whitelistConflict: 'Bu adres zaten Blacklist listesinde kayıtlı!',
     whitelistAdded: 'Adres Whitelist listesine eklendi.',
     blacklistNotFound: 'Adres Blacklist listesinde bulunamadı.',
-    blacklistRemoved: 'Adres Engellenen Adresler listesinden kaldırıldı.',
+    blacklistRemoved: 'Adres Blacklist listesinden kaldırıldı.',
     blacklistAlready: 'Bu adres zaten Blacklist listesinde ekli.',
     blacklistConflict: 'Bu adres zaten Whitelist listesinde kayıtlı!',
     blacklistRiskAdded: 'Adres riskli olarak işaretlendi ve güvenlik kontrollerine eklendi.',
@@ -661,7 +661,7 @@ const V26_TRANSLATIONS = {
     inheritCancelledTitle: 'Miras Protokolü İptal Edildi',
     inheritCancelled: 'Protokol backend üzerinde iptal edildi.',
     inheritCancelFailedTitle: 'İptal Hatası',
-    inheritCancelFailed: 'Miras protokolü iptal edilemedi.', runtimeWalletNotConnected: "EVM c\xFCzdan ba\u011Fl\u0131 de\u011Fil.", runtimeWalletVerificationFailed: "Ba\u011Fl\u0131 c\xFCzdan adresi do\u011Frulanamad\u0131.", runtimeLoginSuccessTitle: "Giri\u015F Ba\u015Far\u0131l\u0131", runtimeLoginFailedTitle: "Giri\u015F Ba\u015Far\u0131s\u0131z", runtimeLoginFailedGeneric: "E-posta veya \u015Fifre hatal\u0131 ya da sunucuya ula\u015F\u0131lam\u0131yor.", runtimeMissingInfoTitle: "Eksik Bilgi", runtimeRegisterMissingFields: "L\xFCtfen ad, soyad, e-posta ve \u015Fifre alanlar\u0131n\u0131 doldurunuz.", runtimeInvalidPasswordTitle: "Ge\xE7ersiz \u015Eifre", runtimeInvalidPasswordMessage: "\u015Eifreniz en az 10 karakter olmal\u0131d\u0131r.", runtimeInvalidRegisterResponse: "Sunucudan ge\xE7ersiz kay\u0131t yan\u0131t\u0131 geldi.", runtimeRegisterSuccessTitle: "Kay\u0131t Ba\u015Far\u0131l\u0131", runtimeRegisterFailedTitle: "Kay\u0131t Ba\u015Far\u0131s\u0131z", runtimeRegisterFailedGeneric: "Kay\u0131t s\u0131ras\u0131nda sunucuya ula\u015F\u0131lamad\u0131.", runtimeStrongPasswordPlaceholder: "G\xFC\xE7l\xFC bir \u015Fifre belirleyin", runtimeOptionalVaultWallet: "Kasaya Eklenecek C\xFCzdan (Opsiyonel)", runtimeWalletPlaceholder: "T... veya 0x... adresiniz", runtimeRegisterVipQuestion: "Kay\u0131t S\u0131ras\u0131nda VIP Olmak \u0130ster misiniz?", runtimeInheritanceWalletMissingTitle: "C\xFCzdan Adresi Eksik", runtimeInheritanceWalletMissingMessage: "Miras protokol\xFC i\xE7in \xF6nce ana c\xFCzdan adresini girin.", runtimeInheritanceBeneficiaryMissing: "L\xFCtfen ge\xE7erli bir varis c\xFCzdan adresi girin.", runtimeInvalidDurationTitle: "Ge\xE7ersiz S\xFCre", runtimeInvalidDurationMessage: "Sinyal yoklu\u011Fu s\xFCresi 1 ile 3650 g\xFCn aras\u0131nda olmal\u0131d\u0131r.", runtimeInheritanceCreatedTitle: "Miras Protokol\xFC Olu\u015Fturuldu", runtimeInheritanceErrorTitle: "Miras Protokol\xFC Hatas\u0131", runtimeInheritanceCreateFailed: "Miras protokol\xFC olu\u015Fturulamad\u0131.", runtimeHeartbeatUpdatedTitle: "Heartbeat G\xFCncellendi", runtimeHeartbeatUpdatedMessage: "Miras protokol\xFCn\xFCn ya\u015Fam sinyali backend \xFCzerinde g\xFCncellendi.", runtimeHeartbeatErrorTitle: "Heartbeat Hatas\u0131", runtimeHeartbeatFailed: "Heartbeat g\xFCncellenemedi.", runtimeInheritanceCancelledTitle: "Miras Protokol\xFC \u0130ptal Edildi", runtimeInheritanceCancelledMessage: "Protokol backend \xFCzerinde iptal edildi.", runtimeCancelErrorTitle: "\u0130ptal Hatas\u0131", runtimeInheritanceCancelFailed: "Miras protokol\xFC iptal edilemedi.", runtimeVipRequiredTitle: "VIP Gerekli", runtimeVaultVipRequired: "Vault c\xFCzdan\u0131 eklemek i\xE7in aktif VIP aboneli\u011Finiz bulunmal\u0131d\u0131r.", runtimeVaultLimitTitle: "Vault Limiti", runtimeVaultLimitMessage: "VIP hesab\u0131n\u0131zda en fazla 10 c\xFCzdan izlenebilir.", runtimeVaultSyncErrorTitle: "Vault Senkronizasyon Hatas\u0131", runtimeVaultSyncErrorMessage: "C\xFCzdan backend'e kaydedilemedi.", runtimePortfolioNoData: "D\u0131\u015Fa aktar\u0131lacak ger\xE7ek blockchain verisi bulunamad\u0131.", runtimeEnterValidWallet: "L\xFCtfen sorgulanacak ge\xE7erli bir c\xFCzdan adresi girin!", runtimeInvalidWalletFormat: "Ge\xE7ersiz Adres Format\u0131", runtimeFreeQueryLimit: "\xDCcretsiz 1 sorgu hakk\u0131n\u0131z bitti. Standart kullan\u0131c\u0131lar i\xE7in sadece 1 kez bu test yap\u0131labilir. Sonraki c\xFCzdan sorgular\u0131 i\xE7in VIP \xFCyeli\u011Fe ge\xE7meniz gerekmektedir.", runtimeBlacklistWarning: "\u26A0\uFE0F D\u0130KKAT: Bu adres k\xFCresel scam havuzunda (Blacklist) kay\u0131tl\u0131 tehlikeli bir c\xFCzdand\u0131r!", runtimeBlockedRisk: "\u0130\u015Flem Engellendi (Riskli Adres)", runtimeCriticalSecurityAlert: "KR\u0130T\u0130K G\xDCVENL\u0130K UYARISI", runtimeScamWalletScanned: "Scam c\xFCzdan sorguland\u0131!", runtimeLoadingChain: "Backend sunucusundan ger\xE7ek zincir verileri \xE7ekiliyor...", runtimeScamAddressWarning: "\u26A0\uFE0F D\u0130KKAT: Bu adres evrensel a\u011Flar \xFCzerinde doland\u0131r\u0131c\u0131l\u0131k faaliyetleriyle ili\u015Fkilendirilmi\u015F!", runtimeDangerousScamAddress: "Tehlikeli / Scam Adres", runtimeScamWalletDetected: "Evrensel scam c\xFCzdan tespit edildi.", runtimeRevokeNotNeededTitle: "Revoke Gerekli De\u011Fil", runtimeRevokeNotNeededMessage: "Bu token i\xE7in belirtilen spender adresinin mevcut harcama yetkisi zaten s\u0131f\u0131r.", runtimeConnectEvmWallet: "\xD6nce EVM c\xFCzdan\u0131n\u0131z\u0131 ba\u011Flaman\u0131z gerekiyor.", runtimeRevokeUnsupportedNetwork: "Bu a\u011F i\xE7in revoke i\u015Flemi hen\xFCz desteklenmiyor.", runtimeInvalidConnectedEvmWallet: "Ba\u011Fl\u0131 EVM c\xFCzdan adresi ge\xE7ersiz.", runtimeInvalidTokenContract: "Token kontrat adresi ge\xE7ersiz.", runtimeInvalidSpenderContract: "Spender kontrat adresi ge\xE7ersiz.", runtimeRevokePrepareFailed: "Revoke i\u015Flemi backend taraf\u0131ndan haz\u0131rlanamad\u0131.", runtimeRevokeAllowanceMissing: "Backend revoke haz\u0131rl\u0131\u011F\u0131nda allowance de\u011Feri bulunamad\u0131.", runtimeRevokeSentTitle: "Revoke \u0130\u015Flemi G\xF6nderildi", runtimeRevokeConfirmedTitle: "Revoke Do\u011Fruland\u0131", runtimeRevokePrepareErrorTitle: "Revoke Haz\u0131rlama Hatas\u0131", runtimeInvalidAddressTitle: "Ge\xE7ersiz Adres", runtimeAnalysisFailedTitle: "Analiz Ba\u015Far\u0131s\u0131z", runtimeBehaviorAnalysisFailedTitle: "Davran\u0131\u015F Analizi Ba\u015Far\u0131s\u0131z", runtimeInvalidUrlTitle: "Ge\xE7ersiz URL", runtimePhishingAnalysisFailedTitle: "Phishing Analizi Ba\u015Far\u0131s\u0131z", runtimeTrc20PaymentTitle: "TRC20 USDT \xD6deme", runtimeErrorTitle: "Hata", runtimeInvalidTxidTitle: "Ge\xE7ersiz TXID", runtimeVipActivatedTitle: "VIP Aktivasyonu Ba\u015Far\u0131l\u0131", runtimeVerificationCompleteTitle: "Do\u011Frulama Tamamland\u0131", runtimeVipVerificationFailedTitle: "VIP Do\u011Frulama Ba\u015Far\u0131s\u0131z", runtimeSecurityCommandCenter: "SECURITY COMMAND CENTER", runtimeScamIntelligenceTitle: "SCAM INTELLIGENCE", runtimeBlockedAddressesTitle: "Engellenen Adresler"
+    inheritCancelFailed: 'Miras protokolü iptal edilemedi.', runtimeWalletNotConnected: "EVM c\xFCzdan ba\u011Fl\u0131 de\u011Fil.", runtimeWalletVerificationFailed: "Ba\u011Fl\u0131 c\xFCzdan adresi do\u011Frulanamad\u0131.", runtimeLoginSuccessTitle: "Giri\u015F Ba\u015Far\u0131l\u0131", runtimeLoginFailedTitle: "Giri\u015F Ba\u015Far\u0131s\u0131z", runtimeLoginFailedGeneric: "E-posta veya \u015Fifre hatal\u0131 ya da sunucuya ula\u015F\u0131lam\u0131yor.", runtimeMissingInfoTitle: "Eksik Bilgi", runtimeRegisterMissingFields: "L\xFCtfen ad, soyad, e-posta ve \u015Fifre alanlar\u0131n\u0131 doldurunuz.", runtimeInvalidPasswordTitle: "Ge\xE7ersiz \u015Eifre", runtimeInvalidPasswordMessage: "\u015Eifreniz en az 10 karakter olmal\u0131d\u0131r.", runtimeInvalidRegisterResponse: "Sunucudan ge\xE7ersiz kay\u0131t yan\u0131t\u0131 geldi.", runtimeRegisterSuccessTitle: "Kay\u0131t Ba\u015Far\u0131l\u0131", runtimeRegisterFailedTitle: "Kay\u0131t Ba\u015Far\u0131s\u0131z", runtimeRegisterFailedGeneric: "Kay\u0131t s\u0131ras\u0131nda sunucuya ula\u015F\u0131lamad\u0131.", runtimeStrongPasswordPlaceholder: "G\xFC\xE7l\xFC bir \u015Fifre belirleyin", runtimeOptionalVaultWallet: "Kasaya Eklenecek C\xFCzdan (Opsiyonel)", runtimeWalletPlaceholder: "T... veya 0x... adresiniz", runtimeRegisterVipQuestion: "Kay\u0131t S\u0131ras\u0131nda VIP Olmak \u0130ster misiniz?", runtimeInheritanceWalletMissingTitle: "C\xFCzdan Adresi Eksik", runtimeInheritanceWalletMissingMessage: "Miras protokol\xFC i\xE7in \xF6nce ana c\xFCzdan adresini girin.", runtimeInheritanceBeneficiaryMissing: "L\xFCtfen ge\xE7erli bir varis c\xFCzdan adresi girin.", runtimeInvalidDurationTitle: "Ge\xE7ersiz S\xFCre", runtimeInvalidDurationMessage: "Sinyal yoklu\u011Fu s\xFCresi 1 ile 3650 g\xFCn aras\u0131nda olmal\u0131d\u0131r.", runtimeInheritanceCreatedTitle: "Miras Protokol\xFC Olu\u015Fturuldu", runtimeInheritanceErrorTitle: "Miras Protokol\xFC Hatas\u0131", runtimeInheritanceCreateFailed: "Miras protokol\xFC olu\u015Fturulamad\u0131.", runtimeHeartbeatUpdatedTitle: "Heartbeat G\xFCncellendi", runtimeHeartbeatUpdatedMessage: "Miras protokol\xFCn\xFCn ya\u015Fam sinyali backend \xFCzerinde g\xFCncellendi.", runtimeHeartbeatErrorTitle: "Heartbeat Hatas\u0131", runtimeHeartbeatFailed: "Heartbeat g\xFCncellenemedi.", runtimeInheritanceCancelledTitle: "Miras Protokol\xFC \u0130ptal Edildi", runtimeInheritanceCancelledMessage: "Protokol backend \xFCzerinde iptal edildi.", runtimeCancelErrorTitle: "\u0130ptal Hatas\u0131", runtimeInheritanceCancelFailed: "Miras protokol\xFC iptal edilemedi.", runtimeVipRequiredTitle: "VIP Gerekli", runtimeVaultVipRequired: "Vault c\xFCzdan\u0131 eklemek i\xE7in aktif VIP aboneli\u011Finiz bulunmal\u0131d\u0131r.", runtimeVaultLimitTitle: "Vault Limiti", runtimeVaultLimitMessage: "VIP hesab\u0131n\u0131zda en fazla 10 c\xFCzdan izlenebilir.", runtimeVaultSyncErrorTitle: "Vault Senkronizasyon Hatas\u0131", runtimeVaultSyncErrorMessage: "C\xFCzdan backend'e kaydedilemedi.", runtimePortfolioNoData: "D\u0131\u015Fa aktar\u0131lacak ger\xE7ek blockchain verisi bulunamad\u0131.", runtimeEnterValidWallet: "L\xFCtfen sorgulanacak ge\xE7erli bir c\xFCzdan adresi girin!", runtimeInvalidWalletFormat: "Ge\xE7ersiz Adres Format\u0131", runtimeFreeQueryLimit: "\xDCcretsiz 1 sorgu hakk\u0131n\u0131z bitti. Standart kullan\u0131c\u0131lar i\xE7in sadece 1 kez bu test yap\u0131labilir. Sonraki c\xFCzdan sorgular\u0131 i\xE7in VIP \xFCyeli\u011Fe ge\xE7meniz gerekmektedir.", runtimeBlacklistWarning: "\u26A0\uFE0F D\u0130KKAT: Bu adres k\xFCresel scam havuzunda (Blacklist) kay\u0131tl\u0131 tehlikeli bir c\xFCzdand\u0131r!", runtimeBlockedRisk: "\u0130\u015Flem Engellendi (Riskli Adres)", runtimeCriticalSecurityAlert: "KR\u0130T\u0130K G\xDCVENL\u0130K UYARISI", runtimeScamWalletScanned: "Scam c\xFCzdan sorguland\u0131!", runtimeLoadingChain: "Backend sunucusundan ger\xE7ek zincir verileri \xE7ekiliyor...", runtimeScamAddressWarning: "\u26A0\uFE0F D\u0130KKAT: Bu adres evrensel a\u011Flar \xFCzerinde doland\u0131r\u0131c\u0131l\u0131k faaliyetleriyle ili\u015Fkilendirilmi\u015F!", runtimeDangerousScamAddress: "Tehlikeli / Scam Adres", runtimeScamWalletDetected: "Evrensel scam c\xFCzdan tespit edildi.", runtimeRevokeNotNeededTitle: "Revoke Gerekli De\u011Fil", runtimeRevokeNotNeededMessage: "Bu token i\xE7in belirtilen spender adresinin mevcut harcama yetkisi zaten s\u0131f\u0131r.", runtimeConnectEvmWallet: "\xD6nce EVM c\xFCzdan\u0131n\u0131z\u0131 ba\u011Flaman\u0131z gerekiyor.", runtimeRevokeUnsupportedNetwork: "Bu a\u011F i\xE7in revoke i\u015Flemi hen\xFCz desteklenmiyor.", runtimeInvalidConnectedEvmWallet: "Ba\u011Fl\u0131 EVM c\xFCzdan adresi ge\xE7ersiz.", runtimeInvalidTokenContract: "Token kontrat adresi ge\xE7ersiz.", runtimeInvalidSpenderContract: "Spender kontrat adresi ge\xE7ersiz.", runtimeRevokePrepareFailed: "Revoke i\u015Flemi backend taraf\u0131ndan haz\u0131rlanamad\u0131.", runtimeRevokeAllowanceMissing: "Backend revoke haz\u0131rl\u0131\u011F\u0131nda allowance de\u011Feri bulunamad\u0131.", runtimeRevokeSentTitle: "Revoke \u0130\u015Flemi G\xF6nderildi", runtimeRevokeConfirmedTitle: "Revoke Do\u011Fruland\u0131", runtimeRevokePrepareErrorTitle: "Revoke Haz\u0131rlama Hatas\u0131", runtimeInvalidAddressTitle: "Ge\xE7ersiz Adres", runtimeAnalysisFailedTitle: "Analiz Ba\u015Far\u0131s\u0131z", runtimeBehaviorAnalysisFailedTitle: "Davran\u0131\u015F Analizi Ba\u015Far\u0131s\u0131z", runtimeInvalidUrlTitle: "Ge\xE7ersiz URL", runtimePhishingAnalysisFailedTitle: "Phishing Analizi Ba\u015Far\u0131s\u0131z", runtimeTrc20PaymentTitle: "TRC20 USDT \xD6deme", runtimeErrorTitle: "Hata", runtimeInvalidTxidTitle: "Ge\xE7ersiz TXID", runtimeVipActivatedTitle: "VIP Aktivasyonu Ba\u015Far\u0131l\u0131", runtimeVerificationCompleteTitle: "Do\u011Frulama Tamamland\u0131", runtimeVipVerificationFailedTitle: "VIP Do\u011Frulama Ba\u015Far\u0131s\u0131z", runtimeSecurityCommandCenter: "SECURITY COMMAND CENTER", runtimeScamIntelligenceTitle: "SCAM INTELLIGENCE", runtimeBlockedAddressesTitle: "Blacklist"
   },
   en: {
     settings: 'Application Settings',
@@ -2232,6 +2232,17 @@ function App() {
   const formatCurrency = (usdValue) =>
   v26FormatCurrency(usdValue, selectedCurrency);
 
+  const securityListContains = (list, targetAddress, targetNetwork = selectedNetwork) => {
+    const normalizedAddress = String(targetAddress || '').trim().toLowerCase();
+    const normalizedNetwork = String(targetNetwork === 'eth' ? 'ethereum' : targetNetwork || '').trim().toLowerCase();
+
+    return Array.isArray(list) && list.some((entry) => {
+      const entryAddress = String(entry?.address || entry || '').trim().toLowerCase();
+      const entryNetwork = String(entry?.network || normalizedNetwork).trim().toLowerCase();
+      return entryAddress === normalizedAddress && entryNetwork === normalizedNetwork;
+    });
+  };
+
   const saveWhitelist = async (newList) => {
     const normalized = Array.isArray(newList) ?
     newList.
@@ -2265,6 +2276,20 @@ function App() {
     Array.isArray(whitelist) ?
     whitelist :
     [];
+
+    const conflict = normalized.find((item) =>
+      securityListContains(blacklist, item.address, item.network)
+    );
+
+    if (conflict) {
+      Alert.alert(
+        'Whitelist',
+        selectedLanguage === 'tr'
+          ? 'Bu adres Blacklist içinde. Aynı adres iki listede birden bulunamaz. Önce Blacklist kaydını kaldırın.'
+          : 'This address is already in the Blacklist. The same address cannot exist in both lists. Remove it from the Blacklist first.'
+      );
+      return previous;
+    }
 
     for (const item of normalized) {
       const alreadyExists =
@@ -2330,6 +2355,20 @@ function App() {
     Array.isArray(blacklist) ?
     blacklist :
     [];
+
+    const conflict = normalized.find((item) =>
+      securityListContains(whitelist, item.address, item.network)
+    );
+
+    if (conflict) {
+      Alert.alert(
+        'Blacklist',
+        selectedLanguage === 'tr'
+          ? 'Bu adres Whitelist içinde. Aynı adres iki listede birden bulunamaz. Önce Whitelist kaydını kaldırın.'
+          : 'This address is already in the Whitelist. The same address cannot exist in both lists. Remove it from the Whitelist first.'
+      );
+      return previous;
+    }
 
     for (const item of normalized) {
       const alreadyExists =
@@ -3064,9 +3103,13 @@ function App() {
     } catch (error) {
       console.error("Login error:", error);
 
-      const message =
-      error?.response?.data?.error ||
-      error?.response?.data?.message || t("runtimeLoginFailedGeneric");
+      const status = error?.response?.status;
+      const serverMessage = error?.response?.data?.error || error?.response?.data?.message;
+      const message = status === 401
+        ? (selectedLanguage === 'tr' ? 'E-posta veya şifre hatalı.' : 'Incorrect email or password.')
+        : !error?.response
+        ? (selectedLanguage === 'tr' ? 'Sunucuya ulaşılamıyor. İnternet bağlantınızı kontrol edip tekrar deneyin.' : 'Cannot reach the server. Check your internet connection and try again.')
+        : serverMessage || t("runtimeLoginFailedGeneric");
 
       Alert.alert(t("runtimeLoginFailedTitle"), message);
     } finally {
@@ -3157,9 +3200,14 @@ function App() {
     } catch (error) {
       console.error("Registration error:", error);
 
-      const message =
-      error?.response?.data?.error ||
-      error?.response?.data?.message || t("runtimeRegisterFailedGeneric");
+      const status = error?.response?.status;
+      const serverMessage = error?.response?.data?.error || error?.response?.data?.message;
+      const duplicateEmail = /already registered|already exists/i.test(String(serverMessage || ''));
+      const message = (status === 409 || duplicateEmail)
+        ? (selectedLanguage === 'tr' ? 'Bu e-posta adresi zaten kayıtlı.' : 'This email address is already registered.')
+        : !error?.response
+        ? (selectedLanguage === 'tr' ? 'Sunucuya ulaşılamıyor. Lütfen tekrar deneyin.' : 'Cannot reach the server. Please try again.')
+        : serverMessage || t("runtimeRegisterFailedGeneric");
 
       Alert.alert(t("runtimeRegisterFailedTitle"), message);
     } finally {
@@ -3413,7 +3461,7 @@ function App() {
       return;
     }
 
-    if (whitelist.includes(cleanAddr)) {
+    if (securityListContains(whitelist, cleanAddr, selectedNetwork)) {
       setQueryWarning("");
       enqueueApiRequest(() => executeCheck(cleanAddr));
       return;
@@ -3430,7 +3478,7 @@ function App() {
   };
 
   const executeCheck = async (cleanAddr) => {
-    if (blacklist.includes(cleanAddr)) {
+    if (securityListContains(blacklist, cleanAddr, selectedNetwork)) {
       setQueryWarning(t("runtimeBlacklistWarning"));
       setCurrentBalanceText(t("runtimeBlockedRisk"));
       setTransactionHistory([]);
@@ -3778,7 +3826,7 @@ function App() {
 
       setSentimentResult({
         status: 'ERROR',
-        title: 'Market Intelligence Kullanılamıyor',
+        title: 'Piyasa İstihbaratı Kullanılamıyor',
         message:
         error?.response?.data?.error ||
         error?.message ||
@@ -4941,7 +4989,7 @@ function App() {
       {activeModule !== 'dashboard' ?
       <SafeAreaView style={[styles.card, { backgroundColor: theme.cardBg, flex: 1, width: '100%', maxHeight: '100%', borderRadius: 0, marginVertical: 0 }]}>
           <View style={[styles.headerRow, { paddingHorizontal: 12, paddingTop: Math.max(8, insets.top + 4), paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: theme.borderCol }]}>
-            <Text style={[styles.title, { color: theme.textMain, fontSize: 14 }]}>
+            <Text numberOfLines={2} style={[styles.title, { color: theme.textMain, fontSize: 14, flex: 1, paddingRight: 8 }]}>
               {activeModule === 'preferencesView' ? t('preferencesTitle') :
             activeModule === 'cryptoPoliciesView' ? t('toolTitleCryptoPolicies') :
             activeModule === 'portfolioView' ? t('toolTitlePortfolio') :
@@ -4969,7 +5017,7 @@ function App() {
             activeModule === 'taxReportView' ? t('toolTitleTaxReport') :
             activeModule === 'dexOrdersView' ? t('toolTitleDexOrders') : ''}
             </Text>
-            <TouchableOpacity onPress={() => setActiveModule('dashboard')} style={[styles.backButton, { backgroundColor: theme.inputBg, borderRadius: 6, paddingVertical: 4, paddingHorizontal: 8 }]}>
+            <TouchableOpacity onPress={() => setActiveModule('dashboard')} style={[styles.backButton, { backgroundColor: theme.inputBg, borderRadius: 6, paddingVertical: 4, paddingHorizontal: 8, marginLeft: 8, flexShrink: 0 }]}>
                <Text style={[styles.backButtonText, { color: theme.primary, fontSize: 11 }]}>{t('toolBack')}</Text>
             </TouchableOpacity>
           </View>
@@ -8844,7 +8892,7 @@ const DASHBOARD_TOOL_GROUPS = [
   subtitle: "Adres ve kasa güvenliği",
   tools: [
   {
-    title: "Güvenli Adresler",
+    title: "Whitelist",
     subtitle: "Güvenilir adresleri yönet",
     action: "YÖNET",
     mod: "whitelistView",
@@ -8852,7 +8900,7 @@ const DASHBOARD_TOOL_GROUPS = [
     dynamic: "whitelist"
   },
   {
-    title: "Engellenen Adresler",
+    title: "Blacklist",
     subtitle: "Riskli adresleri yönet",
     action: "YÖNET",
     mod: "blacklistView",
