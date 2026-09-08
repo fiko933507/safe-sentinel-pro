@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/build-final-preview-apk.yml'
+      - 'frontend/**'
   workflow_dispatch:
 
 permissions:

@@ -1485,6 +1485,9 @@ function App() {
   const [vaultNotifications, setVaultNotifications] = useState([]);
   const [centralNotifications, setCentralNotifications] = useState([]);
   const [centralUnreadCount, setCentralUnreadCount] = useState(0);
+  const [centralNotificationsLoading, setCentralNotificationsLoading] = useState(false);
+  const [centralNotificationsError, setCentralNotificationsError] = useState('');
+  const [notificationPermissionStatus, setNotificationPermissionStatus] = useState('undetermined');
   const centralSeenIdsRef = useRef(new Set());
 
   const [pendingPayments, setPendingPayments] = useState([]);
@@ -1926,6 +1929,8 @@ function App() {
     polygon: { name: "Polygon", symbol: "POL", badgeColor: theme.primary, badgeText: "POL" },
     eth: { name: "Ethereum", symbol: "ETH", badgeColor: theme.primary, badgeText: "ETH" },
     bsc: { name: "BNB Smart Chain", symbol: "BNB", badgeColor: theme.primary, badgeText: "BSC" },
+    base: { name: "Base", symbol: "ETH", badgeColor: theme.primary, badgeText: "BASE" },
+    optimism: { name: "Optimism", symbol: "ETH", badgeColor: theme.primary, badgeText: "OP" },
     pi: { name: "Pi Network", symbol: "PI", badgeColor: theme.primary, badgeText: "PI" },
     nft: { name: "NFT Koleksiyonları", symbol: "NFT", badgeColor: theme.primary, badgeText: "NFT" }
   }), [theme]);
@@ -2011,6 +2016,18 @@ function App() {
       const savedWhite = await AsyncStorage.getItem('@whitelist');
       const savedBlack = await AsyncStorage.getItem('@blacklist');
       const savedVault = await AsyncStorage.getItem('@vault');
+      const savedRecentTransactions = await AsyncStorage.getItem('@safe_sentinel_recent_transactions');
+
+      if (savedRecentTransactions) {
+        try {
+          const parsedRecentTransactions = JSON.parse(savedRecentTransactions);
+          if (Array.isArray(parsedRecentTransactions)) {
+            setTransactionHistory(parsedRecentTransactions.slice(0, 30));
+          }
+        } catch (recentTransactionsError) {
+          console.warn('[RECENT TRANSACTIONS] restore failed:', recentTransactionsError?.message || recentTransactionsError);
+        }
+      }
 
       const secureApiKey =
       Platform.OS === 'web' ?
@@ -2721,16 +2738,49 @@ function App() {
     };
   }, [vault, blacklist, handleIsolatedError]);
 
-  const loadCentralNotifications = async () => {
-    try {
-      if (!token) return;
+  const ensureNotificationPermission = async () => {
+    if (Platform.OS === 'web') {
+      setNotificationPermissionStatus('web');
+      return false;
+    }
 
+    try {
+      const currentPermission = await Notifications.getPermissionsAsync();
+      let status = currentPermission?.status || 'undetermined';
+
+      if (status !== 'granted') {
+        const requestedPermission = await Notifications.requestPermissionsAsync();
+        status = requestedPermission?.status || status;
+      }
+
+      setNotificationPermissionStatus(status);
+      return status === 'granted';
+    } catch (error) {
+      setNotificationPermissionStatus('error');
+      handleIsolatedError('Bildirim İzni', error);
+      return false;
+    }
+  };
+
+  const loadCentralNotifications = async ({ showLoading = false } = {}) => {
+    if (!token) {
+      setCentralNotifications([]);
+      setCentralUnreadCount(0);
+      setCentralNotificationsError('');
+      return [];
+    }
+
+    if (showLoading) setCentralNotificationsLoading(true);
+    setCentralNotificationsError('');
+
+    try {
       const res = await axios.get(
         `${API_BASE_URL}/api/notifications`,
         {
           headers: {
             Authorization: `Bearer ${token}`
-          }
+          },
+          timeout: 12000
         }
       );
 
@@ -2739,9 +2789,7 @@ function App() {
       [];
 
       setCentralNotifications(notifications);
-      setCentralUnreadCount(
-        Number(res.data?.unreadCount || 0)
-      );
+      setCentralUnreadCount(Number(res.data?.unreadCount || 0));
 
       for (const notification of notifications) {
         if (
@@ -2759,12 +2807,30 @@ function App() {
           } catch (_) {}
         }
       }
+
+      return notifications;
     } catch (error) {
+      const message = selectedLanguage === 'tr'
+        ? 'Bildirimler şu anda yüklenemedi. Bağlantınızı kontrol edip yenileyin.'
+        : 'Notifications could not be loaded. Check your connection and refresh.';
+      setCentralNotificationsError(message);
       console.warn(
         '[CENTRAL NOTIFICATION] load failed:',
         error?.response?.data || error?.message || error
       );
+      return [];
+    } finally {
+      if (showLoading) setCentralNotificationsLoading(false);
     }
+  };
+
+  const openNotificationsCenter = async () => {
+    setProfileMenuOpen(false);
+    setActiveModule('notificationsView');
+    await Promise.all([
+      ensureNotificationPermission(),
+      loadCentralNotifications({ showLoading: true })
+    ]);
   };
 
   const markCentralNotificationRead = async (id) => {
@@ -2813,14 +2879,18 @@ function App() {
     }
   };
   const triggerLocalNotification = async (title, body) => {
-    if (Platform.OS === "web" || Platform.OS === "android" && __DEV__) return;
+    if (Platform.OS === 'web' || Platform.OS === 'android' && __DEV__) return;
+
     try {
+      const permission = await Notifications.getPermissionsAsync();
+      if (permission?.status !== 'granted') return;
+
       await Notifications.scheduleNotificationAsync({
         content: { title, body, sound: 'default' },
         trigger: null
       });
     } catch (e) {
-      handleIsolatedError("Yerel Bildirim", e);
+      handleIsolatedError('Yerel Bildirim', e);
     }
   };
 
@@ -3144,15 +3214,16 @@ function App() {
     try {
       setLoading(true);
 
-      const response = await requestWithBackendRecovery(() =>
-        axios.post(
-          `${API_BASE_URL}/api/auth/login`,
-          { email: cleanEmail, password: cleanPassword },
-          {
-            headers: { ...SecurityScannerMiddleware.auditHeaders },
-            timeout: 30000
-          }
-        )
+      // Login is intentionally single-attempt and time-bounded. The global
+      // recovery helper can wait for ~80 seconds on a sleeping backend, which
+      // makes the sign-in screen appear frozen and may duplicate credentials.
+      const response = await axios.post(
+        `${API_BASE_URL}/api/auth/login`,
+        { email: cleanEmail, password: cleanPassword },
+        {
+          headers: { ...SecurityScannerMiddleware.auditHeaders },
+          timeout: 15000
+        }
       );
 
       const { token, user } = response.data || {};
@@ -3193,8 +3264,8 @@ function App() {
         ? (selectedLanguage === 'tr' ? 'Çok fazla giriş denemesi yapıldı. Kısa bir süre sonra tekrar deneyin.' : 'Too many login attempts. Please try again shortly.')
         : [502, 503, 504].includes(status) || code === 'ECONNABORTED' || !error?.response
         ? (selectedLanguage === 'tr'
-            ? 'Güvenli sunucu bağlantısı şu anda hazırlanıyor. Otomatik yeniden deneme başarısız oldu; lütfen birkaç saniye sonra tekrar deneyin.'
-            : 'The secure server connection is still starting. Automatic retry did not complete; please try again in a few seconds.')
+            ? 'Sunucu şu anda hazırlanıyor. Giriş 15 saniyede güvenli biçimde durduruldu; birkaç saniye sonra yeniden deneyin.'
+            : 'The server is starting. Sign-in was safely stopped after 15 seconds; please try again shortly.')
         : serverMessage || t("runtimeLoginFailedGeneric");
 
       Alert.alert(t("runtimeLoginFailedTitle"), message);
@@ -3332,11 +3403,37 @@ function App() {
       10: 'optimism'
     };
 
-    setAddress(connected);
-    if (chainToNetwork[Number(chainId)]) {
-      setSelectedNetwork(chainToNetwork[Number(chainId)]);
+    const detectedNetwork =
+      /^T[1-9A-HJ-NP-Za-km-z]{30,44}$/.test(connected) ? 'tron' :
+      /^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,61}$/i.test(connected) ? 'btc' :
+      /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(connected) && !connected.startsWith('0x') ? 'sol' :
+      /^0x[a-fA-F0-9]{40}$/.test(connected) ? (chainToNetwork[Number(chainId)] || 'eth') :
+      null;
+
+    if (!detectedNetwork) {
+      Alert.alert(
+        selectedLanguage === 'tr' ? 'Ağ Algılanamadı' : 'Network Not Detected',
+        selectedLanguage === 'tr'
+          ? 'Bağlı cüzdan adresinin ağı güvenle belirlenemedi. Yanlış portföy göstermemek için aktarım durduruldu.'
+          : 'The connected wallet network could not be identified safely. Transfer was stopped to avoid showing the wrong portfolio.'
+      );
+      return;
     }
+
+    setAddress(connected);
+    setUniversalScanInput(connected);
+    setSelectedNetwork(detectedNetwork);
+    setUniversalScanResult(null);
+    setWalletNativeBalance(null);
+    setWalletTokens([]);
+    setWalletLatestBlock(null);
     setQueryWarning('');
+    Alert.alert(
+      selectedLanguage === 'tr' ? 'Universal Scan Hazır' : 'Universal Scan Ready',
+      selectedLanguage === 'tr'
+        ? `Adres ${String(detectedNetwork).toUpperCase()} olarak algılandı. Taramayı başlatabilirsin.`
+        : `The address was detected as ${String(detectedNetwork).toUpperCase()}. You can start the scan.`
+    );
   };
 
   const shortenWalletAddress = (value) => {
@@ -3570,6 +3667,8 @@ function App() {
       case 'polygon':
       case 'avax':
       case 'arb':
+      case 'base':
+      case 'optimism':
       case 'nft':
         return clean.startsWith('0x') && clean.length === 42;
       case 'btc':
@@ -3736,10 +3835,64 @@ function App() {
     await Share.share({ message: report, title: 'Safe Sentinel Security Report' });
   };
 
+  const universalResultNetwork = () => {
+    const value = String(universalScanResult?.network || selectedNetwork).toLowerCase();
+    return value === 'ethereum' ? 'eth' : value === 'arbitrum' ? 'arb' : value === 'avalanche' ? 'avax' : value;
+  };
+
   const openUniversalSafeSend = () => {
     if (!universalScanResult?.target || universalScanResult.type === 'URL / DApp') return;
     setOutboundRecipient(universalScanResult.target);
+    setSelectedNetwork(universalResultNetwork());
     setActiveModule('outboundShieldView');
+  };
+
+  const addUniversalResultToWhitelist = () => {
+    if (!universalScanResult?.target || universalScanResult.type === 'URL / DApp') return;
+    addToWhitelist(universalScanResult.target, universalResultNetwork());
+  };
+
+  const addUniversalResultToBlacklist = () => {
+    if (!universalScanResult?.target || universalScanResult.type === 'URL / DApp') return;
+    addToBlacklist(universalScanResult.target, universalResultNetwork());
+  };
+
+  const getSentinelTwinScenarios = (result) => {
+    if (!result) return [];
+    const scenarios = [];
+    if (result.scamMatched) scenarios.push({
+      level: 'critical',
+      title: selectedLanguage === 'tr' ? 'Bilinen tehdit temas yolu' : 'Known threat exposure path',
+      detail: selectedLanguage === 'tr' ? 'Adres tehdit istihbaratıyla eşleşiyor; gelen bağlantı ve transferleri durdur.' : 'The address matches threat intelligence; stop incoming links and transfers.',
+      action: selectedLanguage === 'tr' ? 'Blacklist + Safe Send kontrolü' : 'Blacklist + Safe Send check'
+    });
+    if (result.mixerInteraction === true || String(result.mixerInteraction).toLowerCase() === 'true') scenarios.push({
+      level: 'high',
+      title: selectedLanguage === 'tr' ? 'Fon gizleme rotası' : 'Fund obfuscation route',
+      detail: selectedLanguage === 'tr' ? 'Mixer etkileşimi fon izini karmaşıklaştırabilir ve karşı taraf riskini yükseltir.' : 'Mixer interaction can obscure fund provenance and raise counterparty risk.',
+      action: selectedLanguage === 'tr' ? 'Karşı tarafları tek tek doğrula' : 'Verify every counterparty'
+    });
+    const failedRatio = Number(String(result.failedRatio || '').replace('%', ''));
+    if (Number.isFinite(failedRatio) && failedRatio >= 20) scenarios.push({
+      level: 'high',
+      title: selectedLanguage === 'tr' ? 'Başarısız işlem zinciri' : 'Failed transaction chain',
+      detail: selectedLanguage === 'tr' ? 'Yüksek başarısızlık oranı bot, hatalı kontrat veya saldırı denemesi göstergesi olabilir.' : 'A high failure rate may indicate automation, a faulty contract, or attack attempts.',
+      action: selectedLanguage === 'tr' ? 'İmzalama öncesi Transfer Shield' : 'Transfer Shield before signing'
+    });
+    const botScore = Number(result.botActivityScore);
+    if (Number.isFinite(botScore) && botScore >= 60) scenarios.push({
+      level: 'medium',
+      title: selectedLanguage === 'tr' ? 'Otomasyon/bot davranışı' : 'Automation/bot behavior',
+      detail: selectedLanguage === 'tr' ? 'İşlem ritmi insan dışı otomasyon olasılığını yükseltiyor.' : 'Transaction cadence raises the likelihood of non-human automation.',
+      action: selectedLanguage === 'tr' ? 'Guardian izlemeyi etkinleştir' : 'Enable Guardian monitoring'
+    });
+    if (!scenarios.length) scenarios.push({
+      level: 'low',
+      title: selectedLanguage === 'tr' ? 'Belirgin saldırı yolu saptanmadı' : 'No clear attack path detected',
+      detail: selectedLanguage === 'tr' ? 'Mevcut davranış verisinde yüksek öncelikli senaryo oluşmadı; bu güvenlik garantisi değildir.' : 'Current behavior data produced no high-priority scenario; this is not a security guarantee.',
+      action: selectedLanguage === 'tr' ? 'Yeni işlemlerde tekrar kontrol et' : 'Recheck before new transactions'
+    });
+    return scenarios;
   };
 
   const handleAddressCheck = async () => {
@@ -3783,7 +3936,6 @@ function App() {
 
     setLoading(true);
     setCurrentBalanceText(t("runtimeLoadingChain"));
-    setTransactionHistory([]);
 
     try {
       RateLimiterGuard.checkLimit('check-wallet');
@@ -3905,6 +4057,10 @@ function App() {
         });
 
         setTransactionHistory(formattedTx);
+        await AsyncStorage.setItem(
+          '@safe_sentinel_recent_transactions',
+          JSON.stringify(formattedTx.slice(0, 30))
+        );
 
         if (userStatus !== 'vip') {
           setQueryCount((prev) => prev + 1);
@@ -4894,13 +5050,14 @@ function App() {
     }
   };
 
-  const addToWhitelist = async () => {
-    const cleanAddr = address ? SecurityScannerMiddleware.sanitizeInput(address) : '';
+  const addToWhitelist = async (candidateAddress = address, candidateNetwork = selectedNetwork) => {
+    const cleanAddr = candidateAddress ? SecurityScannerMiddleware.sanitizeInput(candidateAddress) : '';
+    const targetNetwork = candidateNetwork === 'ethereum' ? 'eth' : candidateNetwork;
     if (!cleanAddr) return Alert.alert(t('commonErrorTitle'), t('commonAddressRequired'));
-    if (securityListContains(blacklist, cleanAddr, selectedNetwork)) return Alert.alert(t('commonConflictTitle'), t('whitelistConflict'));
-    if (securityListContains(whitelist, cleanAddr, selectedNetwork)) return Alert.alert(t('commonInfoTitle'), t('whitelistAlready'));
+    if (securityListContains(blacklist, cleanAddr, targetNetwork)) return Alert.alert(t('commonConflictTitle'), t('whitelistConflict'));
+    if (securityListContains(whitelist, cleanAddr, targetNetwork)) return Alert.alert(t('commonInfoTitle'), t('whitelistAlready'));
     try {
-      await saveWhitelist([...whitelist, { address: cleanAddr, network: selectedNetwork === 'eth' ? 'ethereum' : selectedNetwork }]);
+      await saveWhitelist([...whitelist, { address: cleanAddr, network: targetNetwork === 'eth' ? 'ethereum' : targetNetwork }]);
       await syncSecurityAddressLists();
       await loadCentralNotifications();
       Alert.alert(t('commonSuccessTitle'), t('whitelistAdded'));
@@ -4917,13 +5074,14 @@ function App() {
     }
   };
 
-  const addToBlacklist = async () => {
-    const cleanAddr = address ? SecurityScannerMiddleware.sanitizeInput(address) : '';
+  const addToBlacklist = async (candidateAddress = address, candidateNetwork = selectedNetwork) => {
+    const cleanAddr = candidateAddress ? SecurityScannerMiddleware.sanitizeInput(candidateAddress) : '';
+    const targetNetwork = candidateNetwork === 'ethereum' ? 'eth' : candidateNetwork;
     if (!cleanAddr) return Alert.alert(t('commonErrorTitle'), t('commonAddressRequired'));
-    if (securityListContains(whitelist, cleanAddr, selectedNetwork)) return Alert.alert(t('commonConflictTitle'), t('blacklistConflict'));
-    if (securityListContains(blacklist, cleanAddr, selectedNetwork)) return Alert.alert(t('commonInfoTitle'), t('blacklistAlready'));
+    if (securityListContains(whitelist, cleanAddr, targetNetwork)) return Alert.alert(t('commonConflictTitle'), t('blacklistConflict'));
+    if (securityListContains(blacklist, cleanAddr, targetNetwork)) return Alert.alert(t('commonInfoTitle'), t('blacklistAlready'));
     try {
-      await saveBlacklist([...blacklist, { address: cleanAddr, network: selectedNetwork === 'eth' ? 'ethereum' : selectedNetwork }]);
+      await saveBlacklist([...blacklist, { address: cleanAddr, network: targetNetwork === 'eth' ? 'ethereum' : targetNetwork }]);
       await syncSecurityAddressLists();
       await loadCentralNotifications();
       Alert.alert(t('commonSuccessTitle'), t('blacklistRiskAdded'));
@@ -5314,7 +5472,7 @@ function App() {
             activeModule === 'notificationsView' ? t('toolTitleNotifications') :
             activeModule === 'vipView' ? t('toolTitleVip') :
             activeModule === 'smartContractView' ? t('toolTitleSmartContract') :
-            activeModule === 'behavioralView' ? t('toolTitleBehavioral') :
+            activeModule === 'behavioralView' ? (selectedLanguage === 'tr' ? 'Sentinel Twin — Saldırı Yolu' : 'Sentinel Twin — Attack Path') :
             activeModule === 'phishingView' ? t('toolTitlePhishing') :
             activeModule === 'quickTestView' ? t('toolTitleQuickTest') :
             activeModule === 'emergencyLockView' ? t('toolTitleEmergencyLock') :
@@ -6023,6 +6181,34 @@ function App() {
           {t('notificationsMarkAllRead')}
         </Text>
       </TouchableOpacity>
+
+      {centralNotificationsLoading ?
+            <View style={{ backgroundColor: theme.inputBg, borderRadius: 7, padding: 12, marginBottom: 8, alignItems: 'center' }}>
+              <Text style={{ color: theme.primary, fontSize: 10, fontWeight: 'bold' }}>
+                {selectedLanguage === 'tr' ? 'Bildirimler yenileniyor…' : 'Refreshing notifications…'}
+              </Text>
+            </View> : null}
+
+      {centralNotificationsError ?
+            <TouchableOpacity
+              onPress={() => loadCentralNotifications({ showLoading: true })}
+              style={{ backgroundColor: '#7F1D1D', borderRadius: 7, padding: 12, marginBottom: 8 }}>
+              <Text style={{ color: '#FFFFFF', fontSize: 9, fontWeight: 'bold', textAlign: 'center' }}>
+                {centralNotificationsError}
+              </Text>
+              <Text style={{ color: '#FCA5A5', fontSize: 8, marginTop: 4, textAlign: 'center' }}>
+                {selectedLanguage === 'tr' ? 'Yeniden denemek için dokunun' : 'Tap to retry'}
+              </Text>
+            </TouchableOpacity> : null}
+
+      {Platform.OS !== 'web' && notificationPermissionStatus !== 'granted' ?
+            <TouchableOpacity
+              onPress={ensureNotificationPermission}
+              style={{ backgroundColor: theme.inputBg, borderColor: '#F59E0B', borderWidth: 1, borderRadius: 7, padding: 10, marginBottom: 8 }}>
+              <Text style={{ color: '#F59E0B', fontSize: 9, fontWeight: 'bold', textAlign: 'center' }}>
+                {selectedLanguage === 'tr' ? 'Telefon uyarıları kapalı — izin vermek için dokunun' : 'Phone alerts are off — tap to allow'}
+              </Text>
+            </TouchableOpacity> : null}
 
       {centralNotifications.length === 0 ?
             <View
@@ -7272,7 +7458,15 @@ function App() {
             </ScrollView> :
         activeModule === 'behavioralView' ?
         <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
-              <Text style={styles.prefDescription}>{t('behaviorDescription')}</Text>
+              <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: '#8B5CF6', padding: 14 }]}>
+                <Text style={{ color: '#8B5CF6', fontSize: 15, fontWeight: '900' }}>🧬 Sentinel Twin</Text>
+                <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: '800', marginTop: 5 }}>
+                  {selectedLanguage === 'tr' ? 'Cüzdanının saldırıya uğramadan önceki dijital ikizi' : 'Your wallet’s digital twin before an attack happens'}
+                </Text>
+                <Text style={{ color: theme.textSub, fontSize: 9, lineHeight: 14, marginTop: 5 }}>
+                  {selectedLanguage === 'tr' ? 'Universal Scan ne olduğunu söyler. Sentinel Twin ise gerçek davranış sinyallerini olası saldırı yollarına çevirir ve önce hangi savunmayı açman gerektiğini gösterir.' : 'Universal Scan tells you what it sees. Sentinel Twin converts real behavior signals into possible attack paths and prioritizes the defense to activate first.'}
+                </Text>
+              </View>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
                 <TextInput
               style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]}
@@ -7527,15 +7721,30 @@ function App() {
                     {behavioralAnalysisResult.scamMatched &&
               <Text
                 style={{
-                  color: theme.primary,
+                  color: '#EF4444',
                   fontWeight: 'bold',
                   fontSize: 10,
                   marginTop: 7
                 }}>
-
                          {t('behaviorScamMatch')}
                       </Text>
               }
+
+                    <View style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: theme.borderCol, paddingTop: 10 }}>
+                      <Text style={{ color: '#8B5CF6', fontSize: 12, fontWeight: '900' }}>
+                        {selectedLanguage === 'tr' ? 'Olası Saldırı Yolları' : 'Possible Attack Paths'}
+                      </Text>
+                      {getSentinelTwinScenarios(behavioralAnalysisResult).map((scenario, index) =>
+                        <View key={`twin-scenario-${index}`} style={{ marginTop: 8, padding: 9, borderRadius: 7, borderWidth: 1, borderColor: scenario.level === 'critical' ? '#EF4444' : scenario.level === 'high' ? '#F97316' : scenario.level === 'medium' ? '#F59E0B' : '#10B981', backgroundColor: theme.cardBg }}>
+                          <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '900' }}>{scenario.title}</Text>
+                          <Text style={{ color: theme.textSub, fontSize: 9, lineHeight: 14, marginTop: 3 }}>{scenario.detail}</Text>
+                          <Text style={{ color: theme.primary, fontSize: 8, fontWeight: '900', marginTop: 5 }}>→ {scenario.action}</Text>
+                        </View>
+                      )}
+                      <TouchableOpacity onPress={() => { setOutboundRecipient(address); setActiveModule('outboundShieldView'); }} style={{ marginTop: 10, height: 36, borderRadius: 7, backgroundColor: '#8B5CF6', alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ color: '#FFF', fontSize: 9, fontWeight: '900' }}>{selectedLanguage === 'tr' ? 'Bu Cüzdanı Transfer Shield ile Sına' : 'Test This Wallet with Transfer Shield'}</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
             }
               </View>
@@ -7960,7 +8169,10 @@ function App() {
         </View>
       </TouchableOpacity>
       <TouchableOpacity
-        onPress={() => { setProfileMenuOpen(false); setActiveModule('notificationsView'); }}
+        testID="dashboard-notifications-button"
+        accessibilityRole="button"
+        accessibilityLabel={selectedLanguage === 'tr' ? 'Bildirim merkezini aç' : 'Open notification center'}
+        onPress={openNotificationsCenter}
         activeOpacity={0.82}
         style={{ width: 44, height: 40, backgroundColor: theme.inputBg, borderColor: theme.borderCol, borderWidth: 1, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
         <Text style={{ color: theme.textMain, fontSize: 17 }}>🔔</Text>
@@ -8332,6 +8544,14 @@ function App() {
                   <Text style={{ color: theme.primary, fontSize: 8, fontWeight: '900' }}>{selectedLanguage === 'tr' ? 'Raporu Paylaş' : 'Share Report'}</Text>
                 </TouchableOpacity>
                 {universalScanResult.type !== 'URL / DApp' && universalScanResult.score !== null ?
+                <TouchableOpacity onPress={addUniversalResultToWhitelist} style={{ flex: 1, minWidth: 125, backgroundColor: theme.cardBg, borderColor: '#10B981', borderWidth: 1, borderRadius: 7, paddingVertical: 8, alignItems: 'center' }}>
+                  <Text style={{ color: '#10B981', fontSize: 8, fontWeight: '900' }}>+ WHITELIST</Text>
+                </TouchableOpacity> : null}
+                {universalScanResult.type !== 'URL / DApp' && universalScanResult.score !== null ?
+                <TouchableOpacity onPress={addUniversalResultToBlacklist} style={{ flex: 1, minWidth: 125, backgroundColor: theme.cardBg, borderColor: '#EF4444', borderWidth: 1, borderRadius: 7, paddingVertical: 8, alignItems: 'center' }}>
+                  <Text style={{ color: '#EF4444', fontSize: 8, fontWeight: '900' }}>+ BLACKLIST</Text>
+                </TouchableOpacity> : null}
+                {universalScanResult.type !== 'URL / DApp' && universalScanResult.score !== null ?
                 <TouchableOpacity onPress={openUniversalSafeSend} style={{ flex: 1, minWidth: 125, backgroundColor: '#10B981', borderRadius: 7, paddingVertical: 8, alignItems: 'center' }}>
                   <Text style={{ color: '#FFF', fontSize: 8, fontWeight: '900' }}>{selectedLanguage === 'tr' ? 'Safe Send ile Kontrol Et' : 'Check with Safe Send'}</Text>
                 </TouchableOpacity> : null}
@@ -8382,7 +8602,7 @@ function App() {
               </View>
 
               <TouchableOpacity
-              onPress={() => setActiveModule("notificationsView")}>
+              onPress={openNotificationsCenter}>
 
                 <Text
                 style={{

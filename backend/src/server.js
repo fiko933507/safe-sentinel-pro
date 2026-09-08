@@ -5621,108 +5621,6 @@ console.log(
  * ============================================================
  */
 
-app.get('/api/notifications', auth, async (req, res) => {
-  try {
-    const notifications = await db.notification.findMany({
-      where: {
-        userId: req.user.id
-      },
-      orderBy: {
-        createdAt: 'desc'
-      },
-      take: 100
-    });
-
-    return res.json({
-      success: true,
-      notifications,
-      unreadCount: notifications.filter(item => !item.read).length
-    });
-  } catch (error) {
-    console.error('[NOTIFICATION LIST]', error?.message || error);
-
-    return res.status(500).json({
-      success: false,
-      error: 'Notifications could not be loaded.'
-    });
-  }
-});
-
-app.patch('/api/notifications/:id/read', auth, async (req, res) => {
-  try {
-    const id = z.string().cuid().safeParse(req.params.id);
-
-    if (!id.success) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid notification id.'
-      });
-    }
-
-    const existing = await db.notification.findFirst({
-      where: {
-        id: id.data,
-        userId: req.user.id
-      }
-    });
-
-    if (!existing) {
-      return res.status(404).json({
-        success: false,
-        error: 'Notification not found.'
-      });
-    }
-
-    const notification = await db.notification.update({
-      where: {
-        id: existing.id
-      },
-      data: {
-        read: true,
-        readAt: new Date()
-      }
-    });
-
-    return res.json({
-      success: true,
-      notification
-    });
-  } catch (error) {
-    console.error('[NOTIFICATION READ]', error?.message || error);
-
-    return res.status(500).json({
-      success: false,
-      error: 'Notification could not be marked as read.'
-    });
-  }
-});
-
-app.patch('/api/notifications/read-all', auth, async (req, res) => {
-  try {
-    const result = await db.notification.updateMany({
-      where: {
-        userId: req.user.id,
-        read: false
-      },
-      data: {
-        read: true,
-        readAt: new Date()
-      }
-    });
-
-    return res.json({
-      success: true,
-      updatedCount: result.count
-    });
-  } catch (error) {
-    console.error('[NOTIFICATION READ ALL]', error?.message || error);
-
-    return res.status(500).json({
-      success: false,
-      error: 'Notifications could not be marked as read.'
-    });
-  }
-});
 const createCentralNotification = async ({
   userId,
   type,
@@ -5740,134 +5638,9 @@ const createCentralNotification = async ({
 
   try {
     if (eventKey) {
-      const existing = await db.notification.findUnique({
-        where: {
-          eventKey
-        }
-      });
-
+      const existing = await db.notification.findUnique({ where: { eventKey } });
       if (existing) {
-        return {
-          created: false,
-          duplicate: true,
-          notification: existing
-        };
-
-const syncSecurityAlertsToCentralNotifications = async () => {
-  try {
-    const alerts = await db.securityAlert.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 100
-    });
-
-    let createdCount = 0;
-
-    for (const alert of alerts) {
-      if (!alert?.id || !alert?.userId) continue;
-
-      const eventKey = `SECURITY_ALERT:${alert.id}`;
-
-      const exists = await db.notification.findUnique({
-        where: { eventKey }
-      });
-
-      if (exists) continue;
-
-      const rawType =
-        alert.type ||
-        alert.alertType ||
-        alert.eventType ||
-        alert.category ||
-        'SECURITY_ALERT';
-
-      const normalizedType = String(rawType).toUpperCase();
-
-      let type = 'SECURITY_ALERT';
-
-      if (
-        normalizedType.includes('SCAM') ||
-        normalizedType.includes('VAULT') ||
-        normalizedType.includes('SUSPICIOUS')
-      ) {
-        type = 'SCAM_ALERT';
-      } else if (
-        normalizedType.includes('WHALE') ||
-        normalizedType.includes('TRANSFER')
-      ) {
-        type = 'WHALE_ALERT';
-      }
-
-      const severity = String(
-        alert.severity ||
-        alert.level ||
-        'WARNING'
-      ).toUpperCase();
-
-      const title =
-        alert.title ||
-        alert.name ||
-        (type === 'WHALE_ALERT'
-          ? 'Balina İşlemi'
-          : type === 'SCAM_ALERT'
-            ? 'Güvenlik Uyarısı'
-            : 'Güvenlik Bildirimi');
-
-      let body =
-        alert.body ||
-        alert.message ||
-        alert.description ||
-        '';
-
-      if (!body && alert.details) {
-        body =
-          typeof alert.details === 'string'
-            ? alert.details
-            : JSON.stringify(alert.details);
-      }
-
-      if (!body) {
-        body = `${title} kaydı oluşturuldu.`;
-      }
-
-      try {
-        await db.notification.create({
-          data: {
-            userId: alert.userId,
-            type,
-            severity,
-            title: String(title),
-            body: String(body),
-            eventKey,
-            asset: alert.asset ? String(alert.asset) : null,
-            network: alert.network ? String(alert.network) : null,
-            resourceId: String(alert.id),
-            read: false
-          }
-        });
-
-        createdCount++;
-      } catch (createError) {
-        if (createError?.code !== 'P2002') {
-          console.error(
-            '[CENTRAL NOTIFICATION] SecurityAlert sync error:',
-            createError
-          );
-        }
-      }
-    }
-
-    if (createdCount > 0) {
-      console.log(
-        `[CENTRAL NOTIFICATION] SecurityAlert sync: ${createdCount} yeni bildirim`
-      );
-    }
-  } catch (error) {
-    console.error(
-      '[CENTRAL NOTIFICATION] SecurityAlert sync failed:',
-      error
-    );
-  }
-};
+        return { created: false, duplicate: true, notification: existing };
       }
     }
 
@@ -5885,25 +5658,12 @@ const syncSecurityAlertsToCentralNotifications = async () => {
       }
     });
 
-    return {
-      created: true,
-      duplicate: false,
-      notification
-    };
+    return { created: true, duplicate: false, notification };
   } catch (error) {
     if (error?.code === 'P2002' && eventKey) {
-      const existing = await db.notification.findUnique({
-        where: {
-          eventKey
-        }
-      });
-
+      const existing = await db.notification.findUnique({ where: { eventKey } });
       if (existing) {
-        return {
-          created: false,
-          duplicate: true,
-          notification: existing
-        };
+        return { created: false, duplicate: true, notification: existing };
       }
     }
 
@@ -5911,6 +5671,147 @@ const syncSecurityAlertsToCentralNotifications = async () => {
     throw error;
   }
 };
+
+const syncSecurityAlertsToCentralNotifications = async (userId) => {
+  if (!userId) return 0;
+
+  try {
+    const alerts = await db.securityAlert.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 100
+    });
+
+    let createdCount = 0;
+
+    for (const alert of alerts) {
+      if (!alert?.id) continue;
+
+      const rawType =
+        alert.type ||
+        alert.alertType ||
+        alert.eventType ||
+        alert.category ||
+        'SECURITY_ALERT';
+      const normalizedType = String(rawType).toUpperCase();
+      const type =
+        normalizedType.includes('WHALE') || normalizedType.includes('TRANSFER')
+          ? 'WHALE_ALERT'
+          : normalizedType.includes('SCAM') ||
+            normalizedType.includes('VAULT') ||
+            normalizedType.includes('SUSPICIOUS')
+            ? 'SCAM_ALERT'
+            : 'SECURITY_ALERT';
+      const severity = String(alert.severity || alert.level || 'WARNING').toUpperCase();
+      const title =
+        alert.title ||
+        alert.name ||
+        (type === 'WHALE_ALERT'
+          ? 'Balina İşlemi'
+          : type === 'SCAM_ALERT'
+            ? 'Güvenlik Uyarısı'
+            : 'Güvenlik Bildirimi');
+      let body = alert.body || alert.message || alert.description || '';
+
+      if (!body && alert.details) {
+        body = typeof alert.details === 'string'
+          ? alert.details
+          : JSON.stringify(alert.details);
+      }
+      if (!body) body = `${title} kaydı oluşturuldu.`;
+
+      const result = await createCentralNotification({
+        userId,
+        type,
+        severity,
+        title: String(title),
+        body: String(body),
+        eventKey: `SECURITY_ALERT:${alert.id}`,
+        asset: alert.asset ? String(alert.asset) : null,
+        network: alert.network ? String(alert.network) : null,
+        resourceId: String(alert.id)
+      });
+
+      if (result.created) createdCount += 1;
+    }
+
+    return createdCount;
+  } catch (error) {
+    console.error('[CENTRAL NOTIFICATION] SecurityAlert sync failed:', error?.message || error);
+    return 0;
+  }
+};
+
+app.get('/api/notifications', auth, async (req, res) => {
+  try {
+    await syncSecurityAlertsToCentralNotifications(req.user.id);
+
+    const notifications = await db.notification.findMany({
+      where: { userId: req.user.id },
+      orderBy: { createdAt: 'desc' },
+      take: 100
+    });
+
+    return res.json({
+      success: true,
+      notifications,
+      unreadCount: notifications.filter(item => !item.read).length
+    });
+  } catch (error) {
+    console.error('[NOTIFICATION LIST]', error?.message || error);
+    return res.status(500).json({
+      success: false,
+      error: 'Notifications could not be loaded.'
+    });
+  }
+});
+
+app.patch('/api/notifications/read-all', auth, async (req, res) => {
+  try {
+    const result = await db.notification.updateMany({
+      where: { userId: req.user.id, read: false },
+      data: { read: true, readAt: new Date() }
+    });
+
+    return res.json({ success: true, updatedCount: result.count });
+  } catch (error) {
+    console.error('[NOTIFICATION READ ALL]', error?.message || error);
+    return res.status(500).json({
+      success: false,
+      error: 'Notifications could not be marked as read.'
+    });
+  }
+});
+
+app.patch('/api/notifications/:id/read', auth, async (req, res) => {
+  try {
+    const id = z.string().cuid().safeParse(req.params.id);
+    if (!id.success) {
+      return res.status(400).json({ success: false, error: 'Invalid notification id.' });
+    }
+
+    const existing = await db.notification.findFirst({
+      where: { id: id.data, userId: req.user.id }
+    });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Notification not found.' });
+    }
+
+    const notification = await db.notification.update({
+      where: { id: existing.id },
+      data: { read: true, readAt: new Date() }
+    });
+
+    return res.json({ success: true, notification });
+  } catch (error) {
+    console.error('[NOTIFICATION READ]', error?.message || error);
+    return res.status(500).json({
+      success: false,
+      error: 'Notification could not be marked as read.'
+    });
+  }
+});
+
 const PRICE_ALERT_POLL_MS = Math.max(
   30000,
   Number(process.env.PRICE_ALERT_POLL_MS || 60000)
