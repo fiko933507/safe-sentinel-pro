@@ -1444,6 +1444,12 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    checkBackendHealth();
+    const healthTimer = setInterval(checkBackendHealth, 60000);
+    return () => clearInterval(healthTimer);
+  }, [checkBackendHealth]);
+
   const [activeModule, setActiveModule] = useState('dashboard');
 
   useEffect(() => {
@@ -1792,7 +1798,7 @@ function App() {
     ARB: null,
     POL: null,
     ETH: null,
-    BSC: null,
+    BNB: null,
     PI: null,
     NFT: null
   });
@@ -1806,7 +1812,7 @@ function App() {
       arb: "ARB",
       polygon: "POL",
       eth: "ETH",
-      bsc: "BSC",
+      bsc: "BNB",
       pi: "PI",
       nft: "NFT"
     };
@@ -1872,7 +1878,7 @@ function App() {
     arb: { name: "Arbitrum", symbol: "ARB", badgeColor: theme.primary, badgeText: "ARB" },
     polygon: { name: "Polygon", symbol: "POL", badgeColor: theme.primary, badgeText: "POL" },
     eth: { name: "Ethereum", symbol: "ETH", badgeColor: theme.primary, badgeText: "ETH" },
-    bsc: { name: "Binance Smart Chain", symbol: "BSC", badgeColor: theme.primary, badgeText: "BSC" },
+    bsc: { name: "BNB Smart Chain", symbol: "BNB", badgeColor: theme.primary, badgeText: "BSC" },
     pi: { name: "Pi Network", symbol: "PI", badgeColor: theme.primary, badgeText: "PI" },
     nft: { name: "NFT Koleksiyonları", symbol: "NFT", badgeColor: theme.primary, badgeText: "NFT" }
   }), [theme]);
@@ -1907,7 +1913,7 @@ function App() {
           ETH: response.data.ethereum?.usd ? String(response.data.ethereum.usd) : null,
           USDT: response.data.tether?.usd ? String(response.data.tether.usd) : null,
           USDC: response.data['usd-coin']?.usd ? String(response.data['usd-coin'].usd) : null,
-          BSC: response.data.binancecoin?.usd ? String(response.data.binancecoin.usd) : null,
+          BNB: response.data.binancecoin?.usd ? String(response.data.binancecoin.usd) : null,
           PI: response.data['pi-network']?.usd ? String(response.data['pi-network'].usd) : null,
           NFT: null
         });
@@ -3188,6 +3194,7 @@ function App() {
         throw new Error(data?.error || 'Portfolio verisi alınamadı');
       }
 
+      setApiOnline(true);
       setWalletNativeBalance(
         data.native?.balance ?? null
       );
@@ -3205,6 +3212,7 @@ function App() {
       return data;
 
     } catch (error) {
+      setApiOnline(Boolean(error?.response));
       console.error('[PORTFOLIO] Gerçek veri alınamadı:', error);
 
       setWalletNativeBalance(null);
@@ -3448,6 +3456,7 @@ function App() {
       });
 
       if (response.data && response.data.success) {
+        setApiOnline(true);
         setWalletNativeBalance(response.data.balance ?? null);
 
         setWalletTokens(
@@ -7837,7 +7846,7 @@ function App() {
               alignItems: "center"
             }}>
 
-              <View>
+              <View style={{ flex: 1, paddingRight: 10 }}>
                 <Text style={{ color: theme.textSub, fontSize: 8 }}>
                     {t("dashboardTotalPortfolio")}
                 </Text>
@@ -7854,6 +7863,14 @@ function App() {
                   maximumFractionDigits: 2
                 }) : "--"}
                 </Text>
+                {walletNativeBalance !== null && walletNativeBalance !== undefined ?
+                <Text style={{ color: theme.primary, fontSize: 11, fontWeight: "900", marginTop: 4 }}>
+                  {Number(walletNativeBalance).toLocaleString("en-US", { maximumFractionDigits: 8 })} {NETWORKS[selectedNetwork]?.symbol || ""}
+                </Text> : null}
+                {walletTokens.filter((token) => Number(token?.balance || 0) > 0).slice(0, 3).map((token, index) =>
+                <Text key={`dashboard-token-${token?.symbol || token?.name || index}`} style={{ color: theme.textSub, fontSize: 8, marginTop: 2 }}>
+                  {token?.symbol || token?.name || "TOKEN"}: {Number(token?.balance || 0).toLocaleString("en-US", { maximumFractionDigits: 8 })}
+                </Text>)}
               </View>
 
               <TouchableOpacity
