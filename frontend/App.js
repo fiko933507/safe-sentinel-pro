@@ -1485,6 +1485,9 @@ function App() {
   const [vaultNotifications, setVaultNotifications] = useState([]);
   const [centralNotifications, setCentralNotifications] = useState([]);
   const [centralUnreadCount, setCentralUnreadCount] = useState(0);
+  const [centralNotificationsLoading, setCentralNotificationsLoading] = useState(false);
+  const [centralNotificationsError, setCentralNotificationsError] = useState('');
+  const [notificationPermissionStatus, setNotificationPermissionStatus] = useState('undetermined');
   const centralSeenIdsRef = useRef(new Set());
 
   const [pendingPayments, setPendingPayments] = useState([]);
@@ -2013,6 +2016,18 @@ function App() {
       const savedWhite = await AsyncStorage.getItem('@whitelist');
       const savedBlack = await AsyncStorage.getItem('@blacklist');
       const savedVault = await AsyncStorage.getItem('@vault');
+      const savedRecentTransactions = await AsyncStorage.getItem('@safe_sentinel_recent_transactions');
+
+      if (savedRecentTransactions) {
+        try {
+          const parsedRecentTransactions = JSON.parse(savedRecentTransactions);
+          if (Array.isArray(parsedRecentTransactions)) {
+            setTransactionHistory(parsedRecentTransactions.slice(0, 30));
+          }
+        } catch (recentTransactionsError) {
+          console.warn('[RECENT TRANSACTIONS] restore failed:', recentTransactionsError?.message || recentTransactionsError);
+        }
+      }
 
       const secureApiKey =
       Platform.OS === 'web' ?
@@ -2723,16 +2738,49 @@ function App() {
     };
   }, [vault, blacklist, handleIsolatedError]);
 
-  const loadCentralNotifications = async () => {
-    try {
-      if (!token) return;
+  const ensureNotificationPermission = async () => {
+    if (Platform.OS === 'web') {
+      setNotificationPermissionStatus('web');
+      return false;
+    }
 
+    try {
+      const currentPermission = await Notifications.getPermissionsAsync();
+      let status = currentPermission?.status || 'undetermined';
+
+      if (status !== 'granted') {
+        const requestedPermission = await Notifications.requestPermissionsAsync();
+        status = requestedPermission?.status || status;
+      }
+
+      setNotificationPermissionStatus(status);
+      return status === 'granted';
+    } catch (error) {
+      setNotificationPermissionStatus('error');
+      handleIsolatedError('Bildirim İzni', error);
+      return false;
+    }
+  };
+
+  const loadCentralNotifications = async ({ showLoading = false } = {}) => {
+    if (!token) {
+      setCentralNotifications([]);
+      setCentralUnreadCount(0);
+      setCentralNotificationsError('');
+      return [];
+    }
+
+    if (showLoading) setCentralNotificationsLoading(true);
+    setCentralNotificationsError('');
+
+    try {
       const res = await axios.get(
         `${API_BASE_URL}/api/notifications`,
         {
           headers: {
             Authorization: `Bearer ${token}`
-          }
+          },
+          timeout: 12000
         }
       );
 
@@ -2741,9 +2789,7 @@ function App() {
       [];
 
       setCentralNotifications(notifications);
-      setCentralUnreadCount(
-        Number(res.data?.unreadCount || 0)
-      );
+      setCentralUnreadCount(Number(res.data?.unreadCount || 0));
 
       for (const notification of notifications) {
         if (
@@ -2761,12 +2807,30 @@ function App() {
           } catch (_) {}
         }
       }
+
+      return notifications;
     } catch (error) {
+      const message = selectedLanguage === 'tr'
+        ? 'Bildirimler şu anda yüklenemedi. Bağlantınızı kontrol edip yenileyin.'
+        : 'Notifications could not be loaded. Check your connection and refresh.';
+      setCentralNotificationsError(message);
       console.warn(
         '[CENTRAL NOTIFICATION] load failed:',
         error?.response?.data || error?.message || error
       );
+      return [];
+    } finally {
+      if (showLoading) setCentralNotificationsLoading(false);
     }
+  };
+
+  const openNotificationsCenter = async () => {
+    setProfileMenuOpen(false);
+    setActiveModule('notificationsView');
+    await Promise.all([
+      ensureNotificationPermission(),
+      loadCentralNotifications({ showLoading: true })
+    ]);
   };
 
   const markCentralNotificationRead = async (id) => {
@@ -2815,14 +2879,18 @@ function App() {
     }
   };
   const triggerLocalNotification = async (title, body) => {
-    if (Platform.OS === "web" || Platform.OS === "android" && __DEV__) return;
+    if (Platform.OS === 'web' || Platform.OS === 'android' && __DEV__) return;
+
     try {
+      const permission = await Notifications.getPermissionsAsync();
+      if (permission?.status !== 'granted') return;
+
       await Notifications.scheduleNotificationAsync({
         content: { title, body, sound: 'default' },
         trigger: null
       });
     } catch (e) {
-      handleIsolatedError("Yerel Bildirim", e);
+      handleIsolatedError('Yerel Bildirim', e);
     }
   };
 
@@ -3868,7 +3936,6 @@ function App() {
 
     setLoading(true);
     setCurrentBalanceText(t("runtimeLoadingChain"));
-    setTransactionHistory([]);
 
     try {
       RateLimiterGuard.checkLimit('check-wallet');
@@ -3990,6 +4057,10 @@ function App() {
         });
 
         setTransactionHistory(formattedTx);
+        await AsyncStorage.setItem(
+          '@safe_sentinel_recent_transactions',
+          JSON.stringify(formattedTx.slice(0, 30))
+        );
 
         if (userStatus !== 'vip') {
           setQueryCount((prev) => prev + 1);
@@ -6111,6 +6182,34 @@ function App() {
         </Text>
       </TouchableOpacity>
 
+      {centralNotificationsLoading ?
+            <View style={{ backgroundColor: theme.inputBg, borderRadius: 7, padding: 12, marginBottom: 8, alignItems: 'center' }}>
+              <Text style={{ color: theme.primary, fontSize: 10, fontWeight: 'bold' }}>
+                {selectedLanguage === 'tr' ? 'Bildirimler yenileniyor…' : 'Refreshing notifications…'}
+              </Text>
+            </View> : null}
+
+      {centralNotificationsError ?
+            <TouchableOpacity
+              onPress={() => loadCentralNotifications({ showLoading: true })}
+              style={{ backgroundColor: '#7F1D1D', borderRadius: 7, padding: 12, marginBottom: 8 }}>
+              <Text style={{ color: '#FFFFFF', fontSize: 9, fontWeight: 'bold', textAlign: 'center' }}>
+                {centralNotificationsError}
+              </Text>
+              <Text style={{ color: '#FCA5A5', fontSize: 8, marginTop: 4, textAlign: 'center' }}>
+                {selectedLanguage === 'tr' ? 'Yeniden denemek için dokunun' : 'Tap to retry'}
+              </Text>
+            </TouchableOpacity> : null}
+
+      {Platform.OS !== 'web' && notificationPermissionStatus !== 'granted' ?
+            <TouchableOpacity
+              onPress={ensureNotificationPermission}
+              style={{ backgroundColor: theme.inputBg, borderColor: '#F59E0B', borderWidth: 1, borderRadius: 7, padding: 10, marginBottom: 8 }}>
+              <Text style={{ color: '#F59E0B', fontSize: 9, fontWeight: 'bold', textAlign: 'center' }}>
+                {selectedLanguage === 'tr' ? 'Telefon uyarıları kapalı — izin vermek için dokunun' : 'Phone alerts are off — tap to allow'}
+              </Text>
+            </TouchableOpacity> : null}
+
       {centralNotifications.length === 0 ?
             <View
               style={{
@@ -8070,7 +8169,10 @@ function App() {
         </View>
       </TouchableOpacity>
       <TouchableOpacity
-        onPress={() => { setProfileMenuOpen(false); setActiveModule('notificationsView'); }}
+        testID="dashboard-notifications-button"
+        accessibilityRole="button"
+        accessibilityLabel={selectedLanguage === 'tr' ? 'Bildirim merkezini aç' : 'Open notification center'}
+        onPress={openNotificationsCenter}
         activeOpacity={0.82}
         style={{ width: 44, height: 40, backgroundColor: theme.inputBg, borderColor: theme.borderCol, borderWidth: 1, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
         <Text style={{ color: theme.textMain, fontSize: 17 }}>🔔</Text>
@@ -8500,7 +8602,7 @@ function App() {
               </View>
 
               <TouchableOpacity
-              onPress={() => setActiveModule("notificationsView")}>
+              onPress={openNotificationsCenter}>
 
                 <Text
                 style={{
