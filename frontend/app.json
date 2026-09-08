@@ -3,12 +3,22 @@
     "name": "Safe Sentinel",
     "slug": "safe-sentinel",
     "version": "1.0.0",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "extra": {
       "eas": {
         "projectId": "ee6d3d46-e340-43d4-9eef-4b6ad4427452"
       }
     },
-    "owner": "fiko93"
+    "owner": "fiko93",
+    "plugins": [
+      "expo-notifications"
+    ],
+    "android": {
+      "permissions": [
+        "POST_NOTIFICATIONS"
+      ]
+    }
   }
 }
