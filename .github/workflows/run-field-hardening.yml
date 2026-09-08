@@ -19,20 +19,34 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Extract and run hardening script
+      - name: Apply remaining smoke-test fixes
         run: |
           python - <<'PY'
           from pathlib import Path
-          src = Path('.github/workflows/field-smoke-production-hardening.yml').read_text(encoding='utf-8')
-          start = src.index("          python - <<'PY'\n") + len("          python - <<'PY'\n")
-          end = src.index("\n          PY\n", start)
-          block = src[start:end]
-          lines = []
-          for line in block.splitlines():
-              lines.append(line[10:] if line.startswith('          ') else line)
-          Path('/tmp/field_hardening.py').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          p = Path('frontend/App.js')
+          s = p.read_text(encoding='utf-8')
+
+          # Hide dashboard tools that failed real-device live-data validation.
+          s = s.replace('''            [t("dashboardPortfolio"), t("dashboardViewVaultAssets"), "portfolioView"],\n            [t("dashboardGasOptimization"), t("dashboardCompareNetworkFees"), "gasOptView"],\n            [t("dashboardPriceAlert"), t("dashboardTrackTargetPrices"), "priceAlertsView"],\n            [t("toolTitleAiMarket"), t("dashboardMarketSentimentAnalysis"), "aiMarketView"]].''', '''            [t("dashboardPortfolio"), t("dashboardViewVaultAssets"), "portfolioView"],\n            [t("dashboardPriceAlert"), t("dashboardTrackTargetPrices"), "priceAlertsView"]].''')
+
+          s = s.replace('''              {[\n            ["Guardian", t("dashboardSecurityCircle"), "guardianView", t("dashboardAvailable")],\n            [t("dashboardCryptoInheritance"), "Dead Man's Switch", "inheritView", t("dashboardAvailable")]].''', '''              {[\n            ["Guardian", t("dashboardSecurityCircle"), "guardianView", t("dashboardAvailable")]].''')
+
+          # Keep back action away from the physical right edge on compact phones.
+          s = s.replace("paddingHorizontal: 8, marginLeft: 8, flexShrink: 0 }]}", "paddingHorizontal: 8, marginLeft: 8, marginRight: 8, flexShrink: 0 }]}")
+
+          # Human-readable behavioral signal labels instead of raw engine codes.
+          old = """                                • {typeof signal === 'string' ?\n                    signal :\n                    JSON.stringify(signal)}"""
+          new = """                                • {typeof signal === 'string' ?\n                    ({\n                      MANY_INCOMING_SOURCES: selectedLanguage === 'tr' ? 'Çok sayıda kaynaktan fon girişi' : 'Funds received from many sources',\n                      COLLECTION_PATTERN: selectedLanguage === 'tr' ? 'Fon toplama davranışı' : 'Fund collection pattern',\n                      MANY_OUTGOING_DESTINATIONS: selectedLanguage === 'tr' ? 'Çok sayıda hedefe fon çıkışı' : 'Funds sent to many destinations',\n                      DISTRIBUTION_PATTERN: selectedLanguage === 'tr' ? 'Fon dağıtım davranışı' : 'Fund distribution pattern',\n                      HIGH_ACTIVITY: selectedLanguage === 'tr' ? 'Yüksek işlem aktivitesi' : 'High transaction activity',\n                      FAILED_TRANSACTIONS: selectedLanguage === 'tr' ? 'Başarısız işlem sinyali' : 'Failed transaction signal'\n                    }[signal] || signal.replaceAll('_', ' ')) :\n                    JSON.stringify(signal)}"""
+          if old in s:
+              s = s.replace(old, new, 1)
+
+          # Legacy tool metadata should match production wording even when reused later.
+          s = s.replace('title: "AI Davranış"', 'title: "Davranış Analizi"')
+          s = s.replace('title: "Gas Optimizasyonu"', 'title: "Ağ İşlem Ücretleri"')
+          s = s.replace('subtitle: "Kasa varlıklarını görüntüle"', 'subtitle: "Taranan cüzdan varlıklarını görüntüle"')
+
+          p.write_text(s, encoding='utf-8')
           PY
-          python /tmp/field_hardening.py
       - name: Syntax check
         run: node --check frontend/App.js
       - name: Commit hardening changes
@@ -44,6 +58,6 @@ jobs:
             echo "No changes to commit"
             exit 0
           fi
-          git commit -m "Apply real-device production hardening"
+          git commit -m "Finish real-device smoke-test hardening"
           git pull --rebase origin main
           git push origin HEAD:main
