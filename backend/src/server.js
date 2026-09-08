@@ -5623,6 +5623,8 @@ console.log(
 
 app.get('/api/notifications', auth, async (req, res) => {
   try {
+    await syncSecurityAlertsToCentralNotifications(req.user.id);
+
     const notifications = await db.notification.findMany({
       where: {
         userId: req.user.id
@@ -5733,29 +5735,12 @@ const createCentralNotification = async ({
   asset = null,
   network = null,
   resourceId = null
-}) => {
-  if (!userId || !type || !title || !body) {
-    throw new Error('Central notification requires userId, type, title and body.');
-  }
+}
 
-  try {
-    if (eventKey) {
-      const existing = await db.notification.findUnique({
-        where: {
-          eventKey
-        }
-      });
-
-      if (existing) {
-        return {
-          created: false,
-          duplicate: true,
-          notification: existing
-        };
-
-const syncSecurityAlertsToCentralNotifications = async () => {
+const syncSecurityAlertsToCentralNotifications = async (userId = null) => {
   try {
     const alerts = await db.securityAlert.findMany({
+      where: userId ? { userId } : undefined,
       orderBy: { createdAt: 'desc' },
       take: 100
     });
@@ -5867,7 +5852,27 @@ const syncSecurityAlertsToCentralNotifications = async () => {
       error
     );
   }
-};
+}) => {
+  if (!userId || !type || !title || !body) {
+    throw new Error('Central notification requires userId, type, title and body.');
+  }
+
+  try {
+    if (eventKey) {
+      const existing = await db.notification.findUnique({
+        where: {
+          eventKey
+        }
+      });
+
+      if (existing) {
+        return {
+          created: false,
+          duplicate: true,
+          notification: existing
+        };
+
+;
       }
     }
 
