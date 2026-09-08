@@ -3144,15 +3144,16 @@ function App() {
     try {
       setLoading(true);
 
-      const response = await requestWithBackendRecovery(() =>
-        axios.post(
-          `${API_BASE_URL}/api/auth/login`,
-          { email: cleanEmail, password: cleanPassword },
-          {
-            headers: { ...SecurityScannerMiddleware.auditHeaders },
-            timeout: 30000
-          }
-        )
+      // Login is intentionally single-attempt and time-bounded. The global
+      // recovery helper can wait for ~80 seconds on a sleeping backend, which
+      // makes the sign-in screen appear frozen and may duplicate credentials.
+      const response = await axios.post(
+        `${API_BASE_URL}/api/auth/login`,
+        { email: cleanEmail, password: cleanPassword },
+        {
+          headers: { ...SecurityScannerMiddleware.auditHeaders },
+          timeout: 15000
+        }
       );
 
       const { token, user } = response.data || {};
@@ -3193,8 +3194,8 @@ function App() {
         ? (selectedLanguage === 'tr' ? 'Çok fazla giriş denemesi yapıldı. Kısa bir süre sonra tekrar deneyin.' : 'Too many login attempts. Please try again shortly.')
         : [502, 503, 504].includes(status) || code === 'ECONNABORTED' || !error?.response
         ? (selectedLanguage === 'tr'
-            ? 'Güvenli sunucu bağlantısı şu anda hazırlanıyor. Otomatik yeniden deneme başarısız oldu; lütfen birkaç saniye sonra tekrar deneyin.'
-            : 'The secure server connection is still starting. Automatic retry did not complete; please try again in a few seconds.')
+            ? 'Sunucu şu anda hazırlanıyor. Giriş 15 saniyede güvenli biçimde durduruldu; birkaç saniye sonra yeniden deneyin.'
+            : 'The server is starting. Sign-in was safely stopped after 15 seconds; please try again shortly.')
         : serverMessage || t("runtimeLoginFailedGeneric");
 
       Alert.alert(t("runtimeLoginFailedTitle"), message);
