@@ -1394,7 +1394,7 @@ function App() {
 
     const timer = setInterval(
       centralNotificationPolling,
-      60000
+      15000
     );
 
     return () => clearInterval(timer);
@@ -6579,40 +6579,25 @@ function App() {
                 paddingTop: 8
               }}>
 
-                    <Text style={{
-                  color: theme.text,
-                  marginBottom: 4
-                }}>
-                      Behavioral: {guardianEvaluationResult.components.behavioral?.score ?? 0}/100
-                      {' · '}
-                      {guardianEvaluationResult.components.behavioral?.level || 'LOW'}
-                    </Text>
+                    {[
+                      ['Behavioral', guardianEvaluationResult.components.behavioral],
+                      ['Scam DNA', guardianEvaluationResult.components.scamDna],
+                      ['Security Graph', guardianEvaluationResult.components.securityGraph],
+                      ['Early Warning', guardianEvaluationResult.components.earlyWarning]
+                    ].map(([label, component]) => {
+                      const score = Number(component?.score);
+                      const hasMeasuredScore = Number.isFinite(score) && component?.measured !== false && component?.available !== false;
+                      return (
+                        <Text key={label} style={{ color: theme.text, marginBottom: 4 }}>
+                          {label}: {hasMeasuredScore ? `${score}/100 · ${component?.level || 'UNKNOWN'}` : (selectedLanguage === 'tr' ? 'Veri yok' : 'Not available')}
+                        </Text>
+                      );
+                    })}
 
-                    <Text style={{
-                  color: theme.text,
-                  marginBottom: 4
-                }}>
-                      Scam DNA: {guardianEvaluationResult.components.scamDna?.score ?? 0}/100
-                      {' · '}
-                      {guardianEvaluationResult.components.scamDna?.level || 'LOW'}
-                    </Text>
-
-                    <Text style={{
-                  color: theme.text,
-                  marginBottom: 4
-                }}>
-                      Security Graph: {guardianEvaluationResult.components.securityGraph?.score ?? 0}/100
-                      {' · '}
-                      {guardianEvaluationResult.components.securityGraph?.level || 'LOW'}
-                    </Text>
-
-                    <Text style={{
-                  color: theme.text,
-                  marginBottom: 4
-                }}>
-                      Early Warning: {guardianEvaluationResult.components.earlyWarning?.score ?? 0}/100
-                      {' · '}
-                      {guardianEvaluationResult.components.earlyWarning?.level || 'LOW'}
+                    <Text style={{ color: theme.subText, fontSize: 10, lineHeight: 14, marginTop: 4, marginBottom: 4 }}>
+                      {selectedLanguage === 'tr'
+                        ? 'Guardian yalnızca backend tarafından gerçekten ölçülen sinyalleri puan olarak gösterir; eksik sinyaller 0 risk olarak yorumlanmaz.'
+                        : 'Guardian shows numeric scores only for signals actually measured by the backend; unavailable signals are not treated as zero risk.'}
                     </Text>
 
                     <Text style={{
@@ -6650,6 +6635,31 @@ function App() {
 
                 {inheritEnabled &&
             <>
+                <View style={{ backgroundColor: theme.inputBg, borderColor: '#F59E0B', borderWidth: 1, borderRadius: 7, padding: 9, marginTop: 8, marginBottom: 10 }}>
+                  <Text style={{ color: '#F59E0B', fontSize: 10, fontWeight: 'bold' }}>
+                    {selectedLanguage === 'tr' ? 'Non-custodial güvenlik planı' : 'Non-custodial security plan'}
+                  </Text>
+                  <Text style={{ color: theme.textSub, fontSize: 9, lineHeight: 14, marginTop: 4 }}>
+                    {selectedLanguage === 'tr'
+                      ? 'Safe Sentinel özel anahtar tutmaz ve bu ekran tek başına zincir üstü otomatik varlık transferi gerçekleştirmez. Protokol; kayıtlı cüzdan, varis ve hareketsizlik planını izler.'
+                      : 'Safe Sentinel does not hold private keys and this screen alone does not perform automatic on-chain asset transfers. The protocol tracks a registered wallet, beneficiary and inactivity plan.'}
+                  </Text>
+                </View>
+
+                <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: 'bold', marginBottom: 2 }}>
+                  {selectedLanguage === 'tr' ? 'Kaynak Cüzdan Adresi' : 'Source Wallet Address'}:
+                </Text>
+                <TextInput
+                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]}
+                  placeholder={selectedLanguage === 'tr' ? 'Hesabınıza kayıtlı cüzdan adresi' : 'Wallet address registered to your account'}
+                  placeholderTextColor="#888"
+                  value={inheritSourceWallet}
+                  onChangeText={setInheritSourceWallet} />
+
+                <Text style={{ color: theme.textSub, fontSize: 9, marginBottom: 8 }}>
+                  {(selectedLanguage === 'tr' ? 'Ağ' : 'Network')}: {NETWORKS[selectedNetwork]?.name || String(selectedNetwork).toUpperCase()}
+                </Text>
+
                 <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: 'bold', marginTop: 6, marginBottom: 2 }}>{t('inheritInactivityDays')}:</Text>
                 <TextInput
                 style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]}
@@ -7397,8 +7407,8 @@ function App() {
               </Text>
               {revokeList.length === 0 ?
           <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: '#EF4444', alignItems: 'center', padding: 16 }]}>
-                  <Text style={{ color: '#EF4444', fontWeight: 'bold', fontSize: 11, marginBottom: 4 }}>{t('revokeNoAllowance')}</Text>
-                  <Text style={{ color: theme.textSub, fontSize: 10, textAlign: 'center' }}>{t('revokeEmptyDescription')}</Text>
+                  <Text style={{ color: '#EF4444', fontWeight: 'bold', fontSize: 11, marginBottom: 4 }}>{selectedLanguage === 'tr' ? 'Revoke taraması için cüzdan gerekli' : 'Wallet required for Revoke scan'}</Text>
+                  <Text style={{ color: theme.textSub, fontSize: 10, textAlign: 'center' }}>{selectedLanguage === 'tr' ? 'Desteklenen bir cüzdanı bağlayın veya Vault/Kasa içine ekleyin; ardından aktif token yetkilerini tarayın.' : 'Connect a supported wallet or add it to Vault, then scan its active token approvals.'}</Text>
                 </View> :
 
           revokeList.map((item, index) =>

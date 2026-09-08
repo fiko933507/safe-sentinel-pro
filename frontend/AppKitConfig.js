@@ -1,4 +1,4 @@
-﻿import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createAppKit } from '@reown/appkit-react-native';
 import { EthersAdapter } from '@reown/appkit-ethers-react-native';
 
@@ -161,12 +161,61 @@ const avalanche = {
   caipNetworkId: 'eip155:43114',
 };
 
+
+const base = {
+  id: 8453,
+  name: 'Base',
+  nativeCurrency: {
+    name: 'Ether',
+    symbol: 'ETH',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://base-rpc.publicnode.com'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'BaseScan',
+      url: 'https://basescan.org',
+    },
+  },
+  chainNamespace: 'eip155',
+  caipNetworkId: 'eip155:8453',
+};
+
+const optimism = {
+  id: 10,
+  name: 'Optimism',
+  nativeCurrency: {
+    name: 'Ether',
+    symbol: 'ETH',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://optimism-rpc.publicnode.com'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Optimistic Etherscan',
+      url: 'https://optimistic.etherscan.io',
+    },
+  },
+  chainNamespace: 'eip155',
+  caipNetworkId: 'eip155:10',
+};
+
 const networks = [
   ethereum,
   polygon,
   arbitrum,
   bsc,
   avalanche,
+  base,
+  optimism,
 ];
 
 const ethersAdapter = new EthersAdapter();
