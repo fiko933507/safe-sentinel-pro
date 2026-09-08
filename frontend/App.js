@@ -1322,7 +1322,7 @@ const v26GetTranslation = (language, key) => {
   return lang[key] || V26_TRANSLATIONS.en[key] || key;
 };
 
-const v26FormatCurrency = (usdValue, currencyCode = 'USD') => {
+const v26FormatCurrency = (usdValue, currencyCode = 'USD', exchangeRates = V26_EXCHANGE_RATES_FROM_USD) => {
   const amount = Number(usdValue);
 
   if (!Number.isFinite(amount)) {
@@ -1334,7 +1334,7 @@ const v26FormatCurrency = (usdValue, currencyCode = 'USD') => {
   V26_CURRENCIES.USD;
 
   const rate =
-  Number(V26_EXCHANGE_RATES_FROM_USD[currency.code]) || 1;
+  Number(exchangeRates?.[currency.code] ?? V26_EXCHANGE_RATES_FROM_USD[currency.code]) || 1;
 
   const converted = amount * rate;
 
@@ -1413,6 +1413,8 @@ function App() {
   const [currentScreen, setCurrentScreen] = useState('login');
   const [selectedLanguage, setSelectedLanguage] = useState('tr');
   const [selectedCurrency, setSelectedCurrency] = useState('TRY');
+  const [liveExchangeRates, setLiveExchangeRates] = useState(V26_EXCHANGE_RATES_FROM_USD);
+  const [fxRateUpdatedAt, setFxRateUpdatedAt] = useState(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -1451,6 +1453,25 @@ function App() {
     const healthTimer = setInterval(checkBackendHealth, 60000);
     return () => clearInterval(healthTimer);
   }, [checkBackendHealth]);
+
+  const fetchLiveExchangeRates = useCallback(async () => {
+    try {
+      const response = await api.get('/api/fx-rates', { timeout: 12000 });
+      const rates = response?.data?.rates;
+      if (response?.data?.success && rates && typeof rates === 'object') {
+        setLiveExchangeRates((current) => ({ ...current, ...rates, USD: 1 }));
+        setFxRateUpdatedAt(response?.data?.updatedAt || new Date().toISOString());
+      }
+    } catch (error) {
+      console.warn('[FX] Live rates unavailable; keeping last known/fallback rates:', error?.message || error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchLiveExchangeRates();
+    const timer = setInterval(fetchLiveExchangeRates, 15 * 60 * 1000);
+    return () => clearInterval(timer);
+  }, [fetchLiveExchangeRates]);
 
   const [activeModule, setActiveModule] = useState('dashboard');
 
@@ -2253,7 +2274,7 @@ function App() {
   v26GetTranslation(selectedLanguage, key);
 
   const formatCurrency = (usdValue) =>
-  v26FormatCurrency(usdValue, selectedCurrency);
+  v26FormatCurrency(usdValue, selectedCurrency, liveExchangeRates);
 
   const PRICE_ALERT_SYMBOL_TO_ASSET = {
     TRX: 'tron', SOL: 'solana', BTC: 'bitcoin', AVAX: 'avalanche-2',
@@ -3755,7 +3776,7 @@ function App() {
     if (!cleanContract) {
       Alert.alert(t("runtimeMissingInfoTitle"),
 
-      "Lütfen analiz edilecek geçerli bir akıllı sözleşme adresi girin."
+      selectedLanguage === 'tr' ? 'Lütfen analiz edilecek geçerli bir akıllı sözleşme adresi girin.' : 'Enter a valid smart contract address to analyze.'
       );
       return;
     }
@@ -3766,7 +3787,7 @@ function App() {
     if (!isValidEvmAddress) {
       Alert.alert(t("runtimeInvalidAddressTitle"),
 
-      "Akıllı sözleşme adresi 0x ile başlayan geçerli bir EVM adresi olmalıdır."
+      selectedLanguage === 'tr' ? 'Akıllı sözleşme adresi 0x ile başlayan geçerli bir EVM adresi olmalıdır.' : 'The smart contract address must be a valid EVM address beginning with 0x.'
       );
       return;
     }
@@ -3967,10 +3988,12 @@ function App() {
     SecurityScannerMiddleware.sanitizeInput(address).trim() :
     '';
 
-    if (!cleanAddr) {
+    if (!cleanAddr || !validateAddressFormat(selectedNetwork, cleanAddr)) {
       Alert.alert(
         'Guardian',
-        'Guardian analizi için geçerli bir cüzdan adresi girin.'
+        selectedLanguage === 'tr'
+          ? `Guardian analizi için ${NETWORKS[selectedNetwork]?.name || selectedNetwork} ağına uygun geçerli bir cüzdan adresi girin.`
+          : `Enter a valid wallet address for ${NETWORKS[selectedNetwork]?.name || selectedNetwork} before running Guardian analysis.`
       );
       return;
     }
@@ -4086,15 +4109,9 @@ function App() {
       String(risk.level || "unknown").toLowerCase();
 
       const levelText =
-      level === "critical" ?
-      "Kritik" :
-      level === "high" ?
-      "Yüksek" :
-      level === "medium" ?
-      "Orta" :
-      level === "low" ?
-      "Düşük" :
-      "Belirlenemedi";
+      selectedLanguage === 'tr' ?
+      (level === "critical" ? "Kritik" : level === "high" ? "Yüksek" : level === "medium" ? "Orta" : level === "low" ? "Düşük" : "Belirlenemedi") :
+      (level === "critical" ? "Critical" : level === "high" ? "High" : level === "medium" ? "Medium" : level === "low" ? "Low" : "Unknown");
 
       const walletAgeDays =
       Number.isFinite(Number(risk.walletAgeDays)) ?
@@ -4119,12 +4136,29 @@ function App() {
 
       const failedRatioText =
       failedRatio === null ?
-      "Belirlenemedi" :
-      `%${(failedRatio * 100).toFixed(1)}`;
+      (selectedLanguage === 'tr' ? "Belirlenemedi" : "Unknown") :
+      (() => {
+        const value = Number((failedRatio * 100).toFixed(1));
+        return selectedLanguage === 'tr' ? `%${value}` : `${value}%`;
+      })();
+
+      const behaviorReasonTranslations = {
+        'Cüzdan 24 saatten daha yeni.': 'Wallet is less than 24 hours old.',
+        'Cüzdan çok yeni oluşturulmuş.': 'Wallet was created very recently.',
+        'Cüzdan son 7 gün içinde oluşturulmuş.': 'Wallet was created within the last 7 days.',
+        'Cüzdan 30 günden daha yeni.': 'Wallet is less than 30 days old.',
+        'İncelenen zaman penceresinde işlem geçmişi bulunamadı.': 'No transaction history was found in the analyzed time window.',
+        'Cüzdanda başarısız işlemler bulundu.': 'Failed transactions were found in the wallet history.',
+        'Fon girişlerinden sonra birden fazla adrese dağıtım davranışı gözlendi.': 'Funds were distributed to multiple addresses after incoming transfers.',
+        'Birden fazla adresten yoğun fon toplama davranışı gözlendi.': 'A concentrated fund-collection pattern from multiple addresses was observed.',
+        'Mevcut zincir verilerinde belirgin risk sinyali bulunmadı.': 'No significant risk signal was found in the available on-chain data.'
+      };
 
       const reasons =
       Array.isArray(risk.reasons) ?
-      risk.reasons.filter(Boolean) :
+      risk.reasons.filter(Boolean).map((reason) =>
+        selectedLanguage === 'tr' ? reason : (behaviorReasonTranslations[String(reason)] || String(reason))
+      ) :
       [];
 
       const signals =
@@ -4184,7 +4218,7 @@ function App() {
         walletAge: walletAgeText,
 
         avgHoldingTime:
-        "Bu endpoint kapsamında hesaplanmadı",
+        selectedLanguage === 'tr' ? 'Bu endpoint kapsamında hesaplanmadı' : 'Not calculated by this endpoint',
 
         mixerInteraction:
         reasons.some((reason) =>
@@ -4192,8 +4226,8 @@ function App() {
           String(reason)
         )
         ) ?
-        "Risk sinyali bulundu" :
-        "Açık mixer sinyali bulunmadı",
+        (selectedLanguage === 'tr' ? 'Risk sinyali bulundu' : 'Risk signal found') :
+        (selectedLanguage === 'tr' ? 'Açık mixer sinyali bulunmadı' : 'No explicit mixer signal found'),
 
         botActivityScore:
         reasons.some((reason) =>
@@ -4201,8 +4235,8 @@ function App() {
           String(reason)
         )
         ) ?
-        "Risk sinyali bulundu" :
-        "Belirgin bot sinyali bulunmadı",
+        (selectedLanguage === 'tr' ? 'Risk sinyali bulundu' : 'Risk signal found') :
+        (selectedLanguage === 'tr' ? 'Belirgin bot sinyali bulunmadı' : 'No significant bot signal found'),
 
         behavioralScore:
         score === null ?
@@ -4269,9 +4303,7 @@ function App() {
         Boolean(risk.scamMatched),
 
         network:
-        risk.network ||
-        data.network ||
-        backendNetwork,
+        String(risk.network || data.network || backendNetwork || '').toUpperCase(),
 
         address:
         data.address ||
@@ -4513,25 +4545,35 @@ function App() {
 
       const inWhitelist = securityListContains(whitelist, cleanRecipient, selectedNetwork);
       const inBlacklist = securityListContains(blacklist, cleanRecipient, selectedNetwork);
-      const riskLevel = inBlacklist ? "Çok Yüksek" : matched ? "Çok Yüksek" : inWhitelist ? "Liste Onaylı" : "Belirlenemedi";
-      const actionTaken = inBlacklist ?
-      "Bu adres kişisel Blacklist listenizde. Transferi göndermeden önce adresi yeniden doğrulayın." :
-      matched ?
-      "Bu adres scam istihbaratında eşleşti. Transferi göndermeden önce durdurun ve adresi tekrar doğrulayın." :
-      inWhitelist ?
-      "Bu adres kişisel Whitelist listenizde. Whitelist kaydı zincir üstü güvenlik garantisi değildir." :
-      "Adres mevcut scam istihbaratıyla eşleşmedi. Bu sonuç adresin tamamen güvenli olduğu anlamına gelmez.";
+      const riskLevel = selectedLanguage === 'tr'
+        ? (inBlacklist || matched ? 'Çok Yüksek' : inWhitelist ? 'Whitelist Kaydı' : 'Belirlenemedi')
+        : (inBlacklist || matched ? 'Very High' : inWhitelist ? 'Whitelisted' : 'Unknown');
+      const actionTaken = selectedLanguage === 'tr'
+        ? (inBlacklist
+            ? 'Bu adres kişisel Blacklist listenizde. Transferi göndermeden önce adresi yeniden doğrulayın.'
+            : matched
+            ? 'Bu adres scam istihbaratında eşleşti. Transferi göndermeden önce durdurun ve adresi tekrar doğrulayın.'
+            : inWhitelist
+            ? 'Bu adres kişisel Whitelist listenizde. Whitelist kaydı zincir üstü güvenlik garantisi değildir.'
+            : 'Adres mevcut scam istihbaratıyla eşleşmedi. Bu sonuç adresin tamamen güvenli olduğu anlamına gelmez.')
+        : (inBlacklist
+            ? 'This address is in your personal Blacklist. Verify the destination again before sending.'
+            : matched
+            ? 'This address matched scam intelligence. Stop and verify the destination before sending.'
+            : inWhitelist
+            ? 'This address is in your personal Whitelist. A whitelist entry is not an on-chain security guarantee.'
+            : 'No match was found in current scam intelligence. This does not guarantee that the address is safe.');
 
       setOutboundCheckResult({
         network: backendNetwork,
         listStatus: inBlacklist ? 'BLACKLIST' : inWhitelist ? 'WHITELIST' : null,
-        status: inBlacklist ? "⚠️ BLACKLIST UYARISI" : matched ?
-        "⚠️ YÜKSEK RİSK" : inWhitelist ? "WHITELIST KAYDI" :
-        "SCAM EŞLEŞMESİ YOK",
+        status: selectedLanguage === 'tr'
+          ? (inBlacklist ? '⚠️ BLACKLIST UYARISI' : matched ? '⚠️ YÜKSEK RİSK' : inWhitelist ? 'WHITELIST KAYDI' : 'SCAM EŞLEŞMESİ YOK')
+          : (inBlacklist ? '⚠️ BLACKLIST WARNING' : matched ? '⚠️ HIGH RISK' : inWhitelist ? 'WHITELIST ENTRY' : 'NO SCAM MATCH'),
         recipient: cleanRecipient,
         amount: cleanAmount ?
         `${cleanAmount} ${NETWORKS[selectedNetwork].symbol}` :
-        "Belirtilmedi",
+        selectedLanguage === 'tr' ? 'Belirtilmedi' : 'Not specified',
         riskLevel,
         actionTaken,
         isBlocked: inBlacklist || matched,
@@ -4579,6 +4621,15 @@ function App() {
     }
   };
   const handleOneClickVipPayment = async () => {
+    if (IS_PLAY_STORE_BUILD) {
+      Alert.alert(
+        selectedLanguage === 'tr' ? 'VIP Satın Alma' : 'VIP Purchase',
+        selectedLanguage === 'tr'
+          ? 'Google Play sürümünde dijital üyelik için doğrudan kripto ödeme kullanılmaz. Uyumlu uygulama içi satın alma akışı etkinleştirildiğinde burada sunulacaktır.'
+          : 'Direct crypto payment is not used for digital membership in the Google Play build. A compliant in-app purchase flow will be shown here when enabled.'
+      );
+      return;
+    }
     try {
       const amount =
       selectedVipPlan === 'yearly' ?
@@ -4656,6 +4707,7 @@ function App() {
       if (!matched) return Alert.alert(t('commonInfoTitle'), t('whitelistNotFound'));
       if (matched?.id) await api.delete(`/api/whitelist/${matched.id}`);
       await syncSecurityAddressLists();
+      await loadCentralNotifications();
       Alert.alert(t('commonSuccessTitle'), t('whitelistRemoved'));
     } catch (e) {
       handleIsolatedError('Whitelist Silme', e);
@@ -4670,6 +4722,7 @@ function App() {
       if (!matched) return Alert.alert(t('commonInfoTitle'), t('blacklistNotFound'));
       if (matched?.id) await api.delete(`/api/blacklist/${matched.id}`);
       await syncSecurityAddressLists();
+      await loadCentralNotifications();
       Alert.alert(t('commonSuccessTitle'), t('blacklistRemoved'));
     } catch (e) {
       handleIsolatedError('Blacklist Silme', e);
@@ -4685,8 +4738,19 @@ function App() {
     try {
       await saveWhitelist([...whitelist, { address: cleanAddr, network: selectedNetwork === 'eth' ? 'ethereum' : selectedNetwork }]);
       await syncSecurityAddressLists();
+      await loadCentralNotifications();
       Alert.alert(t('commonSuccessTitle'), t('whitelistAdded'));
-    } catch (e) { handleIsolatedError('Whitelist Ekleme', e); }
+    } catch (e) {
+      handleIsolatedError('Whitelist Ekleme', e);
+      const serverError = e?.response?.data?.error;
+      Alert.alert(
+        t('commonErrorTitle'),
+        selectedLanguage === 'tr'
+          ? (serverError === 'Invalid address' ? 'Adres biçimi seçili ağ için geçersiz.' : serverError === 'Network not supported' ? 'Bu ağ Whitelist tarafından desteklenmiyor.' : 'Whitelist kaydı sunucuya eklenemedi. Lütfen tekrar deneyin.')
+          : (serverError === 'Invalid address' ? 'The address is invalid for the selected network.' : serverError === 'Network not supported' ? 'This network is not supported by Whitelist.' : 'The Whitelist entry could not be saved to the server. Please try again.')
+      );
+      await syncSecurityAddressLists();
+    }
   };
 
   const addToBlacklist = async () => {
@@ -4697,8 +4761,19 @@ function App() {
     try {
       await saveBlacklist([...blacklist, { address: cleanAddr, network: selectedNetwork === 'eth' ? 'ethereum' : selectedNetwork }]);
       await syncSecurityAddressLists();
+      await loadCentralNotifications();
       Alert.alert(t('commonSuccessTitle'), t('blacklistRiskAdded'));
-    } catch (e) { handleIsolatedError('Blacklist Ekleme', e); }
+    } catch (e) {
+      handleIsolatedError('Blacklist Ekleme', e);
+      const serverError = e?.response?.data?.error;
+      Alert.alert(
+        t('commonErrorTitle'),
+        selectedLanguage === 'tr'
+          ? (serverError === 'Invalid address' ? 'Adres biçimi seçili ağ için geçersiz.' : serverError === 'Network not supported' ? 'Bu ağ Blacklist tarafından desteklenmiyor.' : 'Blacklist kaydı sunucuya eklenemedi. Lütfen tekrar deneyin.')
+          : (serverError === 'Invalid address' ? 'The address is invalid for the selected network.' : serverError === 'Network not supported' ? 'This network is not supported by Blacklist.' : 'The Blacklist entry could not be saved to the server. Please try again.')
+      );
+      await syncSecurityAddressLists();
+    }
   };
 
   const addToVault = () => {
@@ -5062,7 +5137,7 @@ function App() {
 
       {activeModule !== 'dashboard' ?
       <SafeAreaView style={[styles.card, { backgroundColor: theme.cardBg, flex: 1, width: '100%', maxHeight: '100%', borderRadius: 0, marginVertical: 0 }]}>
-          <View style={[styles.headerRow, { paddingHorizontal: 12, paddingTop: Math.max(8, insets.top + 4), paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: theme.borderCol }]}>
+          <View style={[styles.headerRow, { paddingHorizontal: 12, paddingTop: Math.max(16, insets.top + 12), paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: theme.borderCol }]}>
             <Text numberOfLines={2} style={[styles.title, { color: theme.textMain, fontSize: 14, flex: 1, paddingRight: 8 }]}>
               {activeModule === 'preferencesView' ? t('preferencesTitle') :
             activeModule === 'cryptoPoliciesView' ? t('toolTitleCryptoPolicies') :
@@ -7634,7 +7709,7 @@ function App() {
         null}
         </SafeAreaView> :
 
-      <ScrollView contentContainerStyle={styles.dashboardContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.dashboardContainer, { paddingTop: Math.max(14, insets.top + 10) }]} showsVerticalScrollIndicator={false}>
 
           {/* SAFE SENTINEL SECURITY COMMAND CENTER */}
           <View
@@ -7756,7 +7831,7 @@ function App() {
           }}>
           <Text style={{ color: isConnected ? theme.primary : '#FFFFFF', fontSize: 9, fontWeight: '900' }}>
             {isConnected
-              ? (selectedLanguage === 'tr' ? 'YÖNET' : 'MANAGE')
+              ? (selectedLanguage === 'tr' ? 'CÜZDAN DEĞİŞTİR' : 'CHANGE WALLET')
               : (selectedLanguage === 'tr' ? 'CÜZDAN BAĞLA' : 'CONNECT WALLET')}
           </Text>
         </TouchableOpacity>

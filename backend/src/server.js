@@ -4603,6 +4603,64 @@ app.post('/api/portfolio', auth, async (req, res) => {
   }
 });
 
+
+const FX_CACHE_TTL_MS = 15 * 60 * 1000;
+let fxRateCache = { updatedAt: 0, rates: null };
+
+app.get('/api/fx-rates', auth, async (_req, res) => {
+  const now = Date.now();
+  if (fxRateCache.rates && now - fxRateCache.updatedAt < FX_CACHE_TTL_MS) {
+    return res.json({
+      success: true,
+      source: 'FRANKFURTER_ECB_CACHE',
+      updatedAt: new Date(fxRateCache.updatedAt).toISOString(),
+      rates: fxRateCache.rates
+    });
+  }
+
+  try {
+    const response = await fetch(
+      'https://api.frankfurter.app/latest?from=USD&to=EUR,GBP,TRY,JPY,CNY',
+      { headers: { accept: 'application/json' } }
+    );
+    if (!response.ok) throw new Error(`Frankfurter HTTP ${response.status}`);
+
+    const payload = await response.json();
+    const incoming = payload?.rates || {};
+    const rates = {
+      USD: 1,
+      EUR: Number(incoming.EUR),
+      GBP: Number(incoming.GBP),
+      TRY: Number(incoming.TRY),
+      JPY: Number(incoming.JPY),
+      CNY: Number(incoming.CNY)
+    };
+    for (const [code, value] of Object.entries(rates)) {
+      if (!Number.isFinite(value) || value <= 0) throw new Error(`Invalid FX rate for ${code}`);
+    }
+
+    fxRateCache = { updatedAt: now, rates };
+    return res.json({
+      success: true,
+      source: 'FRANKFURTER_ECB',
+      updatedAt: new Date(now).toISOString(),
+      rates
+    });
+  } catch (error) {
+    console.error('[FX] live rate fetch failed:', error?.message || error);
+    if (fxRateCache.rates) {
+      return res.json({
+        success: true,
+        stale: true,
+        source: 'FRANKFURTER_ECB_STALE_CACHE',
+        updatedAt: new Date(fxRateCache.updatedAt).toISOString(),
+        rates: fxRateCache.rates
+      });
+    }
+    return res.status(503).json({ success: false, error: 'Live FX rates unavailable' });
+  }
+});
+
 app.get('/api/live-gas-fees',auth,async(_,res)=>{
   try{
     const rpcConfigs = {
@@ -4717,6 +4775,39 @@ app.get('/api/live-gas-fees',auth,async(_,res)=>{
       details
     });
 
+  const createAddressListNotification=async({userId,type,network,address,resourceId})=>{
+    try{
+      const isWhitelist=type.startsWith('WHITELIST');
+      const isAdd=type.endsWith('_ADD');
+      const title=isWhitelist
+        ? (isAdd ? 'Whitelist Güncellendi' : 'Whitelist Kaydı Kaldırıldı')
+        : (isAdd ? 'Blacklist Güncellendi' : 'Blacklist Kaydı Kaldırıldı');
+      const body=isWhitelist
+        ? (isAdd
+            ? `${network.toUpperCase()} ağındaki ${address} adresi Whitelist listenize eklendi.`
+            : `${network.toUpperCase()} ağındaki ${address} adresi Whitelist listenizden kaldırıldı.`)
+        : (isAdd
+            ? `${network.toUpperCase()} ağındaki ${address} adresi Blacklist listenize eklendi.`
+            : `${network.toUpperCase()} ağındaki ${address} adresi Blacklist listenizden kaldırıldı.`);
+      await db.notification.create({
+        data:{
+          userId,
+          type,
+          severity:isWhitelist?'INFO':'WARNING',
+          title,
+          body,
+          eventKey:`${type}:${userId}:${resourceId}`,
+          network,
+          resourceId
+        }
+      });
+    }catch(error){
+      if(error?.code!=='P2002'){
+        console.error('[ADDRESS LIST NOTIFICATION] write failed:',error?.message||error);
+      }
+    }
+  };
+
   app.get('/api/whitelist',addressListLimiter,auth,async(req,res)=>{
     try{
       const rows=await db.whitelistAddress.findMany({
@@ -4795,6 +4886,7 @@ app.get('/api/live-gas-fees',auth,async(_,res)=>{
         network,
         address
       });
+      await createAddressListNotification({userId:req.user.id,type:'WHITELIST_ADD',network,address,resourceId:row.id});
 
       return res.status(201).json({
         success:true,
@@ -4854,6 +4946,7 @@ app.get('/api/live-gas-fees',auth,async(_,res)=>{
         network:existing.network,
         address:existing.address
       });
+      await createAddressListNotification({userId:req.user.id,type:'WHITELIST_REMOVE',network:existing.network,address:existing.address,resourceId:existing.id});
 
       return res.json({
         success:true,
@@ -4947,6 +5040,7 @@ app.get('/api/live-gas-fees',auth,async(_,res)=>{
         network,
         address
       });
+      await createAddressListNotification({userId:req.user.id,type:'BLACKLIST_ADD',network,address,resourceId:row.id});
 
       return res.status(201).json({
         success:true,
@@ -5006,6 +5100,7 @@ app.get('/api/live-gas-fees',auth,async(_,res)=>{
         network:existing.network,
         address:existing.address
       });
+      await createAddressListNotification({userId:req.user.id,type:'BLACKLIST_REMOVE',network:existing.network,address:existing.address,resourceId:existing.id});
 
       return res.json({
         success:true,
