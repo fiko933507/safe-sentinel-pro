@@ -1,0 +1,45 @@
+name: Wallet Scan Recovery Hardening
+
+on:
+  push:
+    paths:
+      - '.github/workflows/final-scan-recovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  harden:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Patch wallet scan recovery
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('frontend/App.js')
+          s=p.read_text(encoding='utf-8')
+          old='''      const response = await api.post(`/api/check-wallet`, {\n        network: backendNetwork,\n        address: cleanAddr\n      }, {\n        headers: {\n          ...SecurityScannerMiddleware.auditHeaders\n        },\n        timeout: 15000\n      });\n'''
+          new='''      const response = await requestWithBackendRecovery(() => api.post(`/api/check-wallet`, {\n        network: backendNetwork,\n        address: cleanAddr\n      }, {\n        headers: {\n          ...SecurityScannerMiddleware.auditHeaders\n        },\n        timeout: 30000\n      }));\n'''
+          if old not in s:
+              raise SystemExit('wallet scan request anchor not found')
+          s=s.replace(old,new,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validate frontend
+        working-directory: frontend
+        run: |
+          node --check App.js
+          npm ci
+          npm test
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add frontend/App.js
+          git commit -m 'Harden live wallet scan recovery'
+          git push
