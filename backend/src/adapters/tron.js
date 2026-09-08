@@ -337,12 +337,45 @@ export const createTronAdapter = ({
         );
       }
 
+      let latestBlock = null;
+
+      try {
+        const blockResponse = await fetchImpl(
+          `${tronRpc}/wallet/getnowblock`,
+          {
+            method: 'POST',
+            headers: {
+              ...headers,
+              'Content-Type': 'application/json'
+            },
+            body: '{}'
+          }
+        );
+
+        if (blockResponse.ok) {
+          const blockJson = await blockResponse.json();
+          const blockNumber = Number(
+            blockJson?.block_header?.raw_data?.number
+          );
+
+          if (Number.isFinite(blockNumber)) {
+            latestBlock = blockNumber;
+          }
+        }
+      } catch (error) {
+        console.error(
+          'TRON latest block request error:',
+          error?.message || error
+        );
+      }
+
       return {
         found: true,
         network: 'tron',
         address,
         balance,
         balanceUnit: 'TRX',
+        latestBlock,
         transactions,
         account: {
           createdAt:
