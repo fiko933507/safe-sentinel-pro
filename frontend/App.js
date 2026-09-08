@@ -476,8 +476,8 @@ const V26_TRANSLATIONS = {
     gasLowestLiveValue: 'Canlı gas verileri içindeki en düşük değer.',
     guardianDescription: 'Guardian güvenlik profiliniz backend ile senkronize edilir. Sistem cüzdan davranışı, Scam DNA, Security Graph ve Early Warning sinyallerini birlikte değerlendirir.',
     guardianNonCustodial: 'Non-custodial koruma motoru — işlem imzalamaz, fon taşımaz.',
-    guardianThreshold: 'Kritik Alarm Eşik Değeri ($):',
-    guardianThresholdPlaceholder: 'Örn: 500 USD...',
+    guardianThreshold: 'İşlem Tutarı Alarm Eşiği (USD):',
+    guardianThresholdPlaceholder: 'Örn: 500',
     guardianInvalidThreshold: 'Geçerli bir alarm eşik değeri girin.',
     guardianUpdated: 'Guardian güvenlik profili backend üzerinde güncellendi.',
     guardianUpdateFailed: 'Guardian profili güncellenemedi.',
@@ -938,8 +938,8 @@ const V26_TRANSLATIONS = {
     gasLowestLiveValue: 'Lowest value among live gas data.',
     guardianDescription: 'Your Guardian security profile is synchronized with the backend. The system evaluates wallet behavior, Scam DNA, Security Graph and Early Warning signals together.',
     guardianNonCustodial: 'Non-custodial protection engine — it does not sign transactions or move funds.',
-    guardianThreshold: 'Critical Alert Threshold ($):',
-    guardianThresholdPlaceholder: 'Example: 500 USD...',
+    guardianThreshold: 'Transaction Amount Alert Threshold (USD):',
+    guardianThresholdPlaceholder: 'Example: 500',
     guardianInvalidThreshold: 'Enter a valid alert threshold.',
     guardianUpdated: 'Guardian security profile was updated on the backend.',
     guardianUpdateFailed: 'Guardian profile could not be updated.',
@@ -1561,6 +1561,7 @@ function App() {
   const [inheritanceLoading, setInheritanceLoading] = useState(false);
   const [inheritDays, setInheritDays] = useState('30');
   const [inheritBeneficiary, setInheritBeneficiary] = useState('');
+  const [inheritSourceWallet, setInheritSourceWallet] = useState('');
 
   const loadInheritanceProtocols = useCallback(async () => {
     try {
@@ -1602,11 +1603,10 @@ function App() {
   }, [selectedNetwork]);
 
   const createInheritanceProtocol = useCallback(async () => {
-    const cleanWalletAddress = address.trim();
+    let cleanWalletAddress = String(inheritSourceWallet || '').trim();
     const cleanBeneficiary = inheritBeneficiary.trim();
-
-    const backendNetwork =
-    selectedNetwork === 'eth' ? 'ethereum' : selectedNetwork;
+    let backendNetwork = selectedNetwork === 'eth' ? 'ethereum' : selectedNetwork;
+    let ownedWalletId = null;
 
     if (!cleanWalletAddress) {
       Alert.alert(
@@ -1637,7 +1637,28 @@ function App() {
     try {
       setInheritanceLoading(true);
 
+      const walletResponse = await api.get('/api/wallets');
+      const ownedWallets = Array.isArray(walletResponse.data?.wallets) ? walletResponse.data.wallets : [];
+      const ownedWallet = ownedWallets.find((wallet) =>
+        String(wallet?.address || '').trim().toLowerCase() === cleanWalletAddress.toLowerCase()
+      );
+
+      if (!ownedWallet) {
+        Alert.alert(
+          selectedLanguage === 'tr' ? 'Kaynak Cüzdan Gerekli' : 'Source Wallet Required',
+          selectedLanguage === 'tr'
+            ? 'Miras protokolü için önce hesabınıza ait bir cüzdanı Kasa/Vault bölümüne ekleyin ve bu ekrandan seçin.'
+            : 'Add a wallet owned by your account to Vault first, then select it here for the inheritance protocol.'
+        );
+        return false;
+      }
+
+      cleanWalletAddress = String(ownedWallet.address || '').trim();
+      backendNetwork = String(ownedWallet.network || backendNetwork).trim().toLowerCase();
+      ownedWalletId = ownedWallet.id || null;
+
       const response = await api.post('/api/inheritance', {
+        ...(ownedWalletId ? { walletId: ownedWalletId } : {}),
         network: backendNetwork,
         walletAddress: cleanWalletAddress,
         beneficiaryAddress: cleanBeneficiary,
@@ -1673,10 +1694,11 @@ function App() {
       setInheritanceLoading(false);
     }
   }, [
-  address,
+  inheritSourceWallet,
   inheritBeneficiary,
   inheritDays,
-  selectedNetwork]
+  selectedNetwork,
+  selectedLanguage]
   );
 
   const heartbeatInheritanceProtocol = useCallback(async (protocolId) => {
@@ -1776,6 +1798,7 @@ function App() {
   const [guardianEvaluationResult, setGuardianEvaluationResult] = useState(null);
   const [guardianEvaluating, setGuardianEvaluating] = useState(false);
   const [guardianEvaluationError, setGuardianEvaluationError] = useState('');
+  const [guardianEvaluationAmount, setGuardianEvaluationAmount] = useState('');
 
   const [revokeList, setRevokeList] = useState([]);
   const [revokingIndex, setRevokingIndex] = useState(null);
@@ -3705,11 +3728,18 @@ function App() {
         throw new Error("Zincir verisi alınamadı");
       }
     } catch (err) {
-      const userFriendlyMsg = err.response?.status === 429 ?
-      "Çok fazla istek gönderildi. Lütfen birkaç saniye bekleyin." :
-      "Bağlantı hatası: Sunucuya ulaşılamıyor. Lütfen internet bağlantınızı kontrol edin.";
+      const status = err?.response?.status;
+      const userFriendlyMsg = status === 429
+        ? (selectedLanguage === 'tr' ? 'Çok fazla istek gönderildi. Lütfen birkaç saniye bekleyin.' : 'Too many requests. Please wait a few seconds.')
+        : status === 400 || status === 404
+        ? (err?.response?.data?.error || (selectedLanguage === 'tr' ? 'Cüzdan veya ağ bilgisi geçersiz.' : 'The wallet or network is invalid.'))
+        : status === 401
+        ? (selectedLanguage === 'tr' ? 'Oturum süresi dolmuş olabilir. Lütfen tekrar giriş yapın.' : 'Your session may have expired. Please sign in again.')
+        : (selectedLanguage === 'tr'
+            ? 'Cüzdan verisi şu anda alınamıyor. Otomatik yeniden deneme tamamlanamadı; lütfen kısa süre sonra tekrar deneyin.'
+            : 'Wallet data is temporarily unavailable. Automatic retry did not complete; please try again shortly.');
 
-      setCurrentBalanceText('Bakiye alınamadı');
+      setCurrentBalanceText(selectedLanguage === 'tr' ? 'Bakiye alınamadı' : 'Balance unavailable');
       setQueryWarning(userFriendlyMsg);
       handleIsolatedError("Cüzdan Sorgulama", err);
     } finally {
@@ -3880,7 +3910,15 @@ function App() {
     try {
       setAnalyzingSentiment(true);
 
-      const response = await api.get('/api/market-intelligence');
+      let response;
+      try {
+        response = await api.get('/api/market-intelligence', { timeout: 20000 });
+      } catch (firstError) {
+        const status = firstError?.response?.status;
+        if (![429, 502, 503, 504].includes(status) && firstError?.response) throw firstError;
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+        response = await api.get('/api/market-intelligence', { timeout: 25000 });
+      }
       const data = response?.data;
 
       if (!data?.success) {
@@ -3891,9 +3929,10 @@ function App() {
 
       setSentimentResult({
         status: 'LIVE',
-        title: 'Canlı Market Intelligence',
-        message:
-        'CoinGecko canlı piyasa verileri üzerinden kural tabanlı analiz.',
+        title: selectedLanguage === 'tr' ? 'Canlı Piyasa İstihbaratı' : 'Live Market Intelligence',
+        message: selectedLanguage === 'tr'
+          ? 'Canlı piyasa verileri üzerinden kural tabanlı analiz.'
+          : 'Rule-based analysis from live market data.',
         score: data.score,
         sentiment: data.sentiment,
         riskLevel: data.riskLevel,
@@ -3912,11 +3951,10 @@ function App() {
 
       setSentimentResult({
         status: 'ERROR',
-        title: 'Piyasa İstihbaratı Kullanılamıyor',
-        message:
-        error?.response?.data?.error ||
-        error?.message ||
-        'Canlı piyasa verisi alınamadı.'
+        title: selectedLanguage === 'tr' ? 'Piyasa Verisi Geçici Olarak Kullanılamıyor' : 'Market Data Temporarily Unavailable',
+        message: selectedLanguage === 'tr'
+          ? 'Canlı piyasa sağlayıcısına şu anda ulaşılamıyor. Bu durum güvenlik taramalarını etkilemez; daha sonra yeniden deneyin.'
+          : 'The live market provider is temporarily unavailable. Security scans are unaffected; try again later.'
       });
 
     } finally {
@@ -3937,6 +3975,17 @@ function App() {
       return;
     }
 
+    const guardianAmountText = String(guardianEvaluationAmount || '').trim().replace(',', '.');
+    const guardianAmountUsd = guardianAmountText ? Number(guardianAmountText) : null;
+
+    if (guardianAmountText && (!Number.isFinite(guardianAmountUsd) || guardianAmountUsd < 0)) {
+      Alert.alert(
+        selectedLanguage === 'tr' ? 'Geçersiz Tutar' : 'Invalid Amount',
+        selectedLanguage === 'tr' ? 'İşlem tutarı için geçerli bir USD değeri girin.' : 'Enter a valid USD transaction amount.'
+      );
+      return;
+    }
+
     setGuardianEvaluating(true);
     setGuardianEvaluationError('');
     setGuardianEvaluationResult(null);
@@ -3945,8 +3994,9 @@ function App() {
       const response = await api.post(
         '/api/guardian/evaluate',
         {
-          network: selectedNetwork,
-          address: cleanAddr
+          network: selectedNetwork === 'eth' ? 'ethereum' : selectedNetwork,
+          address: cleanAddr,
+          ...(guardianAmountUsd !== null ? { amountUsd: guardianAmountUsd } : {})
         },
         {
           timeout: 60000
@@ -4003,7 +4053,7 @@ function App() {
     setBehavioralAnalysisResult(null);
 
     try {
-      const response = await api.post(
+      const response = await requestWithBackendRecovery(() => api.post(
         "/api/check-wallet",
         {
           network: backendNetwork,
@@ -4015,7 +4065,7 @@ function App() {
           },
           timeout: 30000
         }
-      );
+      ));
 
       if (!response.data?.success) {
         throw new Error(
