@@ -1,0 +1,20 @@
+name: Trigger Field Hardening
+
+on:
+  push:
+    paths:
+      - '.github/field-hardening-trigger'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch field smoke production hardening
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run field-smoke-production-hardening.yml --repo "${{ github.repository }}" --ref main
