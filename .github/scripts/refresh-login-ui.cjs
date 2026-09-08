@@ -2,84 +2,287 @@ const fs = require('fs');
 const path = 'frontend/App.js';
 let text = fs.readFileSync(path, 'utf8');
 
-const replacements = [
-  [
-    "<View style={[styles.card, { backgroundColor: theme.cardBg, alignItems: 'center', paddingVertical: 8, paddingHorizontal: 8, width: '100%', maxWidth: 360, alignSelf: 'center' }]}>\n",
-    "<View style={[styles.card, { backgroundColor: theme.cardBg, alignItems: 'center', paddingVertical: 22, paddingHorizontal: 18, width: '100%', maxWidth: 430, alignSelf: 'center', marginTop: 36, borderRadius: 18, borderWidth: 1, borderColor: theme.borderCol }]}>\n"
-  ],
-  [
-    "<View style={{ width: '100%', alignItems: 'center', marginBottom: 4 }}>",
-    "<View style={{ width: '100%', alignItems: 'center', marginBottom: 12 }}>"
-  ],
-  [
-    "style={{ width: 54, height: 54, borderRadius: 10 }}",
-    "style={{ width: 150, height: 108, borderRadius: 18 }}"
-  ],
-  [
-    "<Text style={{ color: theme.primary, fontSize: 13, fontWeight: '800', textAlign: 'center', marginBottom: 4, letterSpacing: 0.5 }}>SAFE SENTINEL PRO</Text>",
-    "<Text style={{ color: theme.primary, fontSize: 22, fontWeight: '900', textAlign: 'center', marginBottom: 8, letterSpacing: 0.9 }}>SAFE SENTINEL PRO</Text>"
-  ],
-  [
-    "<View style={{ width: '100%', marginBottom: 7 }}>",
-    "<View style={{ width: '100%', marginBottom: 14 }}>"
-  ],
-  [
-    "fontSize: 8,\n              fontWeight: '600',\n              marginBottom: 4,",
-    "fontSize: 10,\n              fontWeight: '700',\n              marginBottom: 7,"
-  ],
-  [
-    "borderRadius: 6,\n                      paddingHorizontal: 7,\n                      height: 24,",
-    "borderRadius: 10,\n                      paddingHorizontal: 14,\n                      height: 38,"
-  ],
-  [
-    "fontSize: 8,\n                      fontWeight: active ? '800' : '600'",
-    "fontSize: 12,\n                      fontWeight: active ? '800' : '700'"
-  ],
-  [
-    "<Text style={{ color: theme.textSub, fontSize: 8, textAlign: 'center', marginBottom: 7 }}>{t('loginDescription')}</Text>",
-    "<Text style={{ color: theme.textSub, fontSize: 11, lineHeight: 17, textAlign: 'center', marginBottom: 18 }}>{t('loginDescription')}</Text>"
-  ],
-  [
-    "<Text style={{ color: theme.textMain, fontSize: 9, fontWeight: '600', marginBottom: 3 }}>{t('emailAddress')}</Text>",
-    "<Text style={{ color: theme.textMain, fontSize: 12, fontWeight: '800', marginBottom: 7 }}>{t('emailAddress')}</Text>"
-  ],
-  [
-    "width: '100%', height: 28, fontSize: 9, paddingVertical: 0, textAlignVertical: 'center'",
-    "width: '100%', height: 50, fontSize: 13, paddingHorizontal: 14, paddingVertical: 0, borderRadius: 12, textAlignVertical: 'center'"
-  ],
-  [
-    "<Text style={{ color: theme.textMain, fontSize: 9, fontWeight: '600', marginBottom: 3 }}>{t('loginPassword')}</Text>",
-    "<Text style={{ color: theme.textMain, fontSize: 12, fontWeight: '800', marginBottom: 7 }}>{t('loginPassword')}</Text>"
-  ],
-  [
-    "width: '100%', height: 25, backgroundColor: theme.primary, marginBottom: 8, borderRadius: 6",
-    "width: '100%', height: 48, backgroundColor: theme.primary, marginBottom: 11, borderRadius: 12"
-  ],
-  [
-    "<Text style={[styles.buttonText, { fontSize: 8 }]}>{t('secureLogin')}</Text>",
-    "<Text style={[styles.buttonText, { fontSize: 13, fontWeight: '900' }]}>{t('secureLogin')}</Text>"
-  ],
-  [
-    "width: '100%', height: 25, backgroundColor: 'transparent', borderWidth: 1.5, borderColor: theme.borderCol, borderRadius: 6",
-    "width: '100%', height: 46, backgroundColor: 'transparent', borderWidth: 1.5, borderColor: theme.borderCol, borderRadius: 12"
-  ],
-  [
-    "<Text style={{ color: theme.primary, fontWeight: '700', fontSize: 9 }}>{t('createAccount')}</Text>",
-    "<Text style={{ color: theme.primary, fontWeight: '800', fontSize: 12 }}>{t('createAccount')}</Text>"
-  ]
-];
+const loginStartMarker = "  if (currentScreen === 'login') {";
+const registerStartMarker = "  if (currentScreen === 'register') {";
+const loginStart = text.indexOf(loginStartMarker);
+const registerStart = text.indexOf(registerStartMarker, loginStart);
 
-let applied = 0;
-for (const [from, to] of replacements) {
-  if (text.includes(from)) {
-    text = text.replace(from, to);
-    applied += 1;
-  }
+if (loginStart === -1 || registerStart === -1 || registerStart <= loginStart) {
+  throw new Error('Login block markers could not be located safely.');
 }
 
-if (applied < 10) {
-  throw new Error(`Login UI refresh aborted: only ${applied}/${replacements.length} expected replacements matched.`);
+const newLoginBlock = `  if (currentScreen === 'login') {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.bg, paddingHorizontal: 0 }]}>
+        <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={theme.bg} />
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingHorizontal: 22,
+            paddingTop: 18,
+            paddingBottom: 22
+          }}>
+
+          <View style={{ width: '100%', maxWidth: 440, alignItems: 'center', alignSelf: 'center' }}>
+            <View
+              style={{
+                width: 190,
+                height: 190,
+                borderRadius: 38,
+                overflow: 'hidden',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#0B1522',
+                borderWidth: 1,
+                borderColor: '#20364D',
+                shadowColor: '#1597FF',
+                shadowOffset: { width: 0, height: 7 },
+                shadowOpacity: 0.28,
+                shadowRadius: 18,
+                elevation: 9,
+                marginBottom: 24
+              }}>
+
+              <Image
+                source={require('./assets/yenilogo.png')}
+                style={{
+                  width: 260,
+                  height: 260,
+                  position: 'absolute',
+                  left: -35,
+                  top: -35
+                }}
+                resizeMode="cover" />
+            </View>
+
+            <Text
+              style={{
+                color: theme.textMain,
+                fontSize: 27,
+                fontWeight: '900',
+                textAlign: 'center',
+                letterSpacing: 0.6,
+                marginBottom: 8
+              }}>
+              SAFE SENTINEL <Text style={{ color: theme.primary }}>PRO</Text>
+            </Text>
+
+            <Text
+              style={{
+                color: theme.textSub,
+                fontSize: 14,
+                lineHeight: 21,
+                textAlign: 'center',
+                marginBottom: 22
+              }}>
+              {t('loginDescription')}
+            </Text>
+
+            <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 28 }}>
+              {Object.entries(V26_GLOBAL_I18N).map(([code, item]) => {
+                const active = selectedLanguage === code;
+                return (
+                  <TouchableOpacity
+                    key={\`login-language-\${code}\`}
+                    onPress={() => saveGlobalLanguage(code)}
+                    activeOpacity={0.84}
+                    style={{
+                      minWidth: 112,
+                      height: 48,
+                      paddingHorizontal: 18,
+                      marginHorizontal: 5,
+                      borderRadius: 14,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      backgroundColor: active ? theme.primary : 'transparent',
+                      borderWidth: 1.5,
+                      borderColor: active ? theme.primary : '#39506A',
+                      shadowColor: active ? theme.primary : '#000',
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: active ? 0.22 : 0,
+                      shadowRadius: 9,
+                      elevation: active ? 4 : 0
+                    }}>
+                    <Text
+                      style={{
+                        color: active ? '#FFFFFF' : theme.textMain,
+                        fontSize: 14,
+                        fontWeight: '800'
+                      }}>
+                      {item.nativeName}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <View style={{ width: '100%', marginBottom: 18 }}>
+              <Text style={{ color: theme.textMain, fontSize: 14, fontWeight: '800', marginBottom: 8 }}>
+                {t('emailAddress')}
+              </Text>
+              <View
+                style={{
+                  width: '100%',
+                  minHeight: 58,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: theme.inputBg,
+                  borderColor: '#39506A',
+                  borderWidth: 1.3,
+                  borderRadius: 16
+                }}>
+                <Text style={{ color: '#8FB4DA', fontSize: 19, marginLeft: 16, marginRight: 10 }}>✉</Text>
+                <TextInput
+                  style={{
+                    flex: 1,
+                    height: 58,
+                    color: theme.inputTextColor,
+                    fontSize: 15,
+                    paddingRight: 16,
+                    paddingVertical: 0,
+                    textAlignVertical: 'center'
+                  }}
+                  placeholder="ornek@mail.com"
+                  placeholderTextColor="#8190A4"
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  keyboardType="email-address" />
+              </View>
+            </View>
+
+            <View style={{ width: '100%', marginBottom: 20 }}>
+              <Text style={{ color: theme.textMain, fontSize: 14, fontWeight: '800', marginBottom: 8 }}>
+                {t('loginPassword')}
+              </Text>
+              <View
+                style={{
+                  width: '100%',
+                  minHeight: 58,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: theme.inputBg,
+                  borderColor: '#39506A',
+                  borderWidth: 1.3,
+                  borderRadius: 16
+                }}>
+                <Text style={{ color: '#8FB4DA', fontSize: 18, marginLeft: 16, marginRight: 10 }}>🔒</Text>
+                <TextInput
+                  style={{
+                    flex: 1,
+                    height: 58,
+                    color: theme.inputTextColor,
+                    fontSize: 15,
+                    paddingRight: 16,
+                    paddingVertical: 0,
+                    textAlignVertical: 'center'
+                  }}
+                  placeholder="••••••••"
+                  placeholderTextColor="#8190A4"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry />
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={{
+                width: '100%',
+                height: 58,
+                backgroundColor: theme.primary,
+                borderRadius: 16,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginBottom: 14,
+                shadowColor: theme.primary,
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.28,
+                shadowRadius: 13,
+                elevation: 8
+              }}
+              activeOpacity={0.86}
+              onPress={handleLogin}>
+              <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '900' }}>{t('secureLogin')}</Text>
+              <Text style={{ position: 'absolute', right: 22, color: '#FFFFFF', fontSize: 28, fontWeight: '300' }}>→</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                width: '100%',
+                height: 56,
+                backgroundColor: 'transparent',
+                borderWidth: 1.5,
+                borderColor: '#39506A',
+                borderRadius: 16,
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+              activeOpacity={0.82}
+              onPress={() => setCurrentScreen('register')}>
+              <Text style={{ color: theme.primary, fontWeight: '900', fontSize: 15 }}>{t('createAccount')}</Text>
+            </TouchableOpacity>
+
+            <View
+              style={{
+                width: '118%',
+                height: 110,
+                marginTop: 28,
+                borderTopWidth: 1,
+                borderTopColor: '#168CFF',
+                borderTopLeftRadius: 260,
+                borderTopRightRadius: 260,
+                alignItems: 'center',
+                paddingTop: 17
+              }}>
+              <Text style={{ color: '#168CFF', fontSize: 22, marginBottom: 8 }}>♢</Text>
+              <Text
+                style={{
+                  color: theme.textSub,
+                  fontSize: 11,
+                  fontWeight: '700',
+                  letterSpacing: 0.7,
+                  textAlign: 'center'
+                }}>
+                {selectedLanguage === 'tr'
+                  ? 'DAHA GÜVENLİ   |   DAHA BİLİNÇLİ   |   DAHA ÖZGÜR'
+                  : 'SAFER   |   SMARTER   |   FREER'}
+              </Text>
+            </View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+`;
+
+text = text.slice(0, loginStart) + newLoginBlock + text.slice(registerStart);
+
+// Production dashboard policy: hide tools that do not currently have a dependable real-data path.
+// Source modules are intentionally retained so they can be re-enabled after their data integrations are production-ready.
+const plannedStartMarker = '          {/* İSTİHBARAT */}';
+const assetsStartMarker = '          {/* VARLIK VE FİNANS */}';
+const plannedStart = text.indexOf(plannedStartMarker);
+const assetsStart = text.indexOf(assetsStartMarker, plannedStart);
+
+if (plannedStart !== -1 && assetsStart !== -1 && assetsStart > plannedStart) {
+  text =
+    text.slice(0, plannedStart) +
+    '          {/* Production: planned/non-live intelligence cards are hidden until real data integrations are ready. */}\n\n' +
+    text.slice(assetsStart);
+} else {
+  throw new Error('Dashboard intelligence section markers could not be located safely.');
+}
+
+// URLhaus feed is not currently present on the production backend, so do not advertise Phishing Shield as live.
+const phishingDashboardRow = '            [t("dashboardPhishingShield"), t("dashboardScanSuspiciousLinks"), "phishingView", t("dashboardAvailable")],\n';
+if (text.includes(phishingDashboardRow)) {
+  text = text.replace(phishingDashboardRow, '');
 }
 
 fs.writeFileSync(path, text, 'utf8');
-console.log(`Login UI refreshed: ${applied}/${replacements.length} replacements applied.`);
+console.log('Login UI matched to the approved mobile mockup and non-live dashboard tools were hidden.');
