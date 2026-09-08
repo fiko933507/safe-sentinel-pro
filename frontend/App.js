@@ -49,6 +49,7 @@ Number(process.env.EXPO_PUBLIC_VIP_MONTHLY_USDT || 100);
 const VIP_YEARLY_USDT =
 Number(process.env.EXPO_PUBLIC_VIP_YEARLY_USDT || 1000);
 const API_BASE_URL = BACKEND_URL;
+const IS_PLAY_STORE_BUILD = process.env.EXPO_PUBLIC_PLAY_STORE_BUILD === 'true';
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
@@ -262,10 +263,10 @@ const V26_TRANSLATIONS = {
     dashboardVaultMonitoring: 'KASA İZLEME',
     dashboardLogout: 'ÇIKIŞ',
     dashboardWalletSecurityScore: 'CÜZDAN GÜVENLİK SKORU',
-    dashboardSafeAddresses: 'GÜVENLİ ADRESLER',
+    dashboardSafeAddresses: 'WHITELIST',
     dashboardOpenSecurityAlerts: 'AÇIK GÜVENLİK BİLDİRİMLERİ',
     dashboardRevokeRecords: 'REVOKE KAYITLARI',
-    dashboardBlockedAddresses: 'ENGELLENEN ADRESLER',
+    dashboardBlockedAddresses: 'BLACKLIST',
     dashboardSecurityCenter: 'Güvenlik Merkezi',
     dashboardSecurityCenterDescription: 'İşlem, bağlantı, davranış ve sözleşme güvenliği',
     dashboardTransferShield: 'Transfer Kalkanı',
@@ -302,8 +303,8 @@ const V26_TRANSLATIONS = {
     dashboardAssetsFinance: 'Varlık ve Finans',
     dashboardAssetsFinanceDescription: 'Portföy, gas, fiyat ve işlem yönetimi',
     dashboardPortfolio: 'Portföy',
-    dashboardViewVaultAssets: 'Kasa varlıklarını görüntüle',
-    dashboardGasOptimization: 'Gas Optimizasyonu',
+    dashboardViewVaultAssets: 'Taranan cüzdan varlıklarını görüntüle',
+    dashboardGasOptimization: 'Ağ İşlem Ücretleri',
     dashboardCompareNetworkFees: 'Canlı ağ ücretlerini karşılaştır',
     dashboardPriceAlert: 'Fiyat Alarmı',
     dashboardTrackTargetPrices: 'Hedef fiyatları takip et',
@@ -337,7 +338,7 @@ const V26_TRANSLATIONS = {
     dashboardSettings: 'AYARLAR',
     toolBack: '‹ Geri Dön',
     toolTitleCryptoPolicies: 'Kripto Para ve Finansal Politikalar',
-    toolTitlePortfolio: 'Portföy Değer Grafikleri (Kasa Varlıkları)',
+    toolTitlePortfolio: 'Cüzdan Portföyü',
     toolTitlePriceAlerts: 'Anlık Fiyat Alarmları',
     toolTitleOutboundShield: 'Transfer Kalkanı',
     toolTitleWhitelist: 'Whitelist',
@@ -346,14 +347,14 @@ const V26_TRANSLATIONS = {
     toolTitleNotifications: 'Bildirimler ve Dolandırıcılık Uyarıları',
     toolTitleVip: 'VIP Ödeme ve Hızlı Bildirim',
     toolTitleSmartContract: 'Akıllı Sözleşme Güvenlik Analizi',
-    toolTitleBehavioral: 'AI Cüzdan Davranış Analizi',
+    toolTitleBehavioral: 'Cüzdan Davranış Analizi',
     toolTitlePhishing: 'Phishing & DApp Kalkanı',
     toolTitleQuickTest: 'Hızlı Cüzdan Testi',
     toolTitleEmergencyLock: 'Acil Varlık Kilidi',
-    toolTitleGasOpt: 'Web3 Gas Optimizasyonu',
+    toolTitleGasOpt: 'Ağ İşlem Ücretleri',
     toolTitleDeepIntel: 'Derin Zincir İstihbaratı',
     toolTitleAutoPhish: 'Otomatik Phishing Kalkanı',
-    toolTitleGuardian: 'Safe Sentinel Guardian — Akıllı Cüzdan Koruma Merkezi',
+    toolTitleGuardian: 'Guardian — Akıllı Cüzdan Koruma',
     toolTitleInheritance: "Kripto Varlık Mirasçılığı",
     toolTitleRevoke: 'Token & NFT Yetki İptal (Revoke)',
     toolTitleWhaleWatch: 'Riskli Adres / Whale (Balina) Takibi',
@@ -413,7 +414,7 @@ const V26_TRANSLATIONS = {
     commonRiskLevel: 'Risk Seviyesi',
     commonNetwork: 'Ağ',
     commonError: 'Hata',
-    behaviorDescription: 'Yapay zeka motoru ile cüzdanın davranışsal profilini çıkarın.',
+    behaviorDescription: 'Gerçek zincir verilerinden cüzdanın davranışsal risk profilini çıkarın.',
     behaviorWalletPlaceholder: 'Analiz edilecek cüzdan adresi...',
     behaviorRun: '⚠️ Davranışsal Risk Profilini Çıkar',
     behaviorProfileScore: 'Profil Skoru',
@@ -724,10 +725,10 @@ const V26_TRANSLATIONS = {
     dashboardVaultMonitoring: 'VAULT MONITORING',
     dashboardLogout: 'LOG OUT',
     dashboardWalletSecurityScore: 'WALLET SECURITY SCORE',
-    dashboardSafeAddresses: 'SAFE ADDRESSES',
+    dashboardSafeAddresses: 'WHITELIST',
     dashboardOpenSecurityAlerts: 'OPEN SECURITY ALERTS',
     dashboardRevokeRecords: 'REVOKE RECORDS',
-    dashboardBlockedAddresses: 'BLOCKED ADDRESSES',
+    dashboardBlockedAddresses: 'BLACKLIST',
     dashboardSecurityCenter: 'Security Center',
     dashboardSecurityCenterDescription: 'Transaction, connection, behavior and smart contract security',
     dashboardTransferShield: 'Transfer Shield',
@@ -744,8 +745,8 @@ const V26_TRANSLATIONS = {
     dashboardPlanned: 'PLANNED',
     dashboardWalletProtection: 'Wallet Protection',
     dashboardWalletProtectionDescription: 'Address, vault and emergency security',
-    dashboardSafeAddressesTitle: 'Safe Addresses',
-    dashboardBlockedAddressesTitle: 'Blocked Addresses',
+    dashboardSafeAddressesTitle: 'Whitelist',
+    dashboardBlockedAddressesTitle: 'Blacklist',
     dashboardRecordLower: 'records',
     dashboardVaultAssets: 'Vault Assets',
     dashboardMonitored: 'monitored',
@@ -764,8 +765,8 @@ const V26_TRANSLATIONS = {
     dashboardAssetsFinance: 'Assets & Finance',
     dashboardAssetsFinanceDescription: 'Portfolio, gas, price and transaction management',
     dashboardPortfolio: 'Portfolio',
-    dashboardViewVaultAssets: 'View vault assets',
-    dashboardGasOptimization: 'Gas Optimization',
+    dashboardViewVaultAssets: 'View scanned wallet assets',
+    dashboardGasOptimization: 'Network Fees',
     dashboardCompareNetworkFees: 'Compare live network fees',
     dashboardPriceAlert: 'Price Alert',
     dashboardTrackTargetPrices: 'Track target prices',
@@ -799,24 +800,24 @@ const V26_TRANSLATIONS = {
     dashboardSettings: 'SETTINGS',
     toolBack: '‹ Back',
     toolTitleCryptoPolicies: 'Crypto & Financial Policies',
-    toolTitlePortfolio: 'Portfolio Value Charts (Vault Assets)',
+    toolTitlePortfolio: 'Wallet Portfolio',
     toolTitlePriceAlerts: 'Real-Time Price Alerts',
-    toolTitleOutboundShield: 'Risky Transaction / Transfer Shield',
+    toolTitleOutboundShield: 'Transfer Shield',
     toolTitleWhitelist: 'Safe Addresses',
     toolTitleBlacklist: 'Blocked Addresses',
     toolTitleVault: 'Vault Asset Management',
     toolTitleNotifications: 'Notifications & Scam Alerts',
     toolTitleVip: 'VIP Payment & Fast Notification',
-    toolTitleSmartContract: 'Smart Contract & AI Threat Radar',
-    toolTitleBehavioral: 'AI Wallet Behavior Analysis',
+    toolTitleSmartContract: 'Smart Contract Security Analysis',
+    toolTitleBehavioral: 'Wallet Behavior Analysis',
     toolTitlePhishing: 'Phishing & DApp Shield',
     toolTitleQuickTest: 'Quick Wallet Test',
     toolTitleEmergencyLock: 'Emergency Asset Lock',
-    toolTitleGasOpt: 'Web3 Gas Optimization',
+    toolTitleGasOpt: 'Network Fees',
     toolTitleDeepIntel: 'Deep Chain Intelligence',
     toolTitleAutoPhish: 'Automatic Phishing Shield',
-    toolTitleGuardian: 'Safe Sentinel Guardian — Smart Wallet Protection Center',
-    toolTitleInheritance: "Crypto Asset Inheritance (Dead Man's Switch)",
+    toolTitleGuardian: 'Guardian — Smart Wallet Protection',
+    toolTitleInheritance: 'Crypto Asset Inheritance',
     toolTitleRevoke: 'Token & NFT Permission Revoke',
     toolTitleWhaleWatch: 'Risky Address / Whale Tracking',
     toolTitleGasTime: 'Gas Fee Optimizer & Scheduler',
@@ -875,7 +876,7 @@ const V26_TRANSLATIONS = {
     commonRiskLevel: 'Risk Level',
     commonNetwork: 'Network',
     commonError: 'Error',
-    behaviorDescription: 'Generate a behavioral profile of the wallet using the AI engine.',
+    behaviorDescription: 'Generate a behavioral risk profile from live on-chain wallet data.',
     behaviorWalletPlaceholder: 'Wallet address to analyze...',
     behaviorRun: '⚠️ Generate Behavioral Risk Profile',
     behaviorProfileScore: 'Profile Score',
@@ -1432,6 +1433,7 @@ function App() {
   const [currentBalanceText, setCurrentBalanceText] = useState("Cüzdan adresini girip sorgulayın");
   const [loading, setLoading] = useState(false);
   const [apiOnline, setApiOnline] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   const checkBackendHealth = useCallback(async () => {
     try {
@@ -1501,7 +1503,7 @@ function App() {
       setSavedPriceAlerts(
         alerts.map((item) => ({
           id: String(item.id),
-          crypto: String(item.asset || '').toUpperCase(),
+          crypto: PRICE_ALERT_ASSET_TO_SYMBOL[String(item.asset || '').toLowerCase()] || String(item.asset || '').toUpperCase(),
           price: String(item.targetPrice ?? ''),
           direction: item.direction || 'ABOVE',
           network: item.network || item.asset || ''
@@ -1664,9 +1666,7 @@ function App() {
     } catch (error) {
       Alert.alert(
         t('inheritCreateFailedTitle'),
-        error?.response?.data?.error ||
-        error?.message ||
-        t('inheritCreateFailed')
+        String(error?.response?.data?.error || '').includes('requires a wallet owned by the authenticated user') ? (selectedLanguage === 'tr' ? 'Miras protokolü için hesabınıza kayıtlı bir cüzdan seçmelisiniz.' : 'Select a wallet registered to your account for the inheritance protocol.') : (error?.response?.data?.error || error?.message || t('inheritCreateFailed'))
       );
       return false;
     } finally {
@@ -2231,6 +2231,15 @@ function App() {
 
   const formatCurrency = (usdValue) =>
   v26FormatCurrency(usdValue, selectedCurrency);
+
+  const PRICE_ALERT_SYMBOL_TO_ASSET = {
+    TRX: 'tron', SOL: 'solana', BTC: 'bitcoin', AVAX: 'avalanche-2',
+    ARB: 'arbitrum', POL: 'polygon-ecosystem-token', ETH: 'ethereum',
+    BNB: 'binancecoin', PI: 'pi-network'
+  };
+  const PRICE_ALERT_ASSET_TO_SYMBOL = Object.fromEntries(
+    Object.entries(PRICE_ALERT_SYMBOL_TO_ASSET).map(([symbol, asset]) => [asset, symbol])
+  );
 
   const securityListContains = (list, targetAddress, targetNetwork = selectedNetwork) => {
     const normalizedAddress = String(targetAddress || '').trim().toLowerCase();
@@ -3288,6 +3297,11 @@ function App() {
   activeModule,
   fetchPortfolioData]
   );
+  useEffect(() => {
+    if (activeModule === 'gasOptView' && token) {
+      fetchLiveGasFees();
+    }
+  }, [activeModule, token, fetchLiveGasFees]);
 
   const exportPortfolioJSON = async () => {
     const data = await fetchPortfolioData();
@@ -3702,10 +3716,9 @@ function App() {
         data.analysisStatus || "ANALYZED",
 
         riskScore:
-        data.riskScore === null ||
-        data.riskScore === undefined ?
-        "Hesaplanmadı" :
-        data.riskScore,
+        selectedLanguage === 'tr' ?
+        'Sınırlı Analiz' :
+        'Limited Analysis',
 
         riskLevel:
         data.riskLevel || "Bilinmiyor",
@@ -4375,27 +4388,30 @@ function App() {
       Boolean(response.data.scamMatched) ||
       Boolean(intelligence.matched);
 
-      const riskLevel =
-      matched ?
-      "Çok Yüksek" :
-      "Belirlenemedi";
-
-      const actionTaken =
+      const inWhitelist = securityListContains(whitelist, cleanRecipient, selectedNetwork);
+      const inBlacklist = securityListContains(blacklist, cleanRecipient, selectedNetwork);
+      const riskLevel = inBlacklist ? "Çok Yüksek" : matched ? "Çok Yüksek" : inWhitelist ? "Liste Onaylı" : "Belirlenemedi";
+      const actionTaken = inBlacklist ?
+      "Bu adres kişisel Blacklist listenizde. Transferi göndermeden önce adresi yeniden doğrulayın." :
       matched ?
       "Bu adres scam istihbaratında eşleşti. Transferi göndermeden önce durdurun ve adresi tekrar doğrulayın." :
+      inWhitelist ?
+      "Bu adres kişisel Whitelist listenizde. Whitelist kaydı zincir üstü güvenlik garantisi değildir." :
       "Adres mevcut scam istihbaratıyla eşleşmedi. Bu sonuç adresin tamamen güvenli olduğu anlamına gelmez.";
 
       setOutboundCheckResult({
-        status: matched ?
-        "⚠️ TRANSFER ENGELLENMELİ" :
-        " SCAM EŞLEŞMESİ YOK",
+        network: backendNetwork,
+        listStatus: inBlacklist ? 'BLACKLIST' : inWhitelist ? 'WHITELIST' : null,
+        status: inBlacklist ? "⚠️ BLACKLIST UYARISI" : matched ?
+        "⚠️ YÜKSEK RİSK" : inWhitelist ? "WHITELIST KAYDI" :
+        "SCAM EŞLEŞMESİ YOK",
         recipient: cleanRecipient,
         amount: cleanAmount ?
         `${cleanAmount} ${NETWORKS[selectedNetwork].symbol}` :
         "Belirtilmedi",
         riskLevel,
         actionTaken,
-        isBlocked: matched,
+        isBlocked: inBlacklist || matched,
         scamMatched: matched,
         scamCategory:
         intelligence.matches?.[0]?.category || null,
@@ -4510,121 +4526,56 @@ function App() {
       setLoading(false);
     }
   };
-  const removeFromWhitelist = async (addr) => {
+  const removeFromWhitelist = async (entry) => {
     try {
-      const cleanAddr = SecurityScannerMiddleware.sanitizeInput(addr || "");
-
-      if (!cleanAddr) {
-        Alert.alert(t('commonErrorTitle'), t('commonInvalidAddress'));
-        return;
-      }
-
-      const updated = whitelist.filter(
-        (item) => String(item).trim() !== cleanAddr.trim()
-      );
-
-      if (updated.length === whitelist.length) {
-        Alert.alert(t('commonInfoTitle'), t('whitelistNotFound'));
-        return;
-      }
-
-      setWhitelist(updated);
-      await saveWhitelist(updated);
-
+      const cleanAddr = SecurityScannerMiddleware.sanitizeInput(String(entry?.address || entry || '').trim());
+      const matched = whitelist.find((item) => String(item?.address || item || '').trim().toLowerCase() === cleanAddr.toLowerCase());
+      if (!matched) return Alert.alert(t('commonInfoTitle'), t('whitelistNotFound'));
+      if (matched?.id) await api.delete(`/api/whitelist/${matched.id}`);
+      await syncSecurityAddressLists();
       Alert.alert(t('commonSuccessTitle'), t('whitelistRemoved'));
     } catch (e) {
-      handleIsolatedError("Whitelist Silme", e);
+      handleIsolatedError('Whitelist Silme', e);
+      Alert.alert(t('commonErrorTitle'), selectedLanguage === 'tr' ? 'Whitelist kaydı kaldırılamadı.' : 'Whitelist entry could not be removed.');
     }
   };
 
-  const removeFromBlacklist = async (addr) => {
+  const removeFromBlacklist = async (entry) => {
     try {
-      const cleanAddr = SecurityScannerMiddleware.sanitizeInput(addr || "");
-
-      if (!cleanAddr) {
-        Alert.alert(t('commonErrorTitle'), t('commonInvalidAddress'));
-        return;
-      }
-
-      const updated = blacklist.filter(
-        (item) => String(item).trim() !== cleanAddr.trim()
-      );
-
-      if (updated.length === blacklist.length) {
-        Alert.alert(t('commonInfoTitle'), t('blacklistNotFound'));
-        return;
-      }
-
-      setBlacklist(updated);
-      await saveBlacklist(updated);
-
+      const cleanAddr = SecurityScannerMiddleware.sanitizeInput(String(entry?.address || entry || '').trim());
+      const matched = blacklist.find((item) => String(item?.address || item || '').trim().toLowerCase() === cleanAddr.toLowerCase());
+      if (!matched) return Alert.alert(t('commonInfoTitle'), t('blacklistNotFound'));
+      if (matched?.id) await api.delete(`/api/blacklist/${matched.id}`);
+      await syncSecurityAddressLists();
       Alert.alert(t('commonSuccessTitle'), t('blacklistRemoved'));
     } catch (e) {
-      handleIsolatedError("Blacklist Silme", e);
+      handleIsolatedError('Blacklist Silme', e);
+      Alert.alert(t('commonErrorTitle'), selectedLanguage === 'tr' ? 'Blacklist kaydı kaldırılamadı.' : 'Blacklist entry could not be removed.');
     }
   };
 
-  const removeFromVault = async (addr) => {
+  const addToWhitelist = async () => {
+    const cleanAddr = address ? SecurityScannerMiddleware.sanitizeInput(address) : '';
+    if (!cleanAddr) return Alert.alert(t('commonErrorTitle'), t('commonAddressRequired'));
+    if (securityListContains(blacklist, cleanAddr, selectedNetwork)) return Alert.alert(t('commonConflictTitle'), t('whitelistConflict'));
+    if (securityListContains(whitelist, cleanAddr, selectedNetwork)) return Alert.alert(t('commonInfoTitle'), t('whitelistAlready'));
     try {
-      Alert.alert(
-        t('vaultRemoveTitle'),
-        t('vaultRemoveConfirm'),
-        [
-        {
-          text: t('commonCancel'),
-          style: "cancel"
-        },
-        {
-          text: t('commonRemove'),
-          style: "destructive",
-          onPress: async () => {
-            const cleanAddr = SecurityScannerMiddleware.sanitizeInput(addr || "");
-
-            if (!cleanAddr) {
-              Alert.alert(t('commonErrorTitle'), t('commonInvalidAddress'));
-              return;
-            }
-
-            const updated = vault.filter(
-              (item) => String(item).trim() !== cleanAddr.trim()
-            );
-
-            setVault(updated);
-            await saveVault(updated);
-
-            Alert.alert(t('commonSuccessTitle'), t('vaultRemoved'));
-          }
-        }]
-
-      );
-    } catch (e) {
-      handleIsolatedError("Kasa Silme", e);
-    }
-  };
-  const addToWhitelist = () => {
-    const cleanAddr = address ? SecurityScannerMiddleware.sanitizeInput(address) : "";
-    if (!cleanAddr) return Alert.alert(t('commonErrorTitle'), t('commonAddressRequired'));
-    if (blacklist.includes(cleanAddr)) {
-      return Alert.alert(t('commonConflictTitle'), t('whitelistConflict'));
-    }
-    if (whitelist.includes(cleanAddr)) return Alert.alert(t('commonInfoTitle'), t('whitelistAlready'));
-
-    const updated = [...whitelist, cleanAddr];
-    saveWhitelist(updated);
-    Alert.alert(t('commonSuccessTitle'), t('whitelistAdded'));
+      await saveWhitelist([...whitelist, { address: cleanAddr, network: selectedNetwork === 'eth' ? 'ethereum' : selectedNetwork }]);
+      await syncSecurityAddressLists();
+      Alert.alert(t('commonSuccessTitle'), t('whitelistAdded'));
+    } catch (e) { handleIsolatedError('Whitelist Ekleme', e); }
   };
 
-  const addToBlacklist = () => {
-    const cleanAddr = address ? SecurityScannerMiddleware.sanitizeInput(address) : "";
+  const addToBlacklist = async () => {
+    const cleanAddr = address ? SecurityScannerMiddleware.sanitizeInput(address) : '';
     if (!cleanAddr) return Alert.alert(t('commonErrorTitle'), t('commonAddressRequired'));
-    if (whitelist.includes(cleanAddr)) {
-      return Alert.alert(t('commonConflictTitle'), t('blacklistConflict'));
-    }
-    if (blacklist.includes(cleanAddr)) return Alert.alert(t('commonInfoTitle'), t('blacklistAlready'));
-
-    const updated = [...blacklist, cleanAddr];
-    saveBlacklist(updated);
-    Alert.alert(t('commonSuccessTitle'), t('blacklistRiskAdded'));
+    if (securityListContains(whitelist, cleanAddr, selectedNetwork)) return Alert.alert(t('commonConflictTitle'), t('blacklistConflict'));
+    if (securityListContains(blacklist, cleanAddr, selectedNetwork)) return Alert.alert(t('commonInfoTitle'), t('blacklistAlready'));
+    try {
+      await saveBlacklist([...blacklist, { address: cleanAddr, network: selectedNetwork === 'eth' ? 'ethereum' : selectedNetwork }]);
+      await syncSecurityAddressLists();
+      Alert.alert(t('commonSuccessTitle'), t('blacklistRiskAdded'));
+    } catch (e) { handleIsolatedError('Blacklist Ekleme', e); }
   };
 
   const addToVault = () => {
@@ -5022,7 +4973,14 @@ function App() {
             </TouchableOpacity>
           </View>
 
-          {activeModule === 'whitelistView' ?
+          {activeModule === 'vipView' && IS_PLAY_STORE_BUILD ?
+        <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
+<View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.primary, padding: 16 }]}>
+  <Text style={{ color: theme.textMain, fontSize: 13, fontWeight: '900' }}>{selectedLanguage === 'tr' ? 'VIP Satın Alma' : 'VIP Purchase'}</Text>
+  <Text style={{ color: theme.textSub, fontSize: 10, lineHeight: 16, marginTop: 7 }}>{selectedLanguage === 'tr' ? 'Google Play sürümünde dijital üyelik ödemeleri yalnız Google Play Billing üzerinden sunulacaktır. Bu test sürümünde doğrudan kripto ödeme kapalıdır.' : 'In the Google Play build, digital membership payments will be offered only through Google Play Billing. Direct crypto payment is disabled in this test build.'}</Text>
+</View>
+        </ScrollView> :
+        activeModule === 'whitelistView' ?
         <ScrollView
           contentContainerStyle={styles.prefScrollContainer}
           showsVerticalScrollIndicator={false}>
@@ -5134,7 +5092,7 @@ function App() {
                 }}
                 selectable>
 
-                        {addr}
+                        {String(addr?.address || addr || '')}{addr?.network ? `  •  ${String(addr.network).toUpperCase()}` : ''}
                       </Text>
 
                       <View
@@ -5292,7 +5250,7 @@ function App() {
                 }}
                 selectable>
 
-                        {addr}
+                        {String(addr?.address || addr || '')}{addr?.network ? `  •  ${String(addr.network).toUpperCase()}` : ''}
                       </Text>
 
                       <View
@@ -5474,7 +5432,7 @@ function App() {
                 }}
                 selectable>
 
-                        {addr}
+                        {String(addr?.address || addr || '')}{addr?.network ? `  •  ${String(addr.network).toUpperCase()}` : ''}
                       </Text>
 
                       <View
@@ -6003,68 +5961,33 @@ function App() {
             </ScrollView> :
         activeModule === 'portfolioView' ?
         <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
-              <Text style={styles.prefDescription}>
-                {t('portfolioDescription')}
-              </Text>
-
-              {vault.length === 0 ?
-          <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: '#EF4444', alignItems: 'center', padding: 16 }]}>
-                  <Text style={{ color: '#EF4444', fontWeight: 'bold', fontSize: 12, marginBottom: 4 }}>{t('portfolioNoAssets')}</Text>
-                  <Text style={{ color: theme.textSub, fontSize: 11, textAlign: 'center', marginBottom: 10 }}>{t('portfolioNoAssetsDescription')}</Text>
-                  <TouchableOpacity
-              style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6 }]}
-              onPress={() => {
-                if (userStatus !== 'vip') {
-                  setActiveModule('vipView');
-                } else {
-                  setActiveModule('dashboard');
-                }
-              }}>
-
-                    <Text style={[styles.buttonText, { fontSize: 11 }]}>{t('portfolioAddVaultVip')}</Text>
-                  </TouchableOpacity>
-                </View> :
-
-          <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol, alignItems: 'center' }]}>
-                  <Text style={{ color: theme.textSub, fontSize: 11, marginBottom: 4 }}>{t('portfolioVaultValue')} ({vault.length}/10 {t('portfolioAssetsMonitored')})</Text>
-                  <Text style={{ color: theme.primary, fontSize: 20, fontWeight: 'bold', marginBottom: 12 }}>${portfolioUsdValue > 0 ? portfolioUsdValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '--'} USD</Text>
-
-                  <LineChart
-              data={getChartDataForRange(selectedChartRange)}
-              color={theme.primary}
-              thickness={3}
-              startFillColor="rgba(59, 130, 246, 0.3)"
-              endFillColor="rgba(59, 130, 246, 0.0)"
-              areaChart
-              hideDataPoints={false}
-              dataPointsColor={theme.primary}
-              curved
-              isAnimated
-              animationDuration={1200}
-              xAxisLabelTextStyle={{ color: theme.textSub, fontSize: 9 }}
-              yAxisTextStyle={{ color: theme.textSub, fontSize: 9 }}
-              noOfSections={4}
-              spacing={50} />
-
-                </View>
-          }
-
-              {vault.length > 0 &&
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', backgroundColor: theme.itemBg, borderRadius: 8, padding: 4, borderWidth: 1, borderColor: theme.borderCol }}>
-                  {['1G', '1H', '1A', '1Y'].map((range) =>
-            <TouchableOpacity
-              key={range}
-              style={{ paddingVertical: 4, paddingHorizontal: 12, borderRadius: 4, backgroundColor: selectedChartRange === range ? theme.primary : 'transparent' }}
-              onPress={() => setSelectedChartRange(range)}>
-
-                      <Text style={{ color: selectedChartRange === range ? '#FFF' : theme.textSub, fontWeight: 'bold', fontSize: 10 }}>
-                        {range}
-                      </Text>
-                    </TouchableOpacity>
-            )}
-                </View>
-          }
-            </ScrollView> :
+<Text style={styles.prefDescription}>{selectedLanguage === 'tr' ? 'Taranan cüzdanın gerçek zincir üstü bakiyelerini görüntüleyin. Vault, sürekli güvenlik izleme için ayrı bir özelliktir.' : 'View the scanned wallet’s live on-chain balances. Vault is a separate continuous security-monitoring feature.'}</Text>
+{!address || (walletNativeBalance === null && walletTokens.length === 0) ?
+  <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol, padding: 16 }]}>
+    <Text style={{ color: theme.textMain, fontWeight: 'bold', fontSize: 12 }}>{selectedLanguage === 'tr' ? 'Önce bir cüzdan tarayın' : 'Scan a wallet first'}</Text>
+    <Text style={{ color: theme.textSub, fontSize: 10, marginTop: 6 }}>{selectedLanguage === 'tr' ? 'Ana ekranda bir cüzdan adresi sorguladığınızda portföy bakiyeleri burada gösterilir.' : 'Portfolio balances will appear here after you scan a wallet on the dashboard.'}</Text>
+  </View> :
+  <>
+    <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.primary, padding: 14 }]}>
+      <Text style={{ color: theme.textSub, fontSize: 9 }}>{t('commonNetwork')}: {NETWORKS[selectedNetwork]?.name || selectedNetwork}</Text>
+      <Text selectable numberOfLines={1} style={{ color: theme.textSub, fontSize: 8, marginTop: 4 }}>{address}</Text>
+      <Text style={{ color: theme.primary, fontSize: 22, fontWeight: '900', marginTop: 10 }}>{formatCurrency(portfolioUsdValue)}</Text>
+      {walletNativeBalance !== null ? <Text style={{ color: theme.textMain, fontSize: 13, fontWeight: '800', marginTop: 7 }}>{Number(walletNativeBalance).toLocaleString('en-US', { maximumFractionDigits: 8 })} {NETWORKS[selectedNetwork]?.symbol || ''}</Text> : null}
+      {walletLatestBlock ? <Text style={{ color: theme.textSub, fontSize: 9, marginTop: 5 }}>{t('dashboardLastBlock')}: {walletLatestBlock}</Text> : null}
+    </View>
+    <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
+      <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: 'bold', marginBottom: 7 }}>{selectedLanguage === 'tr' ? 'Token Bakiyeleri' : 'Token Balances'}</Text>
+      {walletTokens.filter((item) => Number(item?.balance || 0) > 0).length === 0 ?
+        <Text style={{ color: theme.textSub, fontSize: 10 }}>{selectedLanguage === 'tr' ? 'Ek token bakiyesi bulunamadı.' : 'No additional token balance found.'}</Text> :
+        walletTokens.filter((item) => Number(item?.balance || 0) > 0).map((item, index) =>
+          <View key={`portfolio-token-${index}`} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: index === walletTokens.length - 1 ? 0 : 1, borderBottomColor: theme.borderCol }}>
+            <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '700' }}>{item?.symbol || item?.name || 'TOKEN'}</Text>
+            <Text style={{ color: theme.textSub, fontSize: 10 }}>{Number(item?.balance || 0).toLocaleString('en-US', { maximumFractionDigits: 8 })}</Text>
+          </View>)
+      }
+    </View>
+  </>}
+        </ScrollView> :
         activeModule === 'priceAlertsView' ?
         <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
               <Text style={styles.prefDescription}>
@@ -6088,7 +6011,7 @@ function App() {
                 <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: 'bold', marginTop: 6, marginBottom: 4 }}>{t('priceSelectCrypto')}</Text>
 
                 <View style={styles.gridContainer}>
-                  {Object.keys(NETWORKS).filter((key) => key !== 'nft').map((key) => {
+                  {Object.keys(NETWORKS).filter((key) => key !== 'nft' && PRICE_ALERT_SYMBOL_TO_ASSET[NETWORKS[key].symbol]).map((key) => {
                 const sym = NETWORKS[key].symbol;
                 const isSelected = alertTargetCrypto === sym;
                 return (
@@ -6145,7 +6068,7 @@ function App() {
 
                 try {
                   const response = await api.post('/api/price-alerts', {
-                    asset: alertTargetCrypto.toLowerCase(),
+                    asset: PRICE_ALERT_SYMBOL_TO_ASSET[alertTargetCrypto],
                     targetPrice: Number(sanitizedPrice),
                     direction: 'ABOVE',
                     network: networkKey
@@ -6173,7 +6096,7 @@ function App() {
                   console.error('[PRICE ALERTS] Kaydetme başarısız:', error);
                   Alert.alert(
                     t("priceSaveFailed"),
-                    error?.response?.data?.error || t("priceBackendSaveFailed")
+                    error?.response?.data?.error === 'Unsupported price alert asset.' ? (selectedLanguage === 'tr' ? 'Bu varlık için fiyat alarmı şu anda desteklenmiyor.' : 'Price alerts are not supported for this asset yet.') : t("priceBackendSaveFailed")
                   );
                 }
               }}>
@@ -6206,7 +6129,7 @@ function App() {
             <View key={item.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: theme.inputBg, padding: 6, borderRadius: 6, marginBottom: 4 }}>
                       <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: 'bold' }}> {item.crypto} : ${item.price}</Text>
                       <TouchableOpacity
-                onPress={() => setSavedPriceAlerts(savedPriceAlerts.filter((a) => a.id !== item.id))}
+                onPress={async () => { try { await api.delete(`/api/price-alerts/${item.id}`); await loadPriceAlerts(); } catch (error) { Alert.alert(t('priceSaveFailed'), selectedLanguage === 'tr' ? 'Fiyat alarmı silinemedi.' : 'Price alert could not be deleted.'); } }}
                 style={{ backgroundColor: '#EF4444', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
 
                         <Text style={{ color: '#FFF', fontSize: 9, fontWeight: 'bold' }}>{t('commonDelete')}</Text>
@@ -6661,39 +6584,20 @@ function App() {
             </ScrollView> :
         activeModule === 'gasOptView' ?
         <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
-              <Text style={styles.prefDescription}>{t('gasDescription')}</Text>
-              <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
-                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 12, marginBottom: 8 }}>{t('gasLiveFees')}</Text>
-                {Object.entries(networkGasFees).map(([network, fee]) => {
-              const names = { eth: 'Ethereum', bsc: 'BNB Chain', polygon: 'Polygon', arb: 'Arbitrum' };
-              return (
-                <View key={network} style={{ flexDirection: 'row', justifyContent: 'space-between', backgroundColor: theme.inputBg, padding: 8, borderRadius: 6, marginBottom: 5 }}>
-                      <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: 'bold' }}>{names[network] || network.toUpperCase()}</Text>
-                      <Text style={{ color: theme.primary, fontSize: 10, fontWeight: 'bold' }}>{fee}</Text>
-                    </View>);
-
-            })}
-              </View>
-              {getRecommendedGasNetwork ?
-          <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.primary, marginTop: 8 }]}>
-                    <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11, marginBottom: 5 }}>{t('gasRecommendedNetwork')}</Text>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text style={{ color: theme.textMain, fontSize: 12, fontWeight: 'bold' }}>
-                      {{ eth: 'Ethereum', bsc: 'BNB Chain', polygon: 'Polygon', arb: 'Arbitrum' }[getRecommendedGasNetwork.network] || getRecommendedGasNetwork.network.toUpperCase()}
-                    </Text>
-                    <Text style={{ color: theme.primary, fontSize: 12, fontWeight: 'bold' }}>
-                      {getRecommendedGasNetwork.fee}
-                    </Text>
-                  </View>
-                  <Text style={{ color: theme.textSub, fontSize: 9, marginTop: 5 }}>{t('gasLowestLiveValue')}</Text>
-                </View> :
-          null}
-
-              <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol, marginTop: 8 }]}>
-                <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 11, marginBottom: 5 }}>{t('gasStrategy')}</Text>
-                <Text style={{ color: theme.textMain, fontSize: 10, lineHeight: 15 }}>{t('gasStrategyDescription')}</Text>
-              </View>
-            </ScrollView> :
+<Text style={styles.prefDescription}>{selectedLanguage === 'tr' ? 'Backend RPC kaynaklarından alınabilen gerçek ağ işlem ücretlerini görüntüleyin.' : 'View live network fees available from backend RPC sources.'}</Text>
+{gasLoading ? <Text style={{ color: theme.textSub, fontSize: 10, textAlign: 'center', marginVertical: 12 }}>{selectedLanguage === 'tr' ? 'Ağ ücretleri yükleniyor...' : 'Loading network fees...'}</Text> : null}
+{Object.entries(networkGasFees).filter(([network, fee]) => ['eth','bsc','polygon','arb'].includes(network) && /[0-9]/.test(String(fee))).length === 0 ?
+  <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: '#F59E0B' }]}>
+    <Text style={{ color: '#F59E0B', fontSize: 11, fontWeight: 'bold' }}>{selectedLanguage === 'tr' ? 'Canlı ağ ücreti alınamadı' : 'Live network fees unavailable'}</Text>
+    <Text style={{ color: theme.textSub, fontSize: 10, marginTop: 5 }}>{selectedLanguage === 'tr' ? 'Boş değerler canlı veri olarak gösterilmez. Daha sonra tekrar deneyin.' : 'Empty values are not presented as live data. Try again later.'}</Text>
+    <TouchableOpacity onPress={fetchLiveGasFees} style={[styles.button, { backgroundColor: theme.primary, marginTop: 10, height: 36 }]}><Text style={styles.buttonText}>{selectedLanguage === 'tr' ? 'Yeniden Dene' : 'Retry'}</Text></TouchableOpacity>
+  </View> :
+  <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
+    <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 12, marginBottom: 8 }}>{selectedLanguage === 'tr' ? 'CANLI AĞ ÜCRETLERİ' : 'LIVE NETWORK FEES'}</Text>
+    {Object.entries(networkGasFees).filter(([network, fee]) => ['eth','bsc','polygon','arb'].includes(network) && /[0-9]/.test(String(fee))).map(([network, fee]) => <View key={network} style={{ flexDirection: 'row', justifyContent: 'space-between', backgroundColor: theme.inputBg, padding: 8, borderRadius: 6, marginBottom: 5 }}><Text style={{ color: theme.textMain, fontSize: 10, fontWeight: 'bold' }}>{{ eth: 'Ethereum', bsc: 'BNB Chain', polygon: 'Polygon', arb: 'Arbitrum' }[network]}</Text><Text style={{ color: theme.primary, fontSize: 10, fontWeight: 'bold' }}>{fee}</Text></View>)}
+    {gasLastUpdated ? <Text style={{ color: theme.textSub, fontSize: 8, marginTop: 5 }}>{selectedLanguage === 'tr' ? 'Son güncelleme' : 'Last updated'}: {gasLastUpdated.toLocaleTimeString()}</Text> : null}
+  </View>}
+        </ScrollView> :
         activeModule === 'deepIntelView' ?
         <ScrollView contentContainerStyle={styles.prefScrollContainer}>
               <Text style={styles.prefDescription}>{t('deepIntelDescription')}</Text>
@@ -6918,6 +6822,8 @@ function App() {
                 {outboundCheckResult &&
             <View style={{ marginTop: 10, padding: 8, backgroundColor: theme.inputBg, borderRadius: 6 }}>
                     <Text style={{ color: outboundCheckResult.isBlocked ? '#EF4444' : '#10B981', fontWeight: 'bold', fontSize: 11 }}>{outboundCheckResult.status}</Text>
+                    <Text style={{ color: theme.textMain, fontSize: 10, marginTop: 2 }}>{t('commonNetwork')}: {String(outboundCheckResult.network || selectedNetwork).toUpperCase()}</Text>
+                    {outboundCheckResult.listStatus ? <Text style={{ color: outboundCheckResult.listStatus === 'BLACKLIST' ? '#EF4444' : '#10B981', fontSize: 10, marginTop: 2 }}>{outboundCheckResult.listStatus}</Text> : null}
                     <Text style={{ color: theme.textMain, fontSize: 10, marginTop: 2 }}>{t('commonRiskLevel')}: {outboundCheckResult.riskLevel}</Text>
                     <Text style={{ color: theme.textSub, fontSize: 10, marginTop: 2 }}>{outboundCheckResult.actionTaken}</Text>
                   </View>
@@ -6927,33 +6833,27 @@ function App() {
         activeModule === 'smartContractView' ?
         <ScrollView contentContainerStyle={styles.prefScrollContainer} showsVerticalScrollIndicator={false}>
               <Text style={styles.prefDescription}>{t('contractDescription')}</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 9 }}>
-                {["ethereum", "bsc", "polygon", "arbitrum", "base", "optimism", "avalanche"].map((key) =>
-            <TouchableOpacity
-              key={key}
-              onPress={() => setContractNetwork(key)}
-              style={{
-                minWidth: 70,
-                paddingHorizontal: 9,
-                paddingVertical: 7,
-                marginRight: 6,
-                borderRadius: 8,
-                backgroundColor: contractNetwork === key ? theme.primary : theme.inputBg,
-                borderWidth: 1,
-                borderColor: contractNetwork === key ? theme.primary : theme.borderCol
-              }}>
-
-                    <Text style={{
-                color: contractNetwork === key ? "#FFF" : theme.textMain,
-                fontSize: 9,
-                fontWeight: "900",
-                textAlign: "center"
-              }}>
-                      {key === "ethereum" ? "Ethereum" : key === "bsc" ? "BNB Chain" : key === "polygon" ? "Polygon" : key === "arbitrum" ? "Arbitrum" : key === "base" ? "Base" : key === "optimism" ? "Optimism" : "Avalanche"}
-                    </Text>
-                  </TouchableOpacity>
-            )}
-              </ScrollView>
+              <View style={[styles.gridContainer, { marginBottom: 9 }]}>
+      {["ethereum", "bsc", "polygon", "arbitrum", "base", "optimism", "avalanche"].map((key) =>
+        <TouchableOpacity
+          key={key}
+          onPress={() => setContractNetwork(key)}
+          style={{
+            width: '48%',
+            paddingHorizontal: 8,
+            paddingVertical: 8,
+            marginBottom: 6,
+            borderRadius: 8,
+            backgroundColor: contractNetwork === key ? theme.primary : theme.inputBg,
+            borderWidth: 1,
+            borderColor: contractNetwork === key ? theme.primary : theme.borderCol
+          }}>
+          <Text style={{ color: contractNetwork === key ? '#FFF' : theme.textMain, fontSize: 9, fontWeight: '900', textAlign: 'center' }}>
+            {key === 'ethereum' ? 'Ethereum' : key === 'bsc' ? 'BNB Chain' : key === 'polygon' ? 'Polygon' : key === 'arbitrum' ? 'Arbitrum' : key === 'base' ? 'Base' : key === 'optimism' ? 'Optimism' : 'Avalanche'}
+          </Text>
+        </TouchableOpacity>
+      )}
+    </View>
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol }]}>
                 <TextInput
               style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]}
@@ -7669,71 +7569,41 @@ function App() {
               </View>
 
               </View>
-              <View
-            style={{
-              flexDirection: "row",
-              flexWrap: "wrap",
-              gap: 6,
-              marginTop: 8
-            }}>
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 10 }}>
+      <TouchableOpacity
+        onPress={() => setProfileMenuOpen((prev) => !prev)}
+        activeOpacity={0.82}
+        style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: theme.inputBg, borderColor: theme.borderCol, borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, maxWidth: '76%' }}>
+        <Text style={{ color: theme.primary, fontSize: 17, marginRight: 8 }}>◉</Text>
+        <View style={{ flexShrink: 1 }}>
+          <Text numberOfLines={1} style={{ color: theme.textMain, fontSize: 10, fontWeight: '900' }}>{name || (selectedLanguage === 'tr' ? 'Profil' : 'Profile')}</Text>
+          <Text style={{ color: theme.textSub, fontSize: 8 }}>{userStatus === 'vip' ? 'VIP' : (selectedLanguage === 'tr' ? 'Standart' : 'Standard')}</Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => { setProfileMenuOpen(false); setActiveModule('notificationsView'); }}
+        activeOpacity={0.82}
+        style={{ width: 44, height: 40, backgroundColor: theme.inputBg, borderColor: theme.borderCol, borderWidth: 1, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: theme.textMain, fontSize: 17 }}>🔔</Text>
+        {centralUnreadCount > 0 ?
+          <View style={{ position: 'absolute', right: -4, top: -5, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}>
+            <Text style={{ color: '#FFFFFF', fontSize: 8, fontWeight: '900' }}>{centralUnreadCount > 99 ? '99+' : centralUnreadCount}</Text>
+          </View> : null}
+      </TouchableOpacity>
+    </View>
+    {profileMenuOpen ?
+      <View style={{ backgroundColor: theme.inputBg, borderColor: theme.borderCol, borderWidth: 1, borderRadius: 10, padding: 8, marginBottom: 10 }}>
+        <TouchableOpacity onPress={() => { setProfileMenuOpen(false); setActiveModule('vaultView'); }} style={{ paddingVertical: 9, paddingHorizontal: 8 }}>
+          <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '800' }}>{selectedLanguage === 'tr' ? 'Cüzdan / Kasa' : 'Wallet / Vault'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => { setProfileMenuOpen(false); setActiveModule('preferencesView'); }} style={{ paddingVertical: 9, paddingHorizontal: 8, borderTopWidth: 1, borderTopColor: theme.borderCol }}>
+          <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '800' }}>{selectedLanguage === 'tr' ? 'Ayarlar' : 'Settings'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => { setProfileMenuOpen(false); handleLogout(); }} style={{ paddingVertical: 9, paddingHorizontal: 8, borderTopWidth: 1, borderTopColor: theme.borderCol }}>
+          <Text style={{ color: '#EF4444', fontSize: 10, fontWeight: '900' }}>{selectedLanguage === 'tr' ? 'Çıkış' : 'Sign Out'}</Text>
+        </TouchableOpacity>
+      </View> : null}
 
-                <TouchableOpacity
-              onPress={() => setActiveModule("vaultView")}
-              activeOpacity={0.82}
-              style={{
-                flex: 1,
-                minWidth: 100,
-                backgroundColor: theme.inputBg,
-                borderColor: theme.borderCol,
-                borderWidth: 1,
-                borderRadius: 8,
-                paddingVertical: 8,
-                alignItems: "center"
-              }}>
-
-                  <Text style={{ color: theme.textMain, fontSize: 9, fontWeight: "900" }}>
-                    {t("dashboardWallet")}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-              onPress={() => setActiveModule("preferencesView")}
-              activeOpacity={0.82}
-              style={{
-                flex: 1,
-                minWidth: 100,
-                backgroundColor: theme.inputBg,
-                borderColor: theme.borderCol,
-                borderWidth: 1,
-                borderRadius: 8,
-                paddingVertical: 8,
-                alignItems: "center"
-              }}>
-
-                  <Text style={{ color: theme.textMain, fontSize: 9, fontWeight: "900" }}>
-                    {t("dashboardSettings")}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-              onPress={handleLogout}
-              activeOpacity={0.82}
-              style={{
-                flex: 1,
-                minWidth: 100,
-                backgroundColor: "#3A1111",
-                borderColor: "#7F1D1D",
-                borderWidth: 1,
-                borderRadius: 8,
-                paddingVertical: 8,
-                alignItems: "center"
-              }}>
-
-                  <Text style={{ color: "#EF4444", fontSize: 9, fontWeight: "900" }}>
-                     {t("dashboardLogout")}
-                  </Text>
-                </TouchableOpacity>
-              </View>
             <View
             style={{
               flexDirection: "row",
@@ -8800,7 +8670,7 @@ function App() {
                   {t("dashboardMonthly")}
                 </Text>
                 <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: "900", marginTop: 2 }}>
-                  {VIP_MONTHLY_USDT} USDT
+                  {IS_PLAY_STORE_BUILD ? (selectedLanguage === 'tr' ? 'Yakında' : 'Coming soon') : `${VIP_MONTHLY_USDT} USDT`}
                 </Text>
               </View>
 
@@ -8816,7 +8686,7 @@ function App() {
                   {t("dashboardYearly")}
                 </Text>
                 <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: "900", marginTop: 2 }}>
-                  {VIP_YEARLY_USDT} USDT
+                  {IS_PLAY_STORE_BUILD ? (selectedLanguage === 'tr' ? 'Yakında' : 'Coming soon') : `${VIP_YEARLY_USDT} USDT`}
                 </Text>
               </View>
             </View>
