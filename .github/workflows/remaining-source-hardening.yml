@@ -1,0 +1,135 @@
+name: Remaining Source Hardening
+
+on:
+  push:
+    paths:
+      - '.github/workflows/remaining-source-hardening.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  harden:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply remaining production source fixes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('frontend/App.js')
+          s = p.read_text(encoding='utf-8')
+
+          def rep(old, new, label, required=True):
+              global s
+              if old not in s:
+                  if required:
+                      raise SystemExit(f'{label}: anchor not found')
+                  print(f'{label}: already applied or anchor changed')
+                  return
+              s = s.replace(old, new, 1)
+              print(f'{label}: applied')
+
+          # Guardian: make USD threshold testable during live evaluation.
+          rep(
+              "  const [guardianEvaluationError, setGuardianEvaluationError] = useState('');\n",
+              "  const [guardianEvaluationError, setGuardianEvaluationError] = useState('');\n  const [guardianEvaluationAmount, setGuardianEvaluationAmount] = useState('');\n",
+              'guardian-amount-state',
+              required=False
+          )
+
+          old_guardian_req = """    setGuardianEvaluating(true);\n    setGuardianEvaluationError('');\n    setGuardianEvaluationResult(null);\n\n    try {\n      const response = await api.post(\n        '/api/guardian/evaluate',\n        {\n          network: selectedNetwork,\n          address: cleanAddr\n        },\n"""
+          new_guardian_req = """    const guardianAmountText = String(guardianEvaluationAmount || '').trim().replace(',', '.');\n    const guardianAmountUsd = guardianAmountText ? Number(guardianAmountText) : null;\n\n    if (guardianAmountText && (!Number.isFinite(guardianAmountUsd) || guardianAmountUsd < 0)) {\n      Alert.alert(\n        selectedLanguage === 'tr' ? 'Geçersiz Tutar' : 'Invalid Amount',\n        selectedLanguage === 'tr' ? 'İşlem tutarı için geçerli bir USD değeri girin.' : 'Enter a valid USD transaction amount.'\n      );\n      return;\n    }\n\n    setGuardianEvaluating(true);\n    setGuardianEvaluationError('');\n    setGuardianEvaluationResult(null);\n\n    try {\n      const response = await api.post(\n        '/api/guardian/evaluate',\n        {\n          network: selectedNetwork === 'eth' ? 'ethereum' : selectedNetwork,\n          address: cleanAddr,\n          ...(guardianAmountUsd !== null ? { amountUsd: guardianAmountUsd } : {})\n        },\n"""
+          rep(old_guardian_req, new_guardian_req, 'guardian-amount-request', required=False)
+
+          guardian_button_anchor = """            <TouchableOpacity\n              style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 36, borderRadius: 6 }]}\n              disabled={guardianEvaluating}\n              onPress={handleGuardianEvaluate}>\n"""
+          guardian_amount_ui = """            <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '800', marginTop: 10, marginBottom: 4 }}>\n              {selectedLanguage === 'tr' ? 'İşlem Tutarı (USD) — isteğe bağlı' : 'Transaction Amount (USD) — optional'}\n            </Text>\n            <TextInput\n              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, height: 36, fontSize: 11, marginBottom: 6 }]}\n              placeholder={selectedLanguage === 'tr' ? 'Örn: 500' : 'Example: 500'}\n              placeholderTextColor=\"#888\"\n              value={guardianEvaluationAmount}\n              onChangeText={setGuardianEvaluationAmount}\n              keyboardType=\"decimal-pad\"\n              editable={!guardianEvaluating} />\n            <Text style={{ color: theme.textSub, fontSize: 8, lineHeight: 12, marginBottom: 9 }}>\n              {selectedLanguage === 'tr'\n                ? 'Profildeki USD alarm eşiği yalnızca burada bir işlem tutarı verilirse değerlendirmeye katılır.'\n                : 'The profile USD alert threshold is evaluated only when a transaction amount is supplied here.'}\n            </Text>\n\n""" + guardian_button_anchor
+          rep(guardian_button_anchor, guardian_amount_ui, 'guardian-amount-ui', required=False)
+
+          # Market Intelligence: retry transient upstream failures and localize user-facing result.
+          old_market_call = "      const response = await api.get('/api/market-intelligence');\n"
+          new_market_call = """      let response;\n      try {\n        response = await api.get('/api/market-intelligence', { timeout: 20000 });\n      } catch (firstError) {\n        const status = firstError?.response?.status;\n        if (![429, 502, 503, 504].includes(status) && firstError?.response) throw firstError;\n        await new Promise((resolve) => setTimeout(resolve, 1200));\n        response = await api.get('/api/market-intelligence', { timeout: 25000 });\n      }\n"""
+          rep(old_market_call, new_market_call, 'market-retry', required=False)
+
+          rep(
+              "        title: 'Canlı Market Intelligence',\n        message:\n        'CoinGecko canlı piyasa verileri üzerinden kural tabanlı analiz.',\n",
+              "        title: selectedLanguage === 'tr' ? 'Canlı Piyasa İstihbaratı' : 'Live Market Intelligence',\n        message: selectedLanguage === 'tr'\n          ? 'Canlı piyasa verileri üzerinden kural tabanlı analiz.'\n          : 'Rule-based analysis from live market data.',\n",
+              'market-live-localization',
+              required=False
+          )
+
+          old_market_error = """      setSentimentResult({\n        status: 'ERROR',\n        title: 'Piyasa İstihbaratı Kullanılamıyor',\n        message:\n        error?.response?.data?.error ||\n        error?.message ||\n        'Canlı piyasa verisi alınamadı.'\n      });\n"""
+          new_market_error = """      setSentimentResult({\n        status: 'ERROR',\n        title: selectedLanguage === 'tr' ? 'Piyasa Verisi Geçici Olarak Kullanılamıyor' : 'Market Data Temporarily Unavailable',\n        message: selectedLanguage === 'tr'\n          ? 'Canlı piyasa sağlayıcısına şu anda ulaşılamıyor. Bu durum güvenlik taramalarını etkilemez; daha sonra yeniden deneyin.'\n          : 'The live market provider is temporarily unavailable. Security scans are unaffected; try again later.'\n      });\n"""
+          rep(old_market_error, new_market_error, 'market-error-localization', required=False)
+
+          # Wallet scan: use the same backend recovery strategy as login instead of mislabeling every error as internet failure.
+          old_scan_call = """      const response = await api.post(\n        \"/api/check-wallet\",\n        {\n          network: backendNetwork,\n          address: cleanAddr\n        },\n        {\n          headers: {\n            ...SecurityScannerMiddleware.auditHeaders\n          },\n          timeout: 30000\n        }\n      );\n"""
+          new_scan_call = """      const response = await requestWithBackendRecovery(() => api.post(\n        \"/api/check-wallet\",\n        {\n          network: backendNetwork,\n          address: cleanAddr\n        },\n        {\n          headers: {\n            ...SecurityScannerMiddleware.auditHeaders\n          },\n          timeout: 30000\n        }\n      ));\n"""
+          rep(old_scan_call, new_scan_call, 'wallet-scan-recovery', required=False)
+
+          old_scan_error = """    } catch (err) {\n      const userFriendlyMsg = err.response?.status === 429 ?\n      \"Çok fazla istek gönderildi. Lütfen birkaç saniye bekleyin.\" :\n      \"Bağlantı hatası: Sunucuya ulaşılamıyor. Lütfen internet bağlantınızı kontrol edin.\";\n\n      setCurrentBalanceText('Bakiye alınamadı');\n"""
+          new_scan_error = """    } catch (err) {\n      const status = err?.response?.status;\n      const userFriendlyMsg = status === 429\n        ? (selectedLanguage === 'tr' ? 'Çok fazla istek gönderildi. Lütfen birkaç saniye bekleyin.' : 'Too many requests. Please wait a few seconds.')\n        : status === 400 || status === 404\n        ? (err?.response?.data?.error || (selectedLanguage === 'tr' ? 'Cüzdan veya ağ bilgisi geçersiz.' : 'The wallet or network is invalid.'))\n        : status === 401\n        ? (selectedLanguage === 'tr' ? 'Oturum süresi dolmuş olabilir. Lütfen tekrar giriş yapın.' : 'Your session may have expired. Please sign in again.')\n        : (selectedLanguage === 'tr'\n            ? 'Cüzdan verisi şu anda alınamıyor. Otomatik yeniden deneme tamamlanamadı; lütfen kısa süre sonra tekrar deneyin.'\n            : 'Wallet data is temporarily unavailable. Automatic retry did not complete; please try again shortly.');\n\n      setCurrentBalanceText(selectedLanguage === 'tr' ? 'Bakiye alınamadı' : 'Balance unavailable');\n"""
+          rep(old_scan_error, new_scan_error, 'wallet-scan-error', required=False)
+
+          # Inheritance: select an authenticated user-owned backend wallet instead of relying on the scan input.
+          rep(
+              "  const [inheritBeneficiary, setInheritBeneficiary] = useState('');\n",
+              "  const [inheritBeneficiary, setInheritBeneficiary] = useState('');\n  const [inheritSourceWallet, setInheritSourceWallet] = useState('');\n",
+              'inherit-source-state',
+              required=False
+          )
+
+          old_inherit_start = """  const createInheritanceProtocol = useCallback(async () => {\n    const cleanWalletAddress = address.trim();\n    const cleanBeneficiary = inheritBeneficiary.trim();\n\n    const backendNetwork =\n    selectedNetwork === 'eth' ? 'ethereum' : selectedNetwork;\n\n    if (!cleanWalletAddress) {\n"""
+          new_inherit_start = """  const createInheritanceProtocol = useCallback(async () => {\n    let cleanWalletAddress = String(inheritSourceWallet || '').trim();\n    const cleanBeneficiary = inheritBeneficiary.trim();\n    let backendNetwork = selectedNetwork === 'eth' ? 'ethereum' : selectedNetwork;\n    let ownedWalletId = null;\n\n    if (!cleanWalletAddress) {\n"""
+          rep(old_inherit_start, new_inherit_start, 'inherit-source-handler-start', required=False)
+
+          old_inherit_try = """    try {\n      setInheritanceLoading(true);\n\n      const response = await api.post('/api/inheritance', {\n        network: backendNetwork,\n        walletAddress: cleanWalletAddress,\n        beneficiaryAddress: cleanBeneficiary,\n        inactivityDays: days\n      });\n"""
+          new_inherit_try = """    try {\n      setInheritanceLoading(true);\n\n      const walletResponse = await api.get('/api/wallets');\n      const ownedWallets = Array.isArray(walletResponse.data?.wallets) ? walletResponse.data.wallets : [];\n      const ownedWallet = ownedWallets.find((wallet) =>\n        String(wallet?.address || '').trim().toLowerCase() === cleanWalletAddress.toLowerCase()\n      );\n\n      if (!ownedWallet) {\n        Alert.alert(\n          selectedLanguage === 'tr' ? 'Kaynak Cüzdan Gerekli' : 'Source Wallet Required',\n          selectedLanguage === 'tr'\n            ? 'Miras protokolü için önce hesabınıza ait bir cüzdanı Kasa/Vault bölümüne ekleyin ve bu ekrandan seçin.'\n            : 'Add a wallet owned by your account to Vault first, then select it here for the inheritance protocol.'\n        );\n        return false;\n      }\n\n      cleanWalletAddress = String(ownedWallet.address || '').trim();\n      backendNetwork = String(ownedWallet.network || backendNetwork).trim().toLowerCase();\n      ownedWalletId = ownedWallet.id || null;\n\n      const response = await api.post('/api/inheritance', {\n        ...(ownedWalletId ? { walletId: ownedWalletId } : {}),\n        network: backendNetwork,\n        walletAddress: cleanWalletAddress,\n        beneficiaryAddress: cleanBeneficiary,\n        inactivityDays: days\n      });\n"""
+          rep(old_inherit_try, new_inherit_try, 'inherit-owned-wallet-resolution', required=False)
+
+          # Hook dependency must include source wallet.
+          rep(
+              "  address,\n  inheritBeneficiary,\n  inheritDays,\n  selectedNetwork]\n  );\n",
+              "  inheritSourceWallet,\n  inheritBeneficiary,\n  inheritDays,\n  selectedNetwork,\n  selectedLanguage]\n  );\n",
+              'inherit-hook-deps',
+              required=False
+          )
+
+          inherit_days_anchor = """                <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: 'bold', marginBottom: 2 }}>{t('inheritInactivityDays')}:</Text>\n"""
+          inherit_source_ui = """                <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: 'bold', marginBottom: 5 }}>\n                  {selectedLanguage === 'tr' ? 'Kaynak Cüzdan' : 'Source Wallet'}\n                </Text>\n                {vault.length === 0 ?\n                  <View style={{ backgroundColor: theme.inputBg, borderColor: '#F59E0B', borderWidth: 1, borderRadius: 7, padding: 9, marginBottom: 10 }}>\n                    <Text style={{ color: '#F59E0B', fontSize: 9, lineHeight: 13 }}>\n                      {selectedLanguage === 'tr'\n                        ? 'Hesabınıza ait bir cüzdanı önce Kasa/Vault bölümüne ekleyin. Miras protokolü yalnızca doğrulanmış hesap cüzdanları için oluşturulur.'\n                        : 'Add a wallet owned by your account to Vault first. Inheritance protocols can only use verified account wallets.'}\n                    </Text>\n                  </View> :\n                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>\n                    {vault.map((walletAddress, index) => {\n                      const walletText = String(walletAddress?.address || walletAddress || '').trim();\n                      const selected = inheritSourceWallet === walletText;\n                      return (\n                        <TouchableOpacity\n                          key={`inherit-source-${walletText}-${index}`}\n                          onPress={() => setInheritSourceWallet(walletText)}\n                          style={{ backgroundColor: selected ? theme.primary : theme.inputBg, borderColor: selected ? theme.primary : theme.borderCol, borderWidth: 1, borderRadius: 7, paddingHorizontal: 10, paddingVertical: 8, marginRight: 6 }}>\n                          <Text style={{ color: selected ? '#FFFFFF' : theme.textMain, fontSize: 9, fontWeight: '800' }}>\n                            {shortenWalletAddress(walletText)}\n                          </Text>\n                        </TouchableOpacity>\n                      );\n                    })}\n                  </ScrollView>}\n\n""" + inherit_days_anchor
+          rep(inherit_days_anchor, inherit_source_ui, 'inherit-source-ui', required=False)
+
+          # Clarify threshold wording in both languages.
+          s = s.replace("guardianThreshold: 'Kritik Alarm Eşik Değeri ($):'", "guardianThreshold: 'İşlem Tutarı Alarm Eşiği (USD):'")
+          s = s.replace("guardianThresholdPlaceholder: 'Örn: 500 USD...'", "guardianThresholdPlaceholder: 'Örn: 500'")
+          s = s.replace("guardianThreshold: 'Critical Alert Threshold ($):'", "guardianThreshold: 'Transaction Amount Alert Threshold (USD):'")
+          s = s.replace("guardianThresholdPlaceholder: 'Example: 500 USD...'", "guardianThresholdPlaceholder: 'Example: 500'")
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Frontend syntax and audits
+        working-directory: frontend
+        run: |
+          node --check App.js
+          npm ci
+          npm test
+
+      - name: Commit hardened frontend
+        run: |
+          if git diff --quiet; then
+            echo 'No source changes required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add frontend/App.js
+          git commit -m 'Finish remaining source hardening'
+          git push
