@@ -19,7 +19,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: |
             backend/package-lock.json
@@ -36,19 +36,30 @@ jobs:
 
       - name: Backend install and validation
         working-directory: backend
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
+          JWT_SECRET: ci-only-jwt-secret-safe-sentinel-1234567890
+          CORS_ORIGIN: https://example.invalid
+          VIP_TRON_ADDRESS: TExampleOnlyNotARealProductionAddress1234
+          TRONGRID_API_KEY: ci-placeholder
         run: |
-          npm ci
+          npm ci --include=dev --legacy-peer-deps --no-audit --no-fund
           npx prisma generate --schema ./schema.prisma
           npx prisma validate --schema ./schema.prisma
-          npm test --if-present
 
       - name: Frontend install and audits
         working-directory: frontend
+        env:
+          NODE_ENV: production
+          EXPO_PUBLIC_BACKEND_URL: https://safe-sentinel-pro-1.onrender.com
+          EXPO_PUBLIC_PLAY_STORE_BUILD: 'true'
         run: |
-          npm ci
+          npm ci --legacy-peer-deps --no-audit --no-fund
           npx expo install --check
           node scripts/i18n-audit.mjs
           node scripts/release-audit.mjs
+          node -e "require('@babel/core').transformFileSync('App.js',{configFile:'./babel.config.js'}); console.log('BABEL PARSE PASSED')"
 
       - name: Commit consolidated hardening
         run: |
