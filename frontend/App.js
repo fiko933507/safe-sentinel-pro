@@ -3598,7 +3598,7 @@ function App() {
     }
     if (/^T[1-9A-HJ-NP-Za-km-z]{30,44}$/.test(value)) return { type: 'wallet', network: 'tron', value };
     if (/^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,61}$/i.test(value)) return { type: 'wallet', network: 'btc', value };
-    if (/^0x[a-fA-F0-9]{40}$/.test(value)) return { type: 'evm', network: ['eth','bsc','polygon','arb','avax'].includes(selectedNetwork) ? selectedNetwork : 'eth', value };
+    if (/^0x[a-fA-F0-9]{40}$/.test(value)) return { type: 'evm', network: ['eth','bsc','polygon','arb','avax','base','optimism'].includes(selectedNetwork) ? selectedNetwork : 'eth', value };
     if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(value)) return { type: 'wallet', network: 'sol', value };
     return { type: 'unknown', value };
   };
@@ -3621,8 +3621,18 @@ function App() {
       if (target.type === 'url') {
         const response = await api.post('/api/check-phishing', { url: target.value }, { timeout: 20000 });
         const data = response.data || {};
-        const dangerous = Boolean(data.matched && (data.phishing || data.malicious || String(data.riskLevel).toUpperCase() === 'HIGH'));
-        const score = dangerous ? 5 : 78;
+        const dangerous = Boolean(
+          data.matched ||
+          data.phishing ||
+          data.malicious ||
+          ['HIGH', 'CRITICAL'].includes(String(data.riskLevel || '').toUpperCase())
+        );
+        const explicitScore = [data.sentinelScore, data.securityScore, data.score]
+          .map(Number)
+          .find(Number.isFinite);
+        const score = Number.isFinite(explicitScore)
+          ? Math.max(0, Math.min(100, explicitScore))
+          : dangerous ? 5 : 50;
         setUniversalScanResult({
           type: 'URL / DApp',
           target: target.value,
@@ -3644,9 +3654,12 @@ function App() {
         address: target.value
       }, { timeout: 30000 }));
       const data = walletResponse.data || {};
+      if (data.success === false) {
+        throw new Error(data.error || (selectedLanguage === 'tr' ? 'Cüzdan analizi başarısız oldu.' : 'Wallet analysis failed.'));
+      }
       const riskScore = Number(data.risk?.score);
       const scamMatched = Boolean(data.isScam || data.scamIntelligence?.matched || data.risk?.scamMatched);
-      let score = scamMatched ? 5 : Number.isFinite(riskScore) ? Math.max(5, Math.min(95, 100 - riskScore)) : 72;
+      let score = scamMatched ? 5 : Number.isFinite(riskScore) ? Math.max(5, Math.min(95, 100 - riskScore)) : 50;
       let isContract = false;
       let contractNote = null;
 
@@ -3672,7 +3685,11 @@ function App() {
       if (scamMatched) reasons.push(selectedLanguage === 'tr' ? 'Scam/tehdit istihbaratı eşleşmesi bulundu.' : 'A scam/threat-intelligence match was found.');
       if (Array.isArray(data.risk?.reasons)) reasons.push(...data.risk.reasons.slice(0, 3));
       if (contractNote) reasons.push(contractNote);
-      if (!reasons.length) reasons.push(selectedLanguage === 'tr' ? 'Mevcut zincir ve tehdit verilerinde belirgin yüksek risk sinyali bulunmadı.' : 'No clear high-risk signal was found in the available chain and threat data.');
+      if (!reasons.length) {
+        reasons.push(Number.isFinite(riskScore)
+          ? (selectedLanguage === 'tr' ? 'Mevcut zincir ve tehdit verilerinde belirgin yüksek risk sinyali bulunmadı.' : 'No clear high-risk signal was found in the available chain and threat data.')
+          : (selectedLanguage === 'tr' ? 'Backend sayısal risk skoru sağlamadı; nötr 50 başlangıç skoru kullanıldı.' : 'The backend provided no numeric risk score; a neutral baseline of 50 was used.'));
+      }
       reasons.push(selectedLanguage === 'tr' ? 'Sentinel Score bir güvenlik garantisi değildir; işlem imzalamadan önce ayrıntıları doğrulayın.' : 'Sentinel Score is not a security guarantee; verify details before signing a transaction.');
 
       setSelectedNetwork(frontendNetwork);
@@ -8244,6 +8261,35 @@ function App() {
               </View>
             </View>
 
+            <Text style={{ color: theme.textSub, fontSize: 8, fontWeight: '800', marginBottom: 5 }}>
+              {selectedLanguage === 'tr' ? 'EVM adresleri için ağ seçimi' : 'Network for EVM addresses'}
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 9 }}>
+              {Object.keys(NETWORKS).map((key) => {
+                const net = NETWORKS[key];
+                const selected = selectedNetwork === key;
+                return (
+                  <TouchableOpacity
+                    key={key}
+                    onPress={() => setSelectedNetwork(key)}
+                    style={{
+                      minWidth: 68,
+                      paddingHorizontal: 9,
+                      paddingVertical: 7,
+                      marginRight: 6,
+                      borderRadius: 8,
+                      backgroundColor: selected ? theme.primary : theme.inputBg,
+                      borderWidth: 1,
+                      borderColor: selected ? theme.primary : theme.borderCol
+                    }}>
+                    <Text style={{ color: selected ? '#FFF' : theme.textMain, fontSize: 9, fontWeight: '900', textAlign: 'center' }}>
+                      {net.symbol}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
             <TextInput
               style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, height: 44, fontSize: 11, marginBottom: 8 }]}
               placeholder={selectedLanguage === 'tr' ? 'Cüzdan adresi, 0x kontrat veya https://...' : 'Wallet address, 0x contract, or https://...'}
@@ -8299,240 +8345,6 @@ function App() {
                 </TouchableOpacity> : null}
               </View>
             </View> : null}
-          </View>
-
-          {/* HIZLI CÜZDAN GÜVENLİK TARAMASI */}
-          <View
-          style={{
-            backgroundColor: theme.cardBg,
-            borderColor: theme.borderCol,
-            borderWidth: 1,
-            borderRadius: 14,
-            padding: 14,
-            marginBottom: 12
-          }}>
-
-            <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 10
-            }}>
-
-              <View>
-                <Text
-                style={{
-                  color: theme.textMain,
-                  fontSize: 14,
-                  fontWeight: "900"
-                }}>
-
-                  {t("dashboardQuickScan")}
-                </Text>
-                <Text
-                style={{
-                  color: theme.textSub,
-                  fontSize: 8,
-                  marginTop: 3
-                }}>
-
-                  {t("dashboardQuickScanDescription")}
-                </Text>
-              </View>
-
-              <Text
-              style={{
-                color: theme.primary,
-                fontSize: 8,
-                fontWeight: "900"
-              }}>
-
-                {t("dashboardLiveScan")}
-              </Text>
-            </View>
-
-            <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={{ marginBottom: 9 }}>
-
-              {Object.keys(NETWORKS).map((key) => {
-              const net = NETWORKS[key];
-              const selected = selectedNetwork === key;
-
-              return (
-                <TouchableOpacity
-                  key={key}
-                  onPress={() => setSelectedNetwork(key)}
-                  style={{
-                    minWidth: 70,
-                    paddingHorizontal: 9,
-                    paddingVertical: 7,
-                    marginRight: 6,
-                    borderRadius: 8,
-                    backgroundColor: selected ?
-                    theme.primary :
-                    theme.inputBg,
-                    borderWidth: 1,
-                    borderColor: selected ?
-                    theme.primary :
-                    theme.borderCol
-                  }}>
-
-                    <Text
-                    style={{
-                      color: selected ? "#FFF" : theme.textMain,
-                      fontSize: 9,
-                      fontWeight: "900",
-                      textAlign: "center"
-                    }}>
-
-                      {net.symbol}
-                    </Text>
-                    <Text
-                    style={{
-                      color: selected ? "#E2E8F0" : theme.textSub,
-                      fontSize: 7,
-                      textAlign: "center",
-                      marginTop: 2
-                    }}>
-
-                      ${liveCryptoPrices[net.symbol] || "0.00"}
-                    </Text>
-                  </TouchableOpacity>);
-
-            })}
-            </ScrollView>
-
-            <Text
-            style={{
-              color: theme.textSub,
-              fontSize: 8,
-              fontWeight: "700",
-              marginBottom: 4
-            }}>
-
-              {t("dashboardWalletAddress")}
-            </Text>
-
-            <TextInput
-            style={[
-            styles.input,
-            {
-              backgroundColor: theme.inputBg,
-              color: theme.inputTextColor,
-              borderColor: theme.borderCol,
-              height: 40,
-              fontSize: 11,
-              marginBottom: 8
-            }]
-            }
-            placeholder={`${NETWORKS[selectedNetwork].name} ${t("dashboardWalletPlaceholder")}`}
-            placeholderTextColor="#777"
-            value={address}
-            onChangeText={setAddress} />
-
-            {queryWarning ?
-          <Text
-            style={{
-              color: "#EF4444",
-              fontSize: 9,
-              fontWeight: "800",
-              marginBottom: 8
-            }}>
-
-                {queryWarning}
-              </Text> :
-          null}
-
-            <View
-            style={{
-              flexDirection: "row",
-              flexWrap: "wrap",
-              gap: 7
-            }}>
-
-              <TouchableOpacity
-              onPress={handleAddressCheck}
-              style={{
-                flex: 2,
-                minWidth: 190,
-                height: 38,
-                backgroundColor: theme.primary,
-                borderRadius: 7,
-                justifyContent: "center",
-                alignItems: "center"
-              }}>
-
-                <Text
-                style={{
-                  color: "#FFF",
-                  fontSize: 10,
-                  fontWeight: "900"
-                }}>
-
-                  {loading ? t("dashboardQuerying") : t("dashboardQueryWallet")}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-              onPress={addToWhitelist}
-              style={{
-                flex: 1,
-                minWidth: 105,
-                height: 38,
-                backgroundColor: theme.inputBg,
-                borderColor: "#10B981",
-                borderWidth: 1,
-                borderRadius: 7,
-                justifyContent: "center",
-                alignItems: "center"
-              }}>
-
-                <Text style={{ color: "#10B981", fontSize: 9, fontWeight: "900" }}>
-                  + {t("dashboardWhitelist")}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-              onPress={addToBlacklist}
-              style={{
-                flex: 1,
-                minWidth: 105,
-                height: 38,
-                backgroundColor: theme.inputBg,
-                borderColor: "#EF4444",
-                borderWidth: 1,
-                borderRadius: 7,
-                justifyContent: "center",
-                alignItems: "center"
-              }}>
-
-                <Text style={{ color: "#EF4444", fontSize: 9, fontWeight: "900" }}>
-                  + {t("dashboardBlacklist")}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-              onPress={addToVault}
-              style={{
-                flex: 1,
-                minWidth: 105,
-                height: 38,
-                backgroundColor: theme.inputBg,
-                borderColor: "#8B5CF6",
-                borderWidth: 1,
-                borderRadius: 7,
-                justifyContent: "center",
-                alignItems: "center"
-              }}>
-
-                <Text style={{ color: "#8B5CF6", fontSize: 9, fontWeight: "900" }}>
-                  + {t("dashboardVault")}
-                </Text>
-              </TouchableOpacity>
-            </View>
           </View>
 
           {/* AKTİF GÜVENLİK DURUMU */}
