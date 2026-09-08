@@ -229,8 +229,6 @@ jobs:
 
           # Render object-backed canonical list entries correctly.
           s = s.replace('{addr}\n                      </Text>', "{String(addr?.address || addr || '')}\n                      </Text>")
-          s = s.replace('onPress={() => removeFromWhitelist(addr)}', 'onPress={() => removeFromWhitelist(addr)}')
-          s = s.replace('onPress={() => removeFromBlacklist(addr)}', 'onPress={() => removeFromBlacklist(addr)}')
 
           p.write_text(s, encoding='utf-8')
           PY
@@ -247,3 +245,5 @@ jobs:
           fi
           git commit -m "Fix whitelist blacklist conflicts and persistence"
           git push origin HEAD:main
+
+# trigger: 2026-09-08-bulk-pass-3
