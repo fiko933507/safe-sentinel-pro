@@ -165,3 +165,5 @@ jobs:
           fi
           git commit -m "Compact dashboard profile and notifications navigation"
           git push origin HEAD:main
+
+# Trigger marker: 2026-09-08 production smoke hardening
