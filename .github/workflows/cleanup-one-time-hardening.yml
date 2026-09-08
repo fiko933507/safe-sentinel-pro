@@ -1,0 +1,40 @@
+name: Cleanup One-Time Hardening Workflows
+
+on:
+  push:
+    paths:
+      - '.github/workflows/cleanup-one-time-hardening.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove completed one-time mutation workflows
+        run: |
+          rm -f \
+            .github/workflows/backend-lockfile-once.yml \
+            .github/workflows/bulk-hardening-pass-1.yml \
+            .github/workflows/bulk-hardening-pass-2.yml \
+            .github/workflows/bulk-hardening-pass-3.yml \
+            .github/workflows/field-smoke-production-hardening.yml \
+            .github/workflows/final-login-wallet-hardening.yml \
+            .github/workflows/final-scan-recovery.yml \
+            .github/workflows/fix-live-wallet-dashboard.yml \
+            .github/workflows/fix-play-store-icon-once.yml \
+            .github/workflows/fix-tron-latest-block.yml \
+            .github/workflows/i18n-fix-once.yml \
+            .github/workflows/refresh-login-ui.yml \
+            .github/workflows/remaining-source-hardening.yml \
+            .github/workflows/cleanup-one-time-hardening.yml
+      - name: Commit cleanup
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A .github/workflows
+          git commit -m 'Remove completed one-time hardening workflows'
+          git push
