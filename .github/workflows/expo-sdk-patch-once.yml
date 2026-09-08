@@ -1,0 +1,33 @@
+name: Expo SDK Patch Alignment Once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/expo-sdk-patch-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  align:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Align Expo patch version and lockfile
+        working-directory: frontend
+        run: |
+          npm install expo@~57.0.21 --save-exact --legacy-peer-deps --no-audit --no-fund
+          npx --yes expo-doctor@1.20.4
+          npm test
+          node -e "require('@babel/core').transformFileSync('App.js',{configFile:'./babel.config.js'}); console.log('BABEL PARSE PASSED')"
+      - name: Commit alignment and self-clean
+        run: |
+          rm -f .github/workflows/expo-sdk-patch-once.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add frontend/package.json frontend/package-lock.json .github/workflows/expo-sdk-patch-once.yml
+          git commit -m 'Align Expo SDK patch dependency'
+          git push
