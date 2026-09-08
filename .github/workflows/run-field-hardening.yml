@@ -1,0 +1,49 @@
+name: Run Field Hardening
+
+on:
+  push:
+    paths:
+      - '.github/run-field-hardening-trigger'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Extract and run hardening script
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          src = Path('.github/workflows/field-smoke-production-hardening.yml').read_text(encoding='utf-8')
+          start = src.index("          python - <<'PY'\n") + len("          python - <<'PY'\n")
+          end = src.index("\n          PY\n", start)
+          block = src[start:end]
+          lines = []
+          for line in block.splitlines():
+              lines.append(line[10:] if line.startswith('          ') else line)
+          Path('/tmp/field_hardening.py').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          PY
+          python /tmp/field_hardening.py
+      - name: Syntax check
+        run: node --check frontend/App.js
+      - name: Commit hardening changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/App.js
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Apply real-device production hardening"
+          git pull --rebase origin main
+          git push origin HEAD:main
