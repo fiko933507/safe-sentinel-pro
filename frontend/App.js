@@ -4968,7 +4968,7 @@ function App() {
             activeModule === 'taxReportView' ? t('toolTitleTaxReport') :
             activeModule === 'dexOrdersView' ? t('toolTitleDexOrders') : ''}
             </Text>
-            <TouchableOpacity onPress={() => setActiveModule('dashboard')} style={[styles.backButton, { backgroundColor: theme.inputBg, borderRadius: 6, paddingVertical: 4, paddingHorizontal: 8, marginLeft: 8, flexShrink: 0 }]}>
+            <TouchableOpacity onPress={() => setActiveModule('dashboard')} style={[styles.backButton, { backgroundColor: theme.inputBg, borderRadius: 6, paddingVertical: 4, paddingHorizontal: 8, marginLeft: 8, marginRight: 8, flexShrink: 0 }]}>
                <Text style={[styles.backButtonText, { color: theme.primary, fontSize: 11 }]}>{t('toolBack')}</Text>
             </TouchableOpacity>
           </View>
@@ -7137,7 +7137,14 @@ function App() {
                     }}>
 
                                 • {typeof signal === 'string' ?
-                    signal :
+                    ({
+                      MANY_INCOMING_SOURCES: selectedLanguage === 'tr' ? 'Çok sayıda kaynaktan fon girişi' : 'Funds received from many sources',
+                      COLLECTION_PATTERN: selectedLanguage === 'tr' ? 'Fon toplama davranışı' : 'Fund collection pattern',
+                      MANY_OUTGOING_DESTINATIONS: selectedLanguage === 'tr' ? 'Çok sayıda hedefe fon çıkışı' : 'Funds sent to many destinations',
+                      DISTRIBUTION_PATTERN: selectedLanguage === 'tr' ? 'Fon dağıtım davranışı' : 'Fund distribution pattern',
+                      HIGH_ACTIVITY: selectedLanguage === 'tr' ? 'Yüksek işlem aktivitesi' : 'High transaction activity',
+                      FAILED_TRANSACTIONS: selectedLanguage === 'tr' ? 'Başarısız işlem sinyali' : 'Failed transaction signal'
+                    }[signal] || signal.replaceAll('_', ' ')) :
                     JSON.stringify(signal)}
                               </Text>
 
@@ -8400,9 +8407,7 @@ function App() {
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
               {[
             [t("dashboardPortfolio"), t("dashboardViewVaultAssets"), "portfolioView"],
-            [t("dashboardGasOptimization"), t("dashboardCompareNetworkFees"), "gasOptView"],
-            [t("dashboardPriceAlert"), t("dashboardTrackTargetPrices"), "priceAlertsView"],
-            [t("toolTitleAiMarket"), t("dashboardMarketSentimentAnalysis"), "aiMarketView"]].
+            [t("dashboardPriceAlert"), t("dashboardTrackTargetPrices"), "priceAlertsView"]].
             map((item, index) =>
             <TouchableOpacity
               key={index}
@@ -8451,8 +8456,7 @@ function App() {
 
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
               {[
-            ["Guardian", t("dashboardSecurityCircle"), "guardianView", t("dashboardAvailable")],
-            [t("dashboardCryptoInheritance"), "Dead Man's Switch", "inheritView", t("dashboardAvailable")]].
+            ["Guardian", t("dashboardSecurityCircle"), "guardianView", t("dashboardAvailable")]].
             map((item, index) =>
             <TouchableOpacity
               key={index}
@@ -8734,7 +8738,7 @@ const DASHBOARD_TOOL_GROUPS = [
     icon: ""
   },
   {
-    title: "AI Davranış",
+    title: "Davranış Analizi",
     subtitle: "Cüzdan davranışını analiz et",
     action: "ANALİZ ET",
     mod: "behavioralView",
@@ -8795,12 +8799,12 @@ const DASHBOARD_TOOL_GROUPS = [
 
   {
     title: "Portföy",
-    subtitle: "Kasa varlıklarını görüntüle",
+    subtitle: "Taranan cüzdan varlıklarını görüntüle",
     mod: "portfolioView",
     icon: ""
   },
   {
-    title: "Gas Optimizasyonu",
+    title: "Ağ İşlem Ücretleri",
     subtitle: "Ağ ücretlerini takip et",
     mod: "gasOptView",
     icon: "⛽"
