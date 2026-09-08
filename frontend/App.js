@@ -1926,6 +1926,8 @@ function App() {
     polygon: { name: "Polygon", symbol: "POL", badgeColor: theme.primary, badgeText: "POL" },
     eth: { name: "Ethereum", symbol: "ETH", badgeColor: theme.primary, badgeText: "ETH" },
     bsc: { name: "BNB Smart Chain", symbol: "BNB", badgeColor: theme.primary, badgeText: "BSC" },
+    base: { name: "Base", symbol: "ETH", badgeColor: theme.primary, badgeText: "BASE" },
+    optimism: { name: "Optimism", symbol: "ETH", badgeColor: theme.primary, badgeText: "OP" },
     pi: { name: "Pi Network", symbol: "PI", badgeColor: theme.primary, badgeText: "PI" },
     nft: { name: "NFT Koleksiyonları", symbol: "NFT", badgeColor: theme.primary, badgeText: "NFT" }
   }), [theme]);
