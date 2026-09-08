@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - '.github/run-field-hardening-trigger'
+      - '.github/workflows/run-field-hardening.yml'
+      - '.github/scripts/final-production-hardening.py'
   workflow_dispatch:
 
 permissions:
