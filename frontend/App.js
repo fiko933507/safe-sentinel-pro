@@ -3061,39 +3061,59 @@ function App() {
 
     );
   };
+  const requestWithBackendRecovery = async (requestFactory) => {
+    try {
+      return await requestFactory();
+    } catch (firstError) {
+      const status = firstError?.response?.status;
+      const retryable =
+        !firstError?.response ||
+        firstError?.code === 'ECONNABORTED' ||
+        [502, 503, 504].includes(status);
+
+      if (!retryable) throw firstError;
+
+      try {
+        await axios.get(`${API_BASE_URL}/health`, { timeout: 20000 });
+      } catch (_) {}
+
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      return await requestFactory();
+    }
+  };
+
   const handleLogin = async () => {
-    const cleanEmail = SecurityScannerMiddleware.sanitizeInput(email).trim();
+    const cleanEmail = SecurityScannerMiddleware.sanitizeInput(email).trim().toLowerCase();
     const cleanPassword = password.trim();
 
     if (!cleanEmail || !cleanPassword) {
-      Alert.alert(t("runtimeMissingInfoTitle"), "Lütfen e-posta ve şifrenizi giriniz.");
+      Alert.alert(
+        t("runtimeMissingInfoTitle"),
+        selectedLanguage === 'tr' ? 'Lütfen e-posta ve şifrenizi girin.' : 'Enter your email and password.'
+      );
       return;
     }
 
     try {
       setLoading(true);
 
-      const response = await axios.post(
-        `${API_BASE_URL}/api/auth/login`,
-        {
-          email: cleanEmail,
-          password: cleanPassword
-        },
-        {
-          headers: {
-            ...SecurityScannerMiddleware.auditHeaders
-          },
-          timeout: 10000
-        }
+      const response = await requestWithBackendRecovery(() =>
+        axios.post(
+          `${API_BASE_URL}/api/auth/login`,
+          { email: cleanEmail, password: cleanPassword },
+          {
+            headers: { ...SecurityScannerMiddleware.auditHeaders },
+            timeout: 30000
+          }
+        )
       );
 
-      const { token, user } = response.data;
-      setToken(token);
-
+      const { token, user } = response.data || {};
       if (!token || !user) {
-        throw new Error("Sunucudan geçersiz giriş yanıtı geldi.");
+        throw new Error('INVALID_LOGIN_RESPONSE');
       }
 
+      setToken(token);
       if (Platform.OS === 'web') {
         await AsyncStorage.setItem('user_secure_token', token);
       } else {
@@ -3104,20 +3124,30 @@ function App() {
       setEmail(user.email || cleanEmail);
       setUserStatus(user.status || 'free');
       setQueryCount(0);
-
+      setApiOnline(true);
       setCurrentScreen('dashboard');
       setActiveModule('dashboard');
 
-      Alert.alert(t("runtimeLoginSuccessTitle"), `Hoş geldiniz ${user.name || ''}!`);
+      Alert.alert(
+        t("runtimeLoginSuccessTitle"),
+        selectedLanguage === 'tr'
+          ? `Hoş geldiniz ${user.name || ''}!`
+          : `Welcome ${user.name || ''}!`
+      );
     } catch (error) {
-      console.error("Login error:", error);
-
+      console.error('Login error:', error);
       const status = error?.response?.status;
+      const code = error?.code;
       const serverMessage = error?.response?.data?.error || error?.response?.data?.message;
+
       const message = status === 401
         ? (selectedLanguage === 'tr' ? 'E-posta veya şifre hatalı.' : 'Incorrect email or password.')
-        : !error?.response
-        ? (selectedLanguage === 'tr' ? 'Sunucuya ulaşılamıyor. İnternet bağlantınızı kontrol edip tekrar deneyin.' : 'Cannot reach the server. Check your internet connection and try again.')
+        : status === 429
+        ? (selectedLanguage === 'tr' ? 'Çok fazla giriş denemesi yapıldı. Kısa bir süre sonra tekrar deneyin.' : 'Too many login attempts. Please try again shortly.')
+        : [502, 503, 504].includes(status) || code === 'ECONNABORTED' || !error?.response
+        ? (selectedLanguage === 'tr'
+            ? 'Güvenli sunucu bağlantısı şu anda hazırlanıyor. Otomatik yeniden deneme başarısız oldu; lütfen birkaç saniye sonra tekrar deneyin.'
+            : 'The secure server connection is still starting. Automatic retry did not complete; please try again in a few seconds.')
         : serverMessage || t("runtimeLoginFailedGeneric");
 
       Alert.alert(t("runtimeLoginFailedTitle"), message);
@@ -3125,6 +3155,7 @@ function App() {
       setLoading(false);
     }
   };
+
   const handleCompleteRegistration = async () => {
     const cleanName = SecurityScannerMiddleware.sanitizeInput(regName).trim();
     const cleanSurname = SecurityScannerMiddleware.sanitizeInput(regSurname).trim();
@@ -3149,7 +3180,7 @@ function App() {
     try {
       setLoading(true);
 
-      const response = await axios.post(
+      const response = await requestWithBackendRecovery(() => axios.post(
         `${API_BASE_URL}/api/auth/register`,
         {
           name: `${cleanName} ${cleanSurname}`,
@@ -3160,9 +3191,9 @@ function App() {
           headers: {
             ...SecurityScannerMiddleware.auditHeaders
           },
-          timeout: 10000
+          timeout: 30000
         }
-      );
+      ));
 
       const { token, user } = response.data;
       setToken(token);
@@ -3223,6 +3254,48 @@ function App() {
       setLoading(false);
     }
   };
+  const handleOpenWalletConnection = async () => {
+    try {
+      await appKit.open();
+    } catch (error) {
+      console.error('[WALLET CONNECT]', error);
+      Alert.alert(
+        selectedLanguage === 'tr' ? 'Cüzdan Bağlantısı' : 'Wallet Connection',
+        selectedLanguage === 'tr'
+          ? 'Cüzdan bağlantı ekranı açılamadı. Lütfen tekrar deneyin.'
+          : 'Wallet connection could not be opened. Please try again.'
+      );
+    }
+  };
+
+  const applyConnectedWalletToScanner = () => {
+    const connected = String(connectedWalletAddress || '').trim();
+    if (!isConnected || !connected) {
+      handleOpenWalletConnection();
+      return;
+    }
+
+    const chainToNetwork = {
+      1: 'eth',
+      56: 'bsc',
+      137: 'polygon',
+      42161: 'arb',
+      43114: 'avax'
+    };
+
+    setAddress(connected);
+    if (chainToNetwork[Number(chainId)]) {
+      setSelectedNetwork(chainToNetwork[Number(chainId)]);
+    }
+    setQueryWarning('');
+  };
+
+  const shortenWalletAddress = (value) => {
+    const text = String(value || '').trim();
+    if (text.length <= 14) return text;
+    return `${text.slice(0, 7)}…${text.slice(-5)}`;
+  };
+
   const handleVipSelection = () => {
     setActiveModule('vipView');
   };
@@ -7597,6 +7670,61 @@ function App() {
             <Text style={{ color: '#FFFFFF', fontSize: 8, fontWeight: '900' }}>{centralUnreadCount > 99 ? '99+' : centralUnreadCount}</Text>
           </View> : null}
       </TouchableOpacity>
+    </View>
+    {/* SAFE_SENTINEL_CONNECTED_WALLET_CARD */}
+    <View style={{
+      backgroundColor: theme.itemBg,
+      borderColor: isConnected ? '#10B981' : theme.borderCol,
+      borderWidth: 1,
+      borderRadius: 12,
+      padding: 11,
+      marginBottom: 10
+    }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View style={{ flex: 1, paddingRight: 10 }}>
+          <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: '900' }}>
+            {selectedLanguage === 'tr' ? 'Web3 Cüzdanı' : 'Web3 Wallet'}
+          </Text>
+          <Text style={{ color: isConnected ? '#10B981' : theme.textSub, fontSize: 9, marginTop: 3, fontWeight: '700' }}>
+            {isConnected && connectedWalletAddress
+              ? `${shortenWalletAddress(connectedWalletAddress)}  •  ${selectedLanguage === 'tr' ? 'Bağlı' : 'Connected'}`
+              : (selectedLanguage === 'tr' ? 'Henüz cüzdan bağlı değil' : 'No wallet connected')}
+          </Text>
+          {isConnected && chainId ?
+            <Text style={{ color: theme.textSub, fontSize: 8, marginTop: 3 }}>Chain ID: {String(chainId)}</Text> : null}
+        </View>
+        <TouchableOpacity
+          onPress={handleOpenWalletConnection}
+          activeOpacity={0.84}
+          style={{
+            backgroundColor: isConnected ? theme.inputBg : theme.primary,
+            borderRadius: 9,
+            paddingHorizontal: 12,
+            paddingVertical: 9,
+            borderWidth: isConnected ? 1 : 0,
+            borderColor: theme.borderCol
+          }}>
+          <Text style={{ color: isConnected ? theme.primary : '#FFFFFF', fontSize: 9, fontWeight: '900' }}>
+            {isConnected
+              ? (selectedLanguage === 'tr' ? 'YÖNET' : 'MANAGE')
+              : (selectedLanguage === 'tr' ? 'CÜZDAN BAĞLA' : 'CONNECT WALLET')}
+          </Text>
+        </TouchableOpacity>
+      </View>
+      {isConnected && connectedWalletAddress ?
+        <TouchableOpacity
+          onPress={applyConnectedWalletToScanner}
+          activeOpacity={0.84}
+          style={{
+            marginTop: 9,
+            borderTopWidth: 1,
+            borderTopColor: theme.borderCol,
+            paddingTop: 9
+          }}>
+          <Text style={{ color: theme.primary, fontSize: 9, fontWeight: '900', textAlign: 'center' }}>
+            {selectedLanguage === 'tr' ? 'BAĞLI CÜZDANI TARAMA ALANINA AKTAR' : 'USE CONNECTED WALLET FOR SCAN'}
+          </Text>
+        </TouchableOpacity> : null}
     </View>
     {profileMenuOpen ?
       <View style={{ backgroundColor: theme.inputBg, borderColor: theme.borderCol, borderWidth: 1, borderRadius: 10, padding: 8, marginBottom: 10 }}>
