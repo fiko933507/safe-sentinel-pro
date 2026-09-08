@@ -3603,15 +3603,15 @@ function App() {
     try {
       RateLimiterGuard.checkLimit('check-wallet');
       const backendNetwork = selectedNetwork === "eth" ? "ethereum" : selectedNetwork;
-      const response = await api.post(`/api/check-wallet`, {
+      const response = await requestWithBackendRecovery(() => api.post(`/api/check-wallet`, {
         network: backendNetwork,
         address: cleanAddr
       }, {
         headers: {
           ...SecurityScannerMiddleware.auditHeaders
         },
-        timeout: 15000
-      });
+        timeout: 30000
+      }));
 
       if (response.data && response.data.success) {
         setApiOnline(true);
