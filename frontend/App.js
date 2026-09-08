@@ -3839,7 +3839,7 @@ function App() {
       return;
     }
 
-    if (securityListContains(whitelist, cleanAddr, targetNetwork)) {
+    if (securityListContains(whitelist, cleanAddr, selectedNetwork)) {
       setQueryWarning("");
       enqueueApiRequest(() => executeCheck(cleanAddr));
       return;
@@ -3856,7 +3856,7 @@ function App() {
   };
 
   const executeCheck = async (cleanAddr) => {
-    if (securityListContains(blacklist, cleanAddr, targetNetwork)) {
+    if (securityListContains(blacklist, cleanAddr, selectedNetwork)) {
       setQueryWarning(t("runtimeBlacklistWarning"));
       setCurrentBalanceText(t("runtimeBlockedRisk"));
       setTransactionHistory([]);
