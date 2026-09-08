@@ -16,48 +16,697 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+
+      - uses: actions/setup-node@v4
         with:
-          python-version: '3.12'
-      - name: Apply remaining smoke-test fixes
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Apply consolidated production hardening
         run: |
           python - <<'PY'
           from pathlib import Path
+
+          def replace_once(text, old, new, label):
+              if old not in text:
+                  raise SystemExit(f'Missing expected pattern: {label}')
+              return text.replace(old, new, 1)
+
+          # ------------------------------------------------------------
+          # Frontend / Reown networks
+          # ------------------------------------------------------------
+          cfg_path = Path('frontend/AppKitConfig.js')
+          cfg = cfg_path.read_text(encoding='utf-8-sig')
+
+          if 'const base = {' not in cfg:
+              cfg = replace_once(
+                  cfg,
+                  "const networks = [\n  ethereum,\n  polygon,\n  arbitrum,\n  bsc,\n  avalanche,\n];",
+                  """const base = {
+  id: 8453,
+  name: 'Base',
+  nativeCurrency: {
+    name: 'Ether',
+    symbol: 'ETH',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://base-rpc.publicnode.com'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'BaseScan',
+      url: 'https://basescan.org',
+    },
+  },
+  chainNamespace: 'eip155',
+  caipNetworkId: 'eip155:8453',
+};
+
+const optimism = {
+  id: 10,
+  name: 'Optimism',
+  nativeCurrency: {
+    name: 'Ether',
+    symbol: 'ETH',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://optimism-rpc.publicnode.com'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Optimistic Etherscan',
+      url: 'https://optimistic.etherscan.io',
+    },
+  },
+  chainNamespace: 'eip155',
+  caipNetworkId: 'eip155:10',
+};
+
+const networks = [
+  ethereum,
+  polygon,
+  arbitrum,
+  bsc,
+  avalanche,
+  base,
+  optimism,
+];""",
+                  'AppKit network list'
+              )
+
+          cfg_path.write_text(cfg, encoding='utf-8')
+
+          # ------------------------------------------------------------
+          # Frontend App.js
+          # ------------------------------------------------------------
           p = Path('frontend/App.js')
           s = p.read_text(encoding='utf-8')
 
-          # Hide dashboard tools that failed real-device live-data validation.
-          s = s.replace('''            [t("dashboardPortfolio"), t("dashboardViewVaultAssets"), "portfolioView"],\n            [t("dashboardGasOptimization"), t("dashboardCompareNetworkFees"), "gasOptView"],\n            [t("dashboardPriceAlert"), t("dashboardTrackTargetPrices"), "priceAlertsView"],\n            [t("toolTitleAiMarket"), t("dashboardMarketSentimentAnalysis"), "aiMarketView"]].''', '''            [t("dashboardPortfolio"), t("dashboardViewVaultAssets"), "portfolioView"],\n            [t("dashboardPriceAlert"), t("dashboardTrackTargetPrices"), "priceAlertsView"]].''')
+          # Live FX support instead of hard-coded TRY/EUR/etc conversion only.
+          s = replace_once(
+              s,
+              "const v26FormatCurrency = (usdValue, currencyCode = 'USD') => {",
+              "const v26FormatCurrency = (usdValue, currencyCode = 'USD', exchangeRates = V26_EXCHANGE_RATES_FROM_USD) => {",
+              'currency formatter signature'
+          )
+          s = replace_once(
+              s,
+              "Number(V26_EXCHANGE_RATES_FROM_USD[currency.code]) || 1;",
+              "Number(exchangeRates?.[currency.code] ?? V26_EXCHANGE_RATES_FROM_USD[currency.code]) || 1;",
+              'currency formatter rate source'
+          )
+          s = replace_once(
+              s,
+              "  const [selectedCurrency, setSelectedCurrency] = useState('TRY');",
+              "  const [selectedCurrency, setSelectedCurrency] = useState('TRY');\n  const [liveExchangeRates, setLiveExchangeRates] = useState(V26_EXCHANGE_RATES_FROM_USD);\n  const [fxRateUpdatedAt, setFxRateUpdatedAt] = useState(null);",
+              'FX state'
+          )
+          s = replace_once(
+              s,
+              "  const formatCurrency = (usdValue) =>\n  v26FormatCurrency(usdValue, selectedCurrency);",
+              "  const formatCurrency = (usdValue) =>\n  v26FormatCurrency(usdValue, selectedCurrency, liveExchangeRates);",
+              'formatCurrency live rates'
+          )
 
-          s = s.replace('''              {[\n            ["Guardian", t("dashboardSecurityCircle"), "guardianView", t("dashboardAvailable")],\n            [t("dashboardCryptoInheritance"), "Dead Man's Switch", "inheritView", t("dashboardAvailable")]].''', '''              {[\n            ["Guardian", t("dashboardSecurityCircle"), "guardianView", t("dashboardAvailable")]].''')
+          health_block = """  useEffect(() => {
+    checkBackendHealth();
+    const healthTimer = setInterval(checkBackendHealth, 60000);
+    return () => clearInterval(healthTimer);
+  }, [checkBackendHealth]);"""
+          if 'const fetchLiveExchangeRates = useCallback' not in s:
+              s = replace_once(
+                  s,
+                  health_block,
+                  health_block + """
 
-          # Keep back action away from the physical right edge on compact phones.
-          s = s.replace("paddingHorizontal: 8, marginLeft: 8, flexShrink: 0 }]}", "paddingHorizontal: 8, marginLeft: 8, marginRight: 8, flexShrink: 0 }]}")
+  const fetchLiveExchangeRates = useCallback(async () => {
+    try {
+      const response = await api.get('/api/fx-rates', { timeout: 12000 });
+      const rates = response?.data?.rates;
+      if (response?.data?.success && rates && typeof rates === 'object') {
+        setLiveExchangeRates((current) => ({ ...current, ...rates, USD: 1 }));
+        setFxRateUpdatedAt(response?.data?.updatedAt || new Date().toISOString());
+      }
+    } catch (error) {
+      console.warn('[FX] Live rates unavailable, keeping last known/fallback rates:', error?.message || error);
+    }
+  }, []);
 
-          # Human-readable behavioral signal labels instead of raw engine codes.
-          old = """                                • {typeof signal === 'string' ?\n                    signal :\n                    JSON.stringify(signal)}"""
-          new = """                                • {typeof signal === 'string' ?\n                    ({\n                      MANY_INCOMING_SOURCES: selectedLanguage === 'tr' ? 'Çok sayıda kaynaktan fon girişi' : 'Funds received from many sources',\n                      COLLECTION_PATTERN: selectedLanguage === 'tr' ? 'Fon toplama davranışı' : 'Fund collection pattern',\n                      MANY_OUTGOING_DESTINATIONS: selectedLanguage === 'tr' ? 'Çok sayıda hedefe fon çıkışı' : 'Funds sent to many destinations',\n                      DISTRIBUTION_PATTERN: selectedLanguage === 'tr' ? 'Fon dağıtım davranışı' : 'Fund distribution pattern',\n                      HIGH_ACTIVITY: selectedLanguage === 'tr' ? 'Yüksek işlem aktivitesi' : 'High transaction activity',\n                      FAILED_TRANSACTIONS: selectedLanguage === 'tr' ? 'Başarısız işlem sinyali' : 'Failed transaction signal'\n                    }[signal] || signal.replaceAll('_', ' ')) :\n                    JSON.stringify(signal)}"""
-          if old in s:
-              s = s.replace(old, new, 1)
+  useEffect(() => {
+    fetchLiveExchangeRates();
+    const timer = setInterval(fetchLiveExchangeRates, 15 * 60 * 1000);
+    return () => clearInterval(timer);
+  }, [fetchLiveExchangeRates]);""",
+                  'live FX effect'
+              )
 
-          # Legacy tool metadata should match production wording even when reused later.
-          s = s.replace('title: "AI Davranış"', 'title: "Davranış Analizi"')
-          s = s.replace('title: "Gas Optimizasyonu"', 'title: "Ağ İşlem Ücretleri"')
-          s = s.replace('subtitle: "Kasa varlıklarını görüntüle"', 'subtitle: "Taranan cüzdan varlıklarını görüntüle"')
+          # Reown: expose all backend-supported EVM chains in scanner mapping.
+          s = replace_once(
+              s,
+              """    const chainToNetwork = {
+      1: 'eth',
+      56: 'bsc',
+      137: 'polygon',
+      42161: 'arb',
+      43114: 'avax'
+    };""",
+              """    const chainToNetwork = {
+      1: 'eth',
+      10: 'optimism',
+      56: 'bsc',
+      137: 'polygon',
+      8453: 'base',
+      42161: 'arb',
+      43114: 'avax'
+    };""",
+              'connected wallet chain mapping'
+          )
+          s = s.replace(
+              "? (selectedLanguage === 'tr' ? 'YÖNET' : 'MANAGE')",
+              "? (selectedLanguage === 'tr' ? 'CÜZDAN DEĞİŞTİR' : 'CHANGE WALLET')",
+              1
+          )
+
+          # Safe-area / status-bar spacing on compact Android devices.
+          s = s.replace(
+              "paddingTop: Math.max(8, insets.top + 4)",
+              "paddingTop: Math.max(16, insets.top + 12)",
+              1
+          )
+          s = replace_once(
+              s,
+              '<ScrollView contentContainerStyle={styles.dashboardContainer} showsVerticalScrollIndicator={false}>',
+              '<ScrollView contentContainerStyle={[styles.dashboardContainer, { paddingTop: Math.max(14, insets.top + 10) }]} showsVerticalScrollIndicator={false}>',
+              'dashboard safe-area spacing'
+          )
+
+          # Smart-contract validation messages must follow selected language.
+          s = replace_once(
+              s,
+              '      "Lütfen analiz edilecek geçerli bir akıllı sözleşme adresi girin."',
+              "      selectedLanguage === 'tr' ? 'Lütfen analiz edilecek geçerli bir akıllı sözleşme adresi girin.' : 'Enter a valid smart contract address to analyze.'",
+              'contract missing address i18n'
+          )
+          s = replace_once(
+              s,
+              '      "Akıllı sözleşme adresi 0x ile başlayan geçerli bir EVM adresi olmalıdır."',
+              "      selectedLanguage === 'tr' ? 'Akıllı sözleşme adresi 0x ile başlayan geçerli bir EVM adresi olmalıdır.' : 'The smart contract address must be a valid EVM address beginning with 0x.'",
+              'contract invalid address i18n'
+          )
+
+          # Guardian wallet validation and i18n.
+          guardian_old = """    if (!cleanAddr) {
+      Alert.alert(
+        'Guardian',
+        'Guardian analizi için geçerli bir cüzdan adresi girin.'
+      );
+      return;
+    }"""
+          guardian_new = """    if (!cleanAddr || !validateAddressFormat(selectedNetwork, cleanAddr)) {
+      Alert.alert(
+        'Guardian',
+        selectedLanguage === 'tr'
+          ? `Guardian analizi için ${NETWORKS[selectedNetwork]?.name || selectedNetwork} ağına uygun geçerli bir cüzdan adresi girin.`
+          : `Enter a valid wallet address for ${NETWORKS[selectedNetwork]?.name || selectedNetwork} before running Guardian analysis.`
+      );
+      return;
+    }"""
+          s = replace_once(s, guardian_old, guardian_new, 'Guardian address validation')
+
+          # Behavioral-analysis language/format normalization.
+          level_old = """      const levelText =
+      level === "critical" ?
+      "Kritik" :
+      level === "high" ?
+      "Yüksek" :
+      level === "medium" ?
+      "Orta" :
+      level === "low" ?
+      "Düşük" :
+      "Belirlenemedi";"""
+          level_new = """      const levelText =
+      selectedLanguage === 'tr' ?
+      (level === "critical" ? "Kritik" : level === "high" ? "Yüksek" : level === "medium" ? "Orta" : level === "low" ? "Düşük" : "Belirlenemedi") :
+      (level === "critical" ? "Critical" : level === "high" ? "High" : level === "medium" ? "Medium" : level === "low" ? "Low" : "Unknown");"""
+          s = replace_once(s, level_old, level_new, 'behavior risk level i18n')
+
+          s = replace_once(
+              s,
+              """      const failedRatioText =
+      failedRatio === null ?
+      "Belirlenemedi" :
+      `%${(failedRatio * 100).toFixed(1)}`;""",
+              """      const failedRatioText =
+      failedRatio === null ?
+      (selectedLanguage === 'tr' ? "Belirlenemedi" : "Unknown") :
+      (() => {
+        const value = Number((failedRatio * 100).toFixed(1));
+        return selectedLanguage === 'tr' ? `%${value}` : `${value}%`;
+      })();""",
+              'behavior percent formatting'
+          )
+
+          reasons_old = """      const reasons =
+      Array.isArray(risk.reasons) ?
+      risk.reasons.filter(Boolean) :
+      [];"""
+          reasons_new = """      const behaviorReasonTranslations = {
+        'Cüzdan 24 saatten daha yeni.': 'Wallet is less than 24 hours old.',
+        'Cüzdan çok yeni oluşturulmuş.': 'Wallet was created very recently.',
+        'Cüzdan son 7 gün içinde oluşturulmuş.': 'Wallet was created within the last 7 days.',
+        'Cüzdan 30 günden daha yeni.': 'Wallet is less than 30 days old.',
+        'İncelenen zaman penceresinde işlem geçmişi bulunamadı.': 'No transaction history was found in the analyzed time window.',
+        'Cüzdanda başarısız işlemler bulundu.': 'Failed transactions were found in the wallet history.',
+        'Fon girişlerinden sonra birden fazla adrese dağıtım davranışı gözlendi.': 'Funds were distributed to multiple addresses after incoming transfers.',
+        'Birden fazla adresten yoğun fon toplama davranışı gözlendi.': 'A concentrated fund-collection pattern from multiple addresses was observed.',
+        'Mevcut zincir verilerinde belirgin risk sinyali bulunmadı.': 'No significant risk signal was found in the available on-chain data.'
+      };
+
+      const reasons =
+      Array.isArray(risk.reasons) ?
+      risk.reasons.filter(Boolean).map((reason) =>
+        selectedLanguage === 'tr' ? reason : (behaviorReasonTranslations[String(reason)] || String(reason))
+      ) :
+      [];"""
+          s = replace_once(s, reasons_old, reasons_new, 'behavior reasons i18n')
+
+          s = s.replace(
+              '        "Bu endpoint kapsamında hesaplanmadı",',
+              "        selectedLanguage === 'tr' ? 'Bu endpoint kapsamında hesaplanmadı' : 'Not calculated by this endpoint',",
+              1
+          )
+          s = s.replace(
+              '        "Risk sinyali bulundu" :\n        "Açık mixer sinyali bulunmadı",',
+              "        (selectedLanguage === 'tr' ? 'Risk sinyali bulundu' : 'Risk signal found') :\n        (selectedLanguage === 'tr' ? 'Açık mixer sinyali bulunmadı' : 'No explicit mixer signal found'),",
+              1
+          )
+          s = s.replace(
+              '        "Risk sinyali bulundu" :\n        "Belirgin bot sinyali bulunmadı",',
+              "        (selectedLanguage === 'tr' ? 'Risk sinyali bulundu' : 'Risk signal found') :\n        (selectedLanguage === 'tr' ? 'Belirgin bot sinyali bulunmadı' : 'No significant bot signal found'),",
+              1
+          )
+          s = s.replace(
+              "        risk.network ||\n        data.network ||\n        backendNetwork,",
+              "        String(risk.network || data.network || backendNetwork || '').toUpperCase(),",
+              1
+          )
+
+          # Transfer Shield should not mix Turkish result strings into English UI.
+          transfer_old = """      const inWhitelist = securityListContains(whitelist, cleanRecipient, selectedNetwork);
+      const inBlacklist = securityListContains(blacklist, cleanRecipient, selectedNetwork);
+      const riskLevel = inBlacklist ? "Çok Yüksek" : matched ? "Çok Yüksek" : inWhitelist ? "Liste Onaylı" : "Belirlenemedi";
+      const actionTaken = inBlacklist ?
+      "Bu adres kişisel Blacklist listenizde. Transferi göndermeden önce adresi yeniden doğrulayın." :
+      matched ?
+      "Bu adres scam istihbaratında eşleşti. Transferi göndermeden önce durdurun ve adresi tekrar doğrulayın." :
+      inWhitelist ?
+      "Bu adres kişisel Whitelist listenizde. Whitelist kaydı zincir üstü güvenlik garantisi değildir." :
+      "Adres mevcut scam istihbaratıyla eşleşmedi. Bu sonuç adresin tamamen güvenli olduğu anlamına gelmez.";"""
+          transfer_new = """      const inWhitelist = securityListContains(whitelist, cleanRecipient, selectedNetwork);
+      const inBlacklist = securityListContains(blacklist, cleanRecipient, selectedNetwork);
+      const riskLevel = selectedLanguage === 'tr'
+        ? (inBlacklist || matched ? 'Çok Yüksek' : inWhitelist ? 'Whitelist Kaydı' : 'Belirlenemedi')
+        : (inBlacklist || matched ? 'Very High' : inWhitelist ? 'Whitelisted' : 'Unknown');
+      const actionTaken = selectedLanguage === 'tr'
+        ? (inBlacklist
+            ? 'Bu adres kişisel Blacklist listenizde. Transferi göndermeden önce adresi yeniden doğrulayın.'
+            : matched
+            ? 'Bu adres scam istihbaratında eşleşti. Transferi göndermeden önce durdurun ve adresi tekrar doğrulayın.'
+            : inWhitelist
+            ? 'Bu adres kişisel Whitelist listenizde. Whitelist kaydı zincir üstü güvenlik garantisi değildir.'
+            : 'Adres mevcut scam istihbaratıyla eşleşmedi. Bu sonuç adresin tamamen güvenli olduğu anlamına gelmez.')
+        : (inBlacklist
+            ? 'This address is in your personal Blacklist. Verify the destination again before sending.'
+            : matched
+            ? 'This address matched scam intelligence. Stop and verify the destination before sending.'
+            : inWhitelist
+            ? 'This address is in your personal Whitelist. A whitelist entry is not an on-chain security guarantee.'
+            : 'No match was found in current scam intelligence. This does not guarantee that the address is safe.');"""
+          s = replace_once(s, transfer_old, transfer_new, 'Transfer Shield i18n')
+
+          s = replace_once(
+              s,
+              """        status: inBlacklist ? "⚠️ BLACKLIST UYARISI" : matched ?
+        "⚠️ YÜKSEK RİSK" : inWhitelist ? "WHITELIST KAYDI" :
+        "SCAM EŞLEŞMESİ YOK",""",
+              """        status: selectedLanguage === 'tr'
+          ? (inBlacklist ? '⚠️ BLACKLIST UYARISI' : matched ? '⚠️ YÜKSEK RİSK' : inWhitelist ? 'WHITELIST KAYDI' : 'SCAM EŞLEŞMESİ YOK')
+          : (inBlacklist ? '⚠️ BLACKLIST WARNING' : matched ? '⚠️ HIGH RISK' : inWhitelist ? 'WHITELIST ENTRY' : 'NO SCAM MATCH'),""",
+              'Transfer Shield status i18n'
+          )
+          s = s.replace(
+              '        "Belirtilmedi",',
+              "        selectedLanguage === 'tr' ? 'Belirtilmedi' : 'Not specified',",
+              1
+          )
+
+          # Login/register should refresh authoritative server-side lists and notifications.
+          login_anchor = """      setName(user.name || '');
+      setEmail(user.email || cleanEmail);
+      setUserStatus(user.status || 'free');
+      setQueryCount(0);"""
+          if 'await syncSecurityAddressLists();\n      await loadCentralNotifications();' not in s:
+              s = replace_once(
+                  s,
+                  login_anchor,
+                  login_anchor + """
+      await syncSecurityAddressLists();
+      await loadCentralNotifications();""",
+                  'login list/notification refresh'
+              )
+
+          registration_anchor = """      setUserStatus(user.status || 'free');
+      setQueryCount(0);
+
+      if (cleanVaultAddress) {"""
+          if s.count('await syncSecurityAddressLists();') < 2:
+              s = replace_once(
+                  s,
+                  registration_anchor,
+                  """      setUserStatus(user.status || 'free');
+      setQueryCount(0);
+      await syncSecurityAddressLists();
+      await loadCentralNotifications();
+
+      if (cleanVaultAddress) {""",
+                  'registration list/notification refresh'
+              )
+
+          # Surface list API failures instead of silently swallowing them.
+          s = replace_once(
+              s,
+              """    } catch (e) { handleIsolatedError('Whitelist Ekleme', e); }
+  };""",
+              """    } catch (e) {
+      handleIsolatedError('Whitelist Ekleme', e);
+      const serverError = e?.response?.data?.error;
+      Alert.alert(
+        t('commonErrorTitle'),
+        selectedLanguage === 'tr'
+          ? (serverError === 'Invalid address' ? 'Adres biçimi seçili ağ için geçersiz.' : serverError === 'Network not supported' ? 'Bu ağ Whitelist tarafından desteklenmiyor.' : 'Whitelist kaydı sunucuya eklenemedi. Lütfen tekrar deneyin.')
+          : (serverError === 'Invalid address' ? 'The address is invalid for the selected network.' : serverError === 'Network not supported' ? 'This network is not supported by Whitelist.' : 'The Whitelist entry could not be saved to the server. Please try again.')
+      );
+      await syncSecurityAddressLists();
+    }
+  };""",
+              'Whitelist error feedback'
+          )
+          s = replace_once(
+              s,
+              """    } catch (e) { handleIsolatedError('Blacklist Ekleme', e); }
+  };""",
+              """    } catch (e) {
+      handleIsolatedError('Blacklist Ekleme', e);
+      const serverError = e?.response?.data?.error;
+      Alert.alert(
+        t('commonErrorTitle'),
+        selectedLanguage === 'tr'
+          ? (serverError === 'Invalid address' ? 'Adres biçimi seçili ağ için geçersiz.' : serverError === 'Network not supported' ? 'Bu ağ Blacklist tarafından desteklenmiyor.' : 'Blacklist kaydı sunucuya eklenemedi. Lütfen tekrar deneyin.')
+          : (serverError === 'Invalid address' ? 'The address is invalid for the selected network.' : serverError === 'Network not supported' ? 'This network is not supported by Blacklist.' : 'The Blacklist entry could not be saved to the server. Please try again.')
+      );
+      await syncSecurityAddressLists();
+    }
+  };""",
+              'Blacklist error feedback'
+          )
+
+          # Refresh central notification center immediately after list mutations.
+          s = s.replace(
+              "      await syncSecurityAddressLists();\n      Alert.alert(t('commonSuccessTitle'), t('whitelistAdded'));",
+              "      await syncSecurityAddressLists();\n      await loadCentralNotifications();\n      Alert.alert(t('commonSuccessTitle'), t('whitelistAdded'));",
+              1
+          )
+          s = s.replace(
+              "      await syncSecurityAddressLists();\n      Alert.alert(t('commonSuccessTitle'), t('blacklistRiskAdded'));",
+              "      await syncSecurityAddressLists();\n      await loadCentralNotifications();\n      Alert.alert(t('commonSuccessTitle'), t('blacklistRiskAdded'));",
+              1
+          )
+          s = s.replace(
+              "      await syncSecurityAddressLists();\n      Alert.alert(t('commonSuccessTitle'), t('whitelistRemoved'));",
+              "      await syncSecurityAddressLists();\n      await loadCentralNotifications();\n      Alert.alert(t('commonSuccessTitle'), t('whitelistRemoved'));",
+              1
+          )
+          s = s.replace(
+              "      await syncSecurityAddressLists();\n      Alert.alert(t('commonSuccessTitle'), t('blacklistRemoved'));",
+              "      await syncSecurityAddressLists();\n      await loadCentralNotifications();\n      Alert.alert(t('commonSuccessTitle'), t('blacklistRemoved'));",
+              1
+          )
+
+          # Play Store builds must not expose direct crypto payment for digital access.
+          payment_anchor = """  const handleOneClickVipPayment = async () => {
+    try {"""
+          if 'Direct crypto VIP payment is disabled in the Google Play build.' not in s:
+              s = replace_once(
+                  s,
+                  payment_anchor,
+                  """  const handleOneClickVipPayment = async () => {
+    if (IS_PLAY_STORE_BUILD) {
+      Alert.alert(
+        selectedLanguage === 'tr' ? 'VIP Satın Alma' : 'VIP Purchase',
+        selectedLanguage === 'tr'
+          ? 'Google Play sürümünde dijital üyelik için doğrudan kripto ödeme kullanılmaz. Uyumlu uygulama içi satın alma akışı etkinleştirildiğinde burada sunulacaktır.'
+          : 'Direct crypto payment is not used for digital membership in the Google Play build. A compliant in-app purchase flow will be shown here when enabled.'
+      );
+      return;
+    }
+    try {""",
+                  'Play Store VIP payment guard'
+              )
 
           p.write_text(s, encoding='utf-8')
+
+          # ------------------------------------------------------------
+          # Backend: live FX + central list notifications
+          # ------------------------------------------------------------
+          bp = Path('backend/src/server.js')
+          b = bp.read_text(encoding='utf-8')
+
+          if "app.get('/api/fx-rates'" not in b:
+              live_gas_anchor = "app.get('/api/live-gas-fees',auth,async(_,res)=>{"
+              fx_endpoint = r"""
+const FX_CACHE_TTL_MS = 15 * 60 * 1000;
+let fxRateCache = {
+  updatedAt: 0,
+  rates: null
+};
+
+app.get('/api/fx-rates', auth, async (_req, res) => {
+  const now = Date.now();
+
+  if (
+    fxRateCache.rates &&
+    now - fxRateCache.updatedAt < FX_CACHE_TTL_MS
+  ) {
+    return res.json({
+      success: true,
+      source: 'FRANKFURTER_ECB_CACHE',
+      updatedAt: new Date(fxRateCache.updatedAt).toISOString(),
+      rates: fxRateCache.rates
+    });
+  }
+
+  try {
+    const response = await fetch(
+      'https://api.frankfurter.app/latest?from=USD&to=EUR,GBP,TRY,JPY,CNY',
+      { headers: { accept: 'application/json' } }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Frankfurter HTTP ${response.status}`);
+    }
+
+    const payload = await response.json();
+    const incoming = payload?.rates || {};
+    const rates = {
+      USD: 1,
+      EUR: Number(incoming.EUR),
+      GBP: Number(incoming.GBP),
+      TRY: Number(incoming.TRY),
+      JPY: Number(incoming.JPY),
+      CNY: Number(incoming.CNY)
+    };
+
+    for (const [code, value] of Object.entries(rates)) {
+      if (!Number.isFinite(value) || value <= 0) {
+        throw new Error(`Invalid FX rate for ${code}`);
+      }
+    }
+
+    fxRateCache = {
+      updatedAt: now,
+      rates
+    };
+
+    return res.json({
+      success: true,
+      source: 'FRANKFURTER_ECB',
+      updatedAt: new Date(now).toISOString(),
+      rates
+    });
+  } catch (error) {
+    console.error('[FX] live rate fetch failed:', error?.message || error);
+
+    if (fxRateCache.rates) {
+      return res.json({
+        success: true,
+        stale: true,
+        source: 'FRANKFURTER_ECB_STALE_CACHE',
+        updatedAt: new Date(fxRateCache.updatedAt).toISOString(),
+        rates: fxRateCache.rates
+      });
+    }
+
+    return res.status(503).json({
+      success: false,
+      error: 'Live FX rates unavailable'
+    });
+  }
+});
+
+"""
+              if live_gas_anchor not in b:
+                  raise SystemExit('Missing backend live gas anchor for FX endpoint')
+              b = b.replace(live_gas_anchor, fx_endpoint + live_gas_anchor, 1)
+
+          if 'const createAddressListNotification=' not in b:
+              event_anchor = """  const createAddressListEvent=(req,userId,eventType,success,details={})=>
+    securityEvent(req,{
+      userId,
+      eventType,
+      severity:success?'INFO':'WARNING',
+      success,
+      details
+    });"""
+              event_replacement = event_anchor + r"""
+
+  const createAddressListNotification=async({userId,type,network,address,resourceId})=>{
+    try{
+      const isWhitelist=type.startsWith('WHITELIST');
+      const isAdd=type.endsWith('_ADD');
+      const title=isWhitelist
+        ? (isAdd ? 'Whitelist Güncellendi' : 'Whitelist Kaydı Kaldırıldı')
+        : (isAdd ? 'Blacklist Güncellendi' : 'Blacklist Kaydı Kaldırıldı');
+      const body=isWhitelist
+        ? (isAdd
+            ? `${network.toUpperCase()} ağındaki ${address} adresi Whitelist listenize eklendi.`
+            : `${network.toUpperCase()} ağındaki ${address} adresi Whitelist listenizden kaldırıldı.`)
+        : (isAdd
+            ? `${network.toUpperCase()} ağındaki ${address} adresi Blacklist listenize eklendi.`
+            : `${network.toUpperCase()} ağındaki ${address} adresi Blacklist listenizden kaldırıldı.`);
+
+      await db.notification.create({
+        data:{
+          userId,
+          type,
+          severity:isWhitelist?'INFO':'WARNING',
+          title,
+          body,
+          eventKey:`${type}:${userId}:${resourceId}`,
+          network,
+          resourceId
+        }
+      });
+    }catch(error){
+      if(error?.code!=='P2002'){
+        console.error('[ADDRESS LIST NOTIFICATION] write failed:',error?.message||error);
+      }
+    }
+  };"""
+              b = replace_once(b, event_anchor, event_replacement, 'address list notification helper')
+
+          additions = [
+              ("""      await createAddressListEvent(req,req.user.id,'WHITELIST_ADD',true,{
+        id:row.id,
+        network,
+        address
+      });""",
+               """      await createAddressListEvent(req,req.user.id,'WHITELIST_ADD',true,{
+        id:row.id,
+        network,
+        address
+      });
+      await createAddressListNotification({userId:req.user.id,type:'WHITELIST_ADD',network,address,resourceId:row.id});"""),
+              ("""      await createAddressListEvent(req,req.user.id,'WHITELIST_REMOVE',true,{
+        id:existing.id,
+        network:existing.network,
+        address:existing.address
+      });""",
+               """      await createAddressListEvent(req,req.user.id,'WHITELIST_REMOVE',true,{
+        id:existing.id,
+        network:existing.network,
+        address:existing.address
+      });
+      await createAddressListNotification({userId:req.user.id,type:'WHITELIST_REMOVE',network:existing.network,address:existing.address,resourceId:existing.id});"""),
+              ("""      await createAddressListEvent(req,req.user.id,'BLACKLIST_ADD',true,{
+        id:row.id,
+        network,
+        address
+      });""",
+               """      await createAddressListEvent(req,req.user.id,'BLACKLIST_ADD',true,{
+        id:row.id,
+        network,
+        address
+      });
+      await createAddressListNotification({userId:req.user.id,type:'BLACKLIST_ADD',network,address,resourceId:row.id});"""),
+              ("""      await createAddressListEvent(req,req.user.id,'BLACKLIST_REMOVE',true,{
+        id:existing.id,
+        network:existing.network,
+        address:existing.address
+      });""",
+               """      await createAddressListEvent(req,req.user.id,'BLACKLIST_REMOVE',true,{
+        id:existing.id,
+        network:existing.network,
+        address:existing.address
+      });
+      await createAddressListNotification({userId:req.user.id,type:'BLACKLIST_REMOVE',network:existing.network,address:existing.address,resourceId:existing.id});""")
+          ]
+          for old, new in additions:
+              if new not in b:
+                  b = replace_once(b, old, new, 'address list notification call')
+
+          bp.write_text(b, encoding='utf-8')
           PY
-      - name: Syntax check
-        run: node --check frontend/App.js
-      - name: Commit hardening changes
+
+      - name: JavaScript syntax checks
+        run: |
+          node --check frontend/App.js
+          node --check frontend/AppKitConfig.js
+          node --check backend/src/server.js
+
+      - name: Backend install and validation
+        working-directory: backend
+        run: |
+          npm ci
+          npx prisma generate --schema ./schema.prisma
+          npx prisma validate --schema ./schema.prisma
+          npm test --if-present
+
+      - name: Frontend install and audits
+        working-directory: frontend
+        run: |
+          npm ci
+          npx expo install --check
+          node scripts/i18n-audit.mjs
+          node scripts/release-audit.mjs
+
+      - name: Commit consolidated hardening
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add frontend/App.js
+          git add frontend/App.js frontend/AppKitConfig.js backend/src/server.js
           if git diff --cached --quiet; then
             echo "No changes to commit"
             exit 0
           fi
-          git commit -m "Finish real-device smoke-test hardening"
+          git commit -m "Consolidate real-device production hardening"
           git pull --rebase origin main
           git push origin HEAD:main
