@@ -4592,109 +4592,249 @@ function App() {
 
   if (currentScreen === 'login') {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
-        <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
-        <View style={[styles.card, { backgroundColor: theme.cardBg, alignItems: 'center', paddingVertical: 22, paddingHorizontal: 18, width: '100%', maxWidth: 430, alignSelf: 'center', marginTop: 36, borderRadius: 18, borderWidth: 1, borderColor: theme.borderCol }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.bg, paddingHorizontal: 0 }]}>
+        <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={theme.bg} />
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingHorizontal: 22,
+            paddingTop: 18,
+            paddingBottom: 22
+          }}>
 
-          <View style={{ width: '100%', alignItems: 'center', marginBottom: 12 }}>
-            <Image
-              source={require('./assets/yenilogo.png')}
-              style={{ width: 150, height: 108, borderRadius: 18 }}
-              resizeMode="contain" />
-
-          </View>
-
-          <Text style={{ color: theme.primary, fontSize: 22, fontWeight: '900', textAlign: 'center', marginBottom: 8, letterSpacing: 0.9 }}>SAFE SENTINEL PRO</Text>
-
-          <View style={{ width: '100%', marginBottom: 14 }}>
-            <Text style={{
-              color: theme.textSub,
-              fontSize: 10,
-              fontWeight: '700',
-              marginBottom: 7,
-              textAlign: 'center'
-            }}>
-              {t('language')}
-            </Text>
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{
-                paddingHorizontal: 2,
-                alignItems: 'center'
+          <View style={{ width: '100%', maxWidth: 440, alignItems: 'center', alignSelf: 'center' }}>
+            <View
+              style={{
+                width: 190,
+                height: 190,
+                borderRadius: 38,
+                overflow: 'hidden',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#0B1522',
+                borderWidth: 1,
+                borderColor: '#20364D',
+                shadowColor: '#1597FF',
+                shadowOffset: { width: 0, height: 7 },
+                shadowOpacity: 0.28,
+                shadowRadius: 18,
+                elevation: 9,
+                marginBottom: 24
               }}>
 
+              <Image
+                source={require('./assets/yenilogo.png')}
+                style={{
+                  width: 260,
+                  height: 260,
+                  position: 'absolute',
+                  left: -35,
+                  top: -35
+                }}
+                resizeMode="cover" />
+            </View>
+
+            <Text
+              style={{
+                color: theme.textMain,
+                fontSize: 27,
+                fontWeight: '900',
+                textAlign: 'center',
+                letterSpacing: 0.6,
+                marginBottom: 8
+              }}>
+              SAFE SENTINEL <Text style={{ color: theme.primary }}>PRO</Text>
+            </Text>
+
+            <Text
+              style={{
+                color: theme.textSub,
+                fontSize: 14,
+                lineHeight: 21,
+                textAlign: 'center',
+                marginBottom: 22
+              }}>
+              {t('loginDescription')}
+            </Text>
+
+            <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 28 }}>
               {Object.entries(V26_GLOBAL_I18N).map(([code, item]) => {
                 const active = selectedLanguage === code;
-
                 return (
                   <TouchableOpacity
                     key={`login-language-${code}`}
                     onPress={() => saveGlobalLanguage(code)}
+                    activeOpacity={0.84}
                     style={{
-                      backgroundColor: active ? theme.primary : theme.inputBg,
-                      borderWidth: 1,
-                      borderColor: active ? theme.primary : theme.borderCol,
-                      borderRadius: 10,
-                      paddingHorizontal: 14,
-                      height: 38,
+                      minWidth: 112,
+                      height: 48,
+                      paddingHorizontal: 18,
+                      marginHorizontal: 5,
+                      borderRadius: 14,
                       justifyContent: 'center',
                       alignItems: 'center',
-                      marginRight: 4
+                      backgroundColor: active ? theme.primary : 'transparent',
+                      borderWidth: 1.5,
+                      borderColor: active ? theme.primary : '#39506A',
+                      shadowColor: active ? theme.primary : '#000',
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: active ? 0.22 : 0,
+                      shadowRadius: 9,
+                      elevation: active ? 4 : 0
                     }}>
-
-                    <Text style={{
-                      color: active ? '#FFFFFF' : theme.textMain,
-                      fontSize: 12,
-                      fontWeight: active ? '800' : '700'
-                    }}>
+                    <Text
+                      style={{
+                        color: active ? '#FFFFFF' : theme.textMain,
+                        fontSize: 14,
+                        fontWeight: '800'
+                      }}>
                       {item.nativeName}
                     </Text>
-                  </TouchableOpacity>);
-
+                  </TouchableOpacity>
+                );
               })}
-            </ScrollView>
+            </View>
+
+            <View style={{ width: '100%', marginBottom: 18 }}>
+              <Text style={{ color: theme.textMain, fontSize: 14, fontWeight: '800', marginBottom: 8 }}>
+                {t('emailAddress')}
+              </Text>
+              <View
+                style={{
+                  width: '100%',
+                  minHeight: 58,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: theme.inputBg,
+                  borderColor: '#39506A',
+                  borderWidth: 1.3,
+                  borderRadius: 16
+                }}>
+                <Text style={{ color: '#8FB4DA', fontSize: 19, marginLeft: 16, marginRight: 10 }}>✉</Text>
+                <TextInput
+                  style={{
+                    flex: 1,
+                    height: 58,
+                    color: theme.inputTextColor,
+                    fontSize: 15,
+                    paddingRight: 16,
+                    paddingVertical: 0,
+                    textAlignVertical: 'center'
+                  }}
+                  placeholder="ornek@mail.com"
+                  placeholderTextColor="#8190A4"
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  keyboardType="email-address" />
+              </View>
+            </View>
+
+            <View style={{ width: '100%', marginBottom: 20 }}>
+              <Text style={{ color: theme.textMain, fontSize: 14, fontWeight: '800', marginBottom: 8 }}>
+                {t('loginPassword')}
+              </Text>
+              <View
+                style={{
+                  width: '100%',
+                  minHeight: 58,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: theme.inputBg,
+                  borderColor: '#39506A',
+                  borderWidth: 1.3,
+                  borderRadius: 16
+                }}>
+                <Text style={{ color: '#8FB4DA', fontSize: 18, marginLeft: 16, marginRight: 10 }}>🔒</Text>
+                <TextInput
+                  style={{
+                    flex: 1,
+                    height: 58,
+                    color: theme.inputTextColor,
+                    fontSize: 15,
+                    paddingRight: 16,
+                    paddingVertical: 0,
+                    textAlignVertical: 'center'
+                  }}
+                  placeholder="••••••••"
+                  placeholderTextColor="#8190A4"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry />
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={{
+                width: '100%',
+                height: 58,
+                backgroundColor: theme.primary,
+                borderRadius: 16,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginBottom: 14,
+                shadowColor: theme.primary,
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.28,
+                shadowRadius: 13,
+                elevation: 8
+              }}
+              activeOpacity={0.86}
+              onPress={handleLogin}>
+              <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '900' }}>{t('secureLogin')}</Text>
+              <Text style={{ position: 'absolute', right: 22, color: '#FFFFFF', fontSize: 28, fontWeight: '300' }}>→</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                width: '100%',
+                height: 56,
+                backgroundColor: 'transparent',
+                borderWidth: 1.5,
+                borderColor: '#39506A',
+                borderRadius: 16,
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+              activeOpacity={0.82}
+              onPress={() => setCurrentScreen('register')}>
+              <Text style={{ color: theme.primary, fontWeight: '900', fontSize: 15 }}>{t('createAccount')}</Text>
+            </TouchableOpacity>
+
+            <View
+              style={{
+                width: '118%',
+                height: 110,
+                marginTop: 28,
+                borderTopWidth: 1,
+                borderTopColor: '#168CFF',
+                borderTopLeftRadius: 260,
+                borderTopRightRadius: 260,
+                alignItems: 'center',
+                paddingTop: 17
+              }}>
+              <Text style={{ color: '#168CFF', fontSize: 22, marginBottom: 8 }}>♢</Text>
+              <Text
+                style={{
+                  color: theme.textSub,
+                  fontSize: 11,
+                  fontWeight: '700',
+                  letterSpacing: 0.7,
+                  textAlign: 'center'
+                }}>
+                {selectedLanguage === 'tr'
+                  ? 'DAHA GÜVENLİ   |   DAHA BİLİNÇLİ   |   DAHA ÖZGÜR'
+                  : 'SAFER   |   SMARTER   |   FREER'}
+              </Text>
+            </View>
           </View>
-          <Text style={{ color: theme.textSub, fontSize: 11, lineHeight: 17, textAlign: 'center', marginBottom: 18 }}>{t('loginDescription')}</Text>
-
-          <View style={{ width: '100%', marginBottom: 6 }}>
-            <Text style={{ color: theme.textMain, fontSize: 12, fontWeight: '800', marginBottom: 7 }}>{t('emailAddress')}</Text>
-            <TextInput
-              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, width: '100%', height: 50, fontSize: 13, paddingHorizontal: 14, paddingVertical: 0, borderRadius: 12, textAlignVertical: 'center' }]}
-              placeholder="ornek@mail.com"
-              placeholderTextColor="#9CA3AF"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none" />
-
-          </View>
-
-          <View style={{ width: '100%', marginBottom: 8 }}>
-            <Text style={{ color: theme.textMain, fontSize: 12, fontWeight: '800', marginBottom: 7 }}>{t('loginPassword')}</Text>
-            <TextInput
-              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, width: '100%', height: 28, fontSize: 9, paddingVertical: 0, textAlignVertical: 'center' }]}
-              placeholder="••••••••"
-              placeholderTextColor="#9CA3AF"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry />
-
-          </View>
-
-          <TouchableOpacity style={[styles.button, { width: '100%', height: 48, backgroundColor: theme.primary, marginBottom: 11, borderRadius: 12, shadowColor: theme.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4, elevation: 3 }]} onPress={handleLogin}>
-            <Text style={[styles.buttonText, { fontSize: 13, fontWeight: '900' }]}>{t('secureLogin')}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.button, { width: '100%', height: 46, backgroundColor: 'transparent', borderWidth: 1.5, borderColor: theme.borderCol, borderRadius: 12 }]}
-            onPress={() => setCurrentScreen('register')}>
-
-            <Text style={{ color: theme.primary, fontWeight: '800', fontSize: 12 }}>{t('createAccount')}</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>);
-
+        </ScrollView>
+      </SafeAreaView>
+    );
   }
 
   if (currentScreen === 'register') {
@@ -8199,7 +8339,6 @@ function App() {
 
               {[
             [t("dashboardTransferShield"), t("dashboardAnalyzeOutgoing"), "outboundShieldView", t("dashboardAvailable")],
-            [t("dashboardPhishingShield"), t("dashboardScanSuspiciousLinks"), "phishingView", t("dashboardAvailable")],
             [t("dashboardAiBehavior"), t("dashboardAnalyzeWalletBehavior"), "behavioralView", t("dashboardAvailable")],
             [t("dashboardSmartContract"), t("dashboardInspectContractRisk"), "smartContractView", t("dashboardAvailable")],
             [t("dashboardRevokeCenter"), t("dashboardCheckTokenPermissions"), "revokeView", t("dashboardAvailable")]].
@@ -8303,71 +8442,7 @@ function App() {
             </View>
           </View>
 
-          {/* İSTİHBARAT */}
-          <View
-          style={{
-            backgroundColor: theme.cardBg,
-            borderColor: theme.borderCol,
-            borderWidth: 1,
-            borderRadius: 14,
-            padding: 14,
-            marginBottom: 12
-          }}>
-
-            <Text style={{ color: theme.textMain, fontSize: 14, fontWeight: "900" }}>
-              {t("dashboardIntelligenceMonitoring")}
-            </Text>
-            <Text style={{ color: theme.textSub, fontSize: 8, marginTop: 3, marginBottom: 10 }}>
-              {t("dashboardIntelligenceDescription")}
-            </Text>
-
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-              {[
-
-            ["Scam Intelligence", t("dashboardAnalyzeThreatMatches"), null, t("dashboardPlanned")],
-
-            ["Early Warning", t("dashboardEarlyThreatSignals"), null, t("dashboardPlanned")],
-            ["Wallet Behavioral Fingerprint", t("dashboardWalletBehaviorProfile"), null, t("dashboardPlanned")],
-            ["Scam DNA Engine", t("dashboardScamPatterns"), null, t("dashboardPlanned")],
-            ["Wallet Security Graph", t("dashboardAddressContractRelations"), null, t("dashboardPlanned")]].
-            map((item, index) =>
-            <TouchableOpacity
-              key={index}
-              disabled={!item[2]}
-              onPress={() => item[2] && setActiveModule(item[2])}
-              style={{
-                flex: 1,
-                minWidth: 185,
-                backgroundColor: theme.inputBg,
-                borderColor: item[3] === "PLANLANDI" ?
-                theme.borderCol :
-                theme.primary,
-                borderWidth: 1,
-                borderRadius: 9,
-                padding: 11,
-                opacity: item[3] === "PLANLANDI" ? 0.72 : 1
-              }}>
-
-                  <Text style={{ color: theme.textMain, fontSize: 11, fontWeight: "900" }}>
-                    {item[0]}
-                  </Text>
-                  <Text style={{ color: theme.textSub, fontSize: 8, marginTop: 3 }}>
-                    {item[1]}
-                  </Text>
-                  <Text
-                style={{
-                  color: item[3] === "PLANLANDI" ? theme.textSub : theme.primary,
-                  fontSize: 7,
-                  fontWeight: "900",
-                  marginTop: 9
-                }}>
-
-                    {item[3]}
-                  </Text>
-                </TouchableOpacity>
-            )}
-            </View>
-          </View>
+          {/* Production: planned/non-live intelligence cards are hidden until real data integrations are ready. */}
 
           {/* VARLIK VE FİNANS */}
           <View
