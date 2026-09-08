@@ -1,0 +1,74 @@
+name: Build Final Preview APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-final-preview-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: final-preview-apk
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: EAS signed preview APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      EXPO_PUBLIC_BACKEND_URL: https://safe-sentinel-pro-1.onrender.com
+      EXPO_PUBLIC_PLAY_STORE_BUILD: 'true'
+    steps:
+      - name: Checkout final main
+        uses: actions/checkout@v4
+
+      - name: Require EAS token
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::GitHub Actions secret EXPO_TOKEN is missing."
+            exit 1
+          fi
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.4'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
+
+      - name: Build signed preview APK with EAS
+        run: npx --yes eas-cli@latest build --platform android --profile preview --non-interactive --wait --json > eas-build.json
+
+      - name: Download and verify APK
+        run: |
+          node -e "const fs=require('fs');const data=JSON.parse(fs.readFileSync('eas-build.json','utf8'));const build=Array.isArray(data)?data[0]:data;const url=build?.artifacts?.buildUrl;if(!url)throw new Error('EAS APK URL not found');fs.writeFileSync('eas-apk-url.txt',url);"
+          curl --fail --location --retry 3 --output safe-sentinel-final-preview.apk "$(cat eas-apk-url.txt)"
+          test -s safe-sentinel-final-preview.apk
+          file safe-sentinel-final-preview.apk | grep -Eiq 'Zip archive|Android package'
+          echo "APK_SIZE_BYTES=$(wc -c < safe-sentinel-final-preview.apk)" >> "$GITHUB_ENV"
+
+      - name: Upload final APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: safe-sentinel-final-preview-${{ github.sha }}
+          path: frontend/safe-sentinel-final-preview.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Build summary
+        run: |
+          echo "## Safe Sentinel final preview APK" >> "$GITHUB_STEP_SUMMARY"
+          echo "Commit: \`${GITHUB_SHA}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Verified APK size: ${APK_SIZE_BYTES} bytes" >> "$GITHUB_STEP_SUMMARY"
+          echo "Download it from this workflow run's Artifacts section." >> "$GITHUB_STEP_SUMMARY"
