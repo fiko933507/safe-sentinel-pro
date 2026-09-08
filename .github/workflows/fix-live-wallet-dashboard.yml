@@ -1,0 +1,32 @@
+name: Fix Live Wallet Dashboard
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/scripts/fix-live-wallet-dashboard.cjs'
+      - '.github/workflows/fix-live-wallet-dashboard.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-wallet-dashboard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Apply wallet dashboard live-data patch
+        run: node .github/scripts/fix-live-wallet-dashboard.cjs
+
+      - name: Commit patched frontend
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/App.js
+          git diff --cached --quiet && exit 0
+          git commit -m "Fix live wallet dashboard balances and status"
+          git push origin main
