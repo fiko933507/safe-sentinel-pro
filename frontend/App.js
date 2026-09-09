@@ -50,6 +50,9 @@ const VIP_YEARLY_USDT =
 Number(process.env.EXPO_PUBLIC_VIP_YEARLY_USDT || 1000);
 const API_BASE_URL = BACKEND_URL;
 const IS_PLAY_STORE_BUILD = process.env.EXPO_PUBLIC_PLAY_STORE_BUILD === 'true';
+const PRIVACY_POLICY_URL = 'https://fiko933507.github.io/safe-sentinel-pro/privacy-policy.html';
+const TERMS_URL = 'https://fiko933507.github.io/safe-sentinel-pro/terms-of-use.html';
+const ACCOUNT_DELETION_URL = 'https://fiko933507.github.io/safe-sentinel-pro/account-deletion.html';
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
@@ -1424,6 +1427,7 @@ function App() {
   const [regPassword, setRegPassword] = useState('');
   const [regVaultAddress, setRegVaultAddress] = useState('');
   const [regWantVip, setRegWantVip] = useState(false);
+  const [regLegalAccepted, setRegLegalAccepted] = useState(false);
 
   const [name, setName] = useState('Fikret Bulat');
   const [userStatus, setUserStatus] = useState('free');
@@ -3326,6 +3330,16 @@ function App() {
       return;
     }
 
+    if (!regLegalAccepted) {
+      Alert.alert(
+        selectedLanguage === 'tr' ? 'Yasal Onay Gerekli' : 'Legal Acceptance Required',
+        selectedLanguage === 'tr'
+          ? 'Hesap oluşturmadan önce Kullanım Koşulları, Gizlilik Politikası ve risk bilgilendirmesini okuyup kabul etmelisiniz.'
+          : 'Before creating an account, you must read and accept the Terms of Use, Privacy Policy, and risk disclosure.'
+      );
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -3377,6 +3391,7 @@ function App() {
       setRegPassword('');
       setRegVaultAddress('');
       setRegWantVip(false);
+      setRegLegalAccepted(false);
 
       setCurrentScreen('dashboard');
       setActiveModule('dashboard');
@@ -5486,7 +5501,46 @@ function App() {
               </View>
             </View>
 
-            <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 34, borderRadius: 6, marginTop: 4 }]} onPress={handleCompleteRegistration}>
+            <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: regLegalAccepted ? '#10B981' : '#F59E0B', marginVertical: 8, padding: 10 }]}>
+              <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '800', marginBottom: 5 }}>
+                {selectedLanguage === 'tr' ? 'Önemli Risk ve Yasal Bilgilendirme' : 'Important Risk & Legal Notice'}
+              </Text>
+              <Text style={{ color: theme.textSub, fontSize: 9, lineHeight: 14 }}>
+                {selectedLanguage === 'tr'
+                  ? 'Safe Sentinel bir güvenlik ve risk analiz aracıdır. Risk skorları, Guardian uyarıları, whitelist/blacklist durumları ve tehdit analizleri kesin güvenlik garantisi değildir; yatırım, hukuk, vergi veya finansal danışmanlık oluşturmaz. Kripto işlemleri geri döndürülemez olabilir ve maddi kayıp riski taşır. İşlem öncesi adresi, ağı ve işlem ayrıntılarını bağımsız olarak doğrulayın.'
+                  : 'Safe Sentinel is a security and risk-analysis tool. Risk scores, Guardian alerts, whitelist/blacklist status, and threat analysis are not guarantees of safety and are not investment, legal, tax, or financial advice. Crypto transactions may be irreversible and involve risk of loss. Independently verify the address, network, and transaction details before acting.'}
+              </Text>
+
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 }}>
+                <TouchableOpacity onPress={() => Linking.openURL(TERMS_URL)} style={{ marginRight: 12, marginBottom: 6 }}>
+                  <Text style={{ color: theme.primary, fontSize: 9, fontWeight: '800' }}>{selectedLanguage === 'tr' ? 'Kullanım Koşulları' : 'Terms of Use'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => Linking.openURL(PRIVACY_POLICY_URL)} style={{ marginRight: 12, marginBottom: 6 }}>
+                  <Text style={{ color: theme.primary, fontSize: 9, fontWeight: '800' }}>{selectedLanguage === 'tr' ? 'Gizlilik Politikası' : 'Privacy Policy'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => Linking.openURL(ACCOUNT_DELETION_URL)} style={{ marginBottom: 6 }}>
+                  <Text style={{ color: theme.primary, fontSize: 9, fontWeight: '800' }}>{selectedLanguage === 'tr' ? 'Hesap Silme' : 'Account Deletion'}</Text>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                onPress={() => setRegLegalAccepted((current) => !current)}
+                style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, paddingVertical: 4 }}>
+                <View style={{ width: 18, height: 18, borderRadius: 4, borderWidth: 1.5, borderColor: regLegalAccepted ? '#10B981' : theme.borderCol, backgroundColor: regLegalAccepted ? '#10B981' : 'transparent', alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>
+                  <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '900' }}>{regLegalAccepted ? '✓' : ''}</Text>
+                </View>
+                <Text style={{ color: theme.textMain, fontSize: 9, lineHeight: 13, flex: 1 }}>
+                  {selectedLanguage === 'tr'
+                    ? 'Kullanım Koşulları ve Gizlilik Politikası’nı okudum; yukarıdaki risk bilgilendirmesini anladım ve kabul ediyorum.'
+                    : 'I have read the Terms of Use and Privacy Policy; I understand and accept the risk disclosure above.'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              disabled={!regLegalAccepted}
+              style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 34, borderRadius: 6, marginTop: 4, opacity: regLegalAccepted ? 1 : 0.45 }]}
+              onPress={handleCompleteRegistration}>
               <Text style={[styles.buttonText, { fontSize: 10 }]}>{t('completeRegistration')}</Text>
             </TouchableOpacity>
 
@@ -6555,6 +6609,21 @@ function App() {
                 <Text style={{ color: theme.textMain, fontSize: 11, lineHeight: 16 }}>
                   {t('policiesPrivacyBody')}
                 </Text>
+
+                <View style={{ marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.borderCol }}>
+                  <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '800', marginBottom: 8 }}>
+                    {selectedLanguage === 'tr' ? 'Yasal Belgeler' : 'Legal Documents'}
+                  </Text>
+                  <TouchableOpacity onPress={() => Linking.openURL(TERMS_URL)} style={{ paddingVertical: 5 }}>
+                    <Text style={{ color: theme.primary, fontSize: 10, fontWeight: '800' }}>{selectedLanguage === 'tr' ? 'Kullanım Koşulları ve Sorumluluk Reddi' : 'Terms of Use & Disclaimer'}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => Linking.openURL(PRIVACY_POLICY_URL)} style={{ paddingVertical: 5 }}>
+                    <Text style={{ color: theme.primary, fontSize: 10, fontWeight: '800' }}>{selectedLanguage === 'tr' ? 'Gizlilik Politikası' : 'Privacy Policy'}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => Linking.openURL(ACCOUNT_DELETION_URL)} style={{ paddingVertical: 5 }}>
+                    <Text style={{ color: theme.primary, fontSize: 10, fontWeight: '800' }}>{selectedLanguage === 'tr' ? 'Hesap ve Veri Silme' : 'Account & Data Deletion'}</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </ScrollView> :
         activeModule === 'portfolioView' ?
