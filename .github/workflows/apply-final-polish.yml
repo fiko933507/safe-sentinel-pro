@@ -1,0 +1,113 @@
+name: Apply Safe Sentinel Final Polish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-final-polish.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-final-polish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply guarded frontend polish
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          path = Path('frontend/App.js')
+          text = path.read_text(encoding='utf-8')
+          original = text
+
+          def replace_once(old, new, label):
+              global text
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected exactly 1 match, found {count}')
+              text = text.replace(old, new, 1)
+              print(f'patched: {label}')
+
+          # VIP pricing: 15 USDT monthly, 150 USDT yearly for non-Play direct crypto builds.
+          replace_once(
+              "Number(process.env.EXPO_PUBLIC_VIP_MONTHLY_USDT || 100);",
+              "Number(process.env.EXPO_PUBLIC_VIP_MONTHLY_USDT || 15);",
+              'VIP monthly price'
+          )
+          replace_once(
+              "Number(process.env.EXPO_PUBLIC_VIP_YEARLY_USDT || 1000);",
+              "Number(process.env.EXPO_PUBLIC_VIP_YEARLY_USDT || 150);",
+              'VIP yearly price'
+          )
+
+          # Transfer Shield: when an address is removed from personal blacklist, clear the stale
+          # blacklist verdict immediately without requiring another manual scan. Scam-intel risk
+          # remains blocking if the backend had independently matched the address.
+          blacklist_marker = """    setBlacklist(normalized);\n\n    await AsyncStorage.setItem(\n      '@blacklist',\n      JSON.stringify(normalized)\n    );"""
+          blacklist_replacement = """    setBlacklist(normalized);\n\n    const removedOutboundBlacklist =\n    outboundCheckResult?.listStatus === 'BLACKLIST' &&\n    String(outboundCheckResult?.recipient || '').trim().toLowerCase() ===\n    String(outboundRecipient || '').trim().toLowerCase() &&\n    !securityListContains(normalized, outboundRecipient, selectedNetwork);\n\n    if (removedOutboundBlacklist) {\n      const recipientIsWhitelisted =\n      securityListContains(whitelist, outboundRecipient, selectedNetwork);\n      const stillScamMatched = Boolean(outboundCheckResult?.scamMatched);\n\n      setOutboundCheckResult((previousResult) => ({\n        ...previousResult,\n        listStatus: recipientIsWhitelisted ? 'WHITELIST' : null,\n        status: selectedLanguage === 'tr'\n          ? (stillScamMatched\n              ? '⚠️ YÜKSEK RİSK'\n              : recipientIsWhitelisted\n              ? 'WHITELIST KAYDI'\n              : 'BLACKLIST KAYDI KALDIRILDI')\n          : (stillScamMatched\n              ? '⚠️ HIGH RISK'\n              : recipientIsWhitelisted\n              ? 'WHITELIST ENTRY'\n              : 'BLACKLIST ENTRY REMOVED'),\n        riskLevel: selectedLanguage === 'tr'\n          ? (stillScamMatched ? 'Çok Yüksek' : recipientIsWhitelisted ? 'Whitelist Kaydı' : 'Belirlenemedi')\n          : (stillScamMatched ? 'Very High' : recipientIsWhitelisted ? 'Whitelisted' : 'Unknown'),\n        actionTaken: selectedLanguage === 'tr'\n          ? (stillScamMatched\n              ? 'Kişisel blacklist kaydı kaldırıldı; ancak adres scam istihbaratında eşleşmeye devam ediyor. Transferi durdurun ve adresi bağımsız olarak doğrulayın.'\n              : recipientIsWhitelisted\n              ? 'Adres artık blacklist içinde değil ve kişisel Whitelist listenizde. Whitelist kaydı zincir üstü güvenlik garantisi değildir.'\n              : 'Adres kişisel blacklist listenizden kaldırıldı. Transfer Kalkanı artık blacklist engelini uygulamıyor; transfer öncesinde adresi ve ağı yine doğrulayın.')\n          : (stillScamMatched\n              ? 'The personal blacklist entry was removed, but the address still matches scam intelligence. Stop and independently verify the destination.'\n              : recipientIsWhitelisted\n              ? 'The address is no longer blacklisted and is in your personal Whitelist. A whitelist entry is not an on-chain security guarantee.'\n              : 'The address was removed from your personal blacklist. Transfer Shield no longer applies the blacklist block; still verify the address and network before sending.'),\n        isBlocked: stillScamMatched\n      }));\n    }\n\n    await AsyncStorage.setItem(\n      '@blacklist',\n      JSON.stringify(normalized)\n    );"""
+          replace_once(blacklist_marker, blacklist_replacement, 'Transfer Shield blacklist sync')
+
+          # Portfolio/dashboard: remove the hard-coded dollar-only display and respect the
+          # selected currency (TRY included) everywhere this legacy block appears.
+          pattern = re.compile(
+              r'\$\{portfolioUsdValue > 0 \? portfolioUsdValue\.toLocaleString\("en-US", \{\s*minimumFractionDigits: 2,\s*maximumFractionDigits: 2\s*\}\) : "--"\}'
+          )
+          text, count = pattern.subn('{portfolioUsdValue > 0 ? formatCurrency(portfolioUsdValue) : "--"}', text)
+          if count < 1:
+              raise SystemExit('Portfolio currency display: no legacy USD-only block found')
+          print(f'patched: Portfolio currency display ({count} occurrence(s))')
+
+          # Recent transactions: accept alternate backend transaction collection names and do
+          # not erase a previously valid history just because one provider temporarily returns
+          # an empty array. This keeps the UI useful during provider hiccups while preserving
+          # only real previously-fetched chain records.
+          replace_once(
+              """        const rawTxList = response.data.transactions || [];""",
+              """        const rawTxList =\n        [\n          response.data.transactions,\n          response.data.recentTransactions,\n          response.data.history,\n          response.data.transfers,\n          response.data.activity\n        ].find((candidate) => Array.isArray(candidate) && candidate.length > 0) || [];""",
+              'Recent transaction response compatibility'
+          )
+
+          replace_once(
+              """        setTransactionHistory(formattedTx);\n        await AsyncStorage.setItem(\n          '@safe_sentinel_recent_transactions',\n          JSON.stringify(formattedTx.slice(0, 30))\n        );""",
+              """        if (formattedTx.length > 0) {\n          setTransactionHistory(formattedTx);\n          await AsyncStorage.setItem(\n            '@safe_sentinel_recent_transactions',\n            JSON.stringify(formattedTx.slice(0, 30))\n          );\n        } else {\n          const cachedTransactions = await AsyncStorage.getItem(\n            '@safe_sentinel_recent_transactions'\n          );\n          if (cachedTransactions) {\n            try {\n              const parsedTransactions = JSON.parse(cachedTransactions);\n              if (Array.isArray(parsedTransactions) && parsedTransactions.length > 0) {\n                setTransactionHistory(parsedTransactions.slice(0, 30));\n              }\n            } catch (recentTransactionCacheError) {\n              console.warn(\n                '[RECENT TRANSACTIONS] cache restore failed:',\n                recentTransactionCacheError?.message || recentTransactionCacheError\n              );\n            }\n          }\n        }""",
+              'Recent transaction empty-response resilience'
+          )
+
+          # Make the disclaimer unmistakably visible inside Settings > Legal Documents instead
+          # of relying on an external terms page alone.
+          legal_heading = """                  <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '800', marginBottom: 8 }}>\n                    {selectedLanguage === 'tr' ? 'Yasal Belgeler' : 'Legal Documents'}\n                  </Text>"""
+          legal_replacement = """                  <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '900', marginBottom: 6 }}>\n                    {selectedLanguage === 'tr' ? 'Sorumluluk Reddi' : 'Disclaimer'}\n                  </Text>\n                  <Text style={{ color: theme.textSub, fontSize: 9, lineHeight: 14, marginBottom: 10 }}>\n                    {selectedLanguage === 'tr'\n                      ? 'Safe Sentinel güvenlik ve risk analizi sağlayan yardımcı bir araçtır. Güvenlik skorları, Guardian uyarıları, whitelist/blacklist durumları ve tehdit analizleri kesin güvenlik garantisi değildir ve yatırım, finans, hukuk veya vergi danışmanlığı oluşturmaz. Kripto işlemleri geri döndürülemez olabilir; işlem öncesinde adresi, ağı ve işlem ayrıntılarını bağımsız olarak doğrulayın.'\n                      : 'Safe Sentinel is an assisting security and risk-analysis tool. Security scores, Guardian alerts, whitelist/blacklist status, and threat analysis are not guarantees of safety and are not investment, financial, legal, or tax advice. Crypto transactions may be irreversible; independently verify the address, network, and transaction details before acting.'}\n                  </Text>\n                  <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '800', marginBottom: 8 }}>\n                    {selectedLanguage === 'tr' ? 'Yasal Belgeler' : 'Legal Documents'}\n                  </Text>"""
+          replace_once(legal_heading, legal_replacement, 'Visible in-app disclaimer')
+
+          if text == original:
+              raise SystemExit('No changes were applied')
+
+          path.write_text(text, encoding='utf-8')
+
+      - name: Sanity checks
+        run: |
+          grep -q "EXPO_PUBLIC_VIP_MONTHLY_USDT || 15" frontend/App.js
+          grep -q "BLACKLIST KAYDI KALDIRILDI" frontend/App.js
+          grep -q "Sorumluluk Reddi" frontend/App.js
+          grep -q "formatCurrency(portfolioUsdValue)" frontend/App.js
+          grep -q "recentTransactions" frontend/App.js
+          cd frontend
+          npm ci
+          npx expo export --platform android --output-dir dist-final-polish
+
+      - name: Commit final polish
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/App.js
+          git commit -m "Polish Transfer Shield portfolio history legal and VIP UX"
+          git push
