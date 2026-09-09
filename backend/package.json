@@ -12,6 +12,7 @@
     "railway:predeploy": "npm run production:preflight && npm run prisma:migrate:deploy",
     "railway:start": "npm run production:preflight && npm start",
     "smoke:local": "node scripts/local-smoke-test.mjs",
+    "scam:sync": "node scripts/sync-global-scam-intelligence.mjs",
     "test": "node --test tests/*.test.js"
   },
   "dependencies": {
