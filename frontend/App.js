@@ -2043,37 +2043,50 @@ function App() {
       }
 
       if (secureApiKey) {
+        // Restore immediately. A cold or temporarily unreachable backend must
+        // never sign the user out.
         setToken(secureApiKey);
+        setCurrentScreen('dashboard');
+        setActiveModule('dashboard');
+        sessionAuthenticated = true;
+
         try {
-          const meResponse = await api.get('/api/me', { timeout: 10000 });
+          const meResponse = await api.get('/api/me', { timeout: 20000 });
           const restoredUser = meResponse.data?.user;
 
           if (!restoredUser) {
-            throw new Error("Session doğrulaması başarısız.");
+            throw new Error('INVALID_SESSION_RESPONSE');
           }
-
-          sessionAuthenticated = true;
 
           setName(restoredUser.name || '');
           setEmail(restoredUser.email || '');
           setUserStatus(restoredUser.status || 'free');
-          // Oturum doğrulandı; uygulama açılışında otomatik Dashboard'a geçilmez.
-
-          console.log("Session restored successfully.");
+          setApiOnline(true);
+          console.log('Session restored successfully.');
         } catch (authError) {
-          sessionAuthenticated = false;
+          const authStatus = authError?.response?.status;
+          const isExplicitlyInvalidSession = authStatus === 401 || authStatus === 403;
 
           console.warn(
-            "Session restore failed:",
+            'Session validation deferred:',
             authError?.response?.data?.error ||
             authError?.message ||
             authError
           );
 
-          if (Platform.OS === 'web') {
-            await AsyncStorage.removeItem('user_secure_token');
+          if (isExplicitlyInvalidSession) {
+            sessionAuthenticated = false;
+            setToken(null);
+            setCurrentScreen('login');
+
+            if (Platform.OS === 'web') {
+              await AsyncStorage.removeItem('user_secure_token');
+            } else {
+              await SecureStore.deleteItemAsync('user_secure_token');
+            }
           } else {
-            await SecureStore.deleteItemAsync('user_secure_token');
+            sessionAuthenticated = true;
+            setApiOnline(false);
           }
         }
       }
@@ -2155,15 +2168,15 @@ function App() {
     }
 
     const initializeApp = async () => {
-      await checkBackendHealth();
-
+      // Wake the backend in parallel; never block local session restoration.
+      const backendWakeup = checkBackendHealth();
       const authenticated = await loadSecureAndLocalData();
 
-      if (authenticated) {
-        await fetchLiveGasFees();
-      }
-
-      await fetchLiveCoinGeckoPrices();
+      await Promise.allSettled([
+        backendWakeup,
+        authenticated ? fetchLiveGasFees() : Promise.resolve(),
+        fetchLiveCoinGeckoPrices()
+      ]);
     };
 
     initializeApp();
@@ -3205,7 +3218,7 @@ function App() {
 
     if (!cleanEmail || !cleanPassword) {
       Alert.alert(
-        t("runtimeMissingInfoTitle"),
+        t('runtimeMissingInfoTitle'),
         selectedLanguage === 'tr' ? 'Lütfen e-posta ve şifrenizi girin.' : 'Enter your email and password.'
       );
       return;
@@ -3214,30 +3227,57 @@ function App() {
     try {
       setLoading(true);
 
-      // Login is intentionally single-attempt and time-bounded. The global
-      // recovery helper can wait for ~80 seconds on a sleeping backend, which
-      // makes the sign-in screen appear frozen and may duplicate credentials.
-      const response = await axios.post(
-        `${API_BASE_URL}/api/auth/login`,
-        { email: cleanEmail, password: cleanPassword },
-        {
-          headers: { ...SecurityScannerMiddleware.auditHeaders },
-          timeout: 15000
+      let response = null;
+      let lastError = null;
+      const maximumAttempts = 4;
+
+      for (let attempt = 1; attempt <= maximumAttempts; attempt += 1) {
+        try {
+          response = await axios.post(
+            `${API_BASE_URL}/api/auth/login`,
+            { email: cleanEmail, password: cleanPassword },
+            {
+              headers: { ...SecurityScannerMiddleware.auditHeaders },
+              timeout: 20000
+            }
+          );
+          break;
+        } catch (attemptError) {
+          lastError = attemptError;
+          const status = attemptError?.response?.status;
+          const retryable =
+            !attemptError?.response ||
+            attemptError?.code === 'ECONNABORTED' ||
+            [502, 503, 504].includes(status);
+
+          if (!retryable || attempt === maximumAttempts) throw attemptError;
+
+          setApiOnline(false);
+
+          try {
+            await axios.get(`${API_BASE_URL}/health`, { timeout: 25000 });
+          } catch (_) {}
+
+          await new Promise((resolve) => setTimeout(resolve, 900));
         }
-      );
+      }
+
+      if (!response) throw lastError || new Error('LOGIN_UNAVAILABLE');
 
       const { token, user } = response.data || {};
       if (!token || !user) {
         throw new Error('INVALID_LOGIN_RESPONSE');
       }
 
-      setToken(token);
+      // Persist before navigation. The token is removed only by explicit
+      // logout/account deletion or a confirmed 401/403 validation response.
       if (Platform.OS === 'web') {
         await AsyncStorage.setItem('user_secure_token', token);
       } else {
         await SecureStore.setItemAsync('user_secure_token', token);
       }
 
+      setToken(token);
       setName(user.name || '');
       setEmail(user.email || cleanEmail);
       setUserStatus(user.status || 'free');
@@ -3247,7 +3287,7 @@ function App() {
       setActiveModule('dashboard');
 
       Alert.alert(
-        t("runtimeLoginSuccessTitle"),
+        t('runtimeLoginSuccessTitle'),
         selectedLanguage === 'tr'
           ? `Hoş geldiniz ${user.name || ''}!`
           : `Welcome ${user.name || ''}!`
@@ -3255,20 +3295,17 @@ function App() {
     } catch (error) {
       console.error('Login error:', error);
       const status = error?.response?.status;
-      const code = error?.code;
       const serverMessage = error?.response?.data?.error || error?.response?.data?.message;
 
       const message = status === 401
         ? (selectedLanguage === 'tr' ? 'E-posta veya şifre hatalı.' : 'Incorrect email or password.')
         : status === 429
         ? (selectedLanguage === 'tr' ? 'Çok fazla giriş denemesi yapıldı. Kısa bir süre sonra tekrar deneyin.' : 'Too many login attempts. Please try again shortly.')
-        : [502, 503, 504].includes(status) || code === 'ECONNABORTED' || !error?.response
-        ? (selectedLanguage === 'tr'
-            ? 'Sunucu şu anda hazırlanıyor. Giriş 15 saniyede güvenli biçimde durduruldu; birkaç saniye sonra yeniden deneyin.'
-            : 'The server is starting. Sign-in was safely stopped after 15 seconds; please try again shortly.')
-        : serverMessage || t("runtimeLoginFailedGeneric");
+        : selectedLanguage === 'tr'
+        ? 'Sunucuya şu anda ulaşılamıyor. Uygulama bir sonraki açılışta sunucuyu arka planda yeniden hazırlayacak.'
+        : 'The server is currently unreachable. The app will warm it in the background the next time it opens.';
 
-      Alert.alert(t("runtimeLoginFailedTitle"), message);
+      Alert.alert(t('runtimeLoginFailedTitle'), serverMessage || message);
     } finally {
       setLoading(false);
     }
