@@ -44,6 +44,20 @@ const DEFAULT_SOURCES = [
     format: 'csv', network: 'optimism', category: 'MALICIOUS', confidence: 90, severity: 92,
     addressField: 'contract_address', labelField: 'contract_tag', descriptionField: 'contract_creator_tag',
     description: 'Forta labelled malicious/exploit smart contract dataset.'
+  },
+  {
+    name: 'Forta Ethereum Phishing Scams',
+    url: 'https://raw.githubusercontent.com/forta-network/labelled-datasets/main/labels/1/phishing_scams.csv',
+    format: 'csv', network: 'ethereum', category: 'PHISHING', confidence: 92, severity: 94,
+    addressField: 'address', labelField: 'etherscan_tag', descriptionField: 'etherscan_labels',
+    description: 'Forta phishing addresses sourced from Etherscan phish-hack labels.'
+  },
+  {
+    name: 'Forta Ethereum Etherscan Malicious Labels',
+    url: 'https://raw.githubusercontent.com/forta-network/labelled-datasets/main/labels/1/etherscan_malicious_labels.csv',
+    format: 'csv', network: 'ethereum', category: 'MALICIOUS', confidence: 92, severity: 94,
+    addressField: 'banned_address', labelField: 'wallet_tag', descriptionField: 'data_source',
+    description: 'Forta aggregated Etherscan exploit, heist and phish-hack labelled addresses.'
   }
 ];
 
@@ -110,7 +124,7 @@ const loadSourceConfig = () => {
 };
 const fetchSource = async (source) => {
   const response = await fetch(source.url, {
-    headers: { 'user-agent': 'Safe-Sentinel-Pro-Scam-Intelligence/3.0', accept: source.format === 'ofac_xml' ? 'application/xml,text/xml,*/*' : source.format === 'csv' ? 'text/csv,text/plain,*/*' : 'application/json,text/plain,*/*' },
+    headers: { 'user-agent': 'Safe-Sentinel-Pro-Scam-Intelligence/4.0', accept: source.format === 'ofac_xml' ? 'application/xml,text/xml,*/*' : source.format === 'csv' ? 'text/csv,text/plain,*/*' : 'application/json,text/plain,*/*' },
     signal: AbortSignal.timeout(Number(source.timeoutMs || 60000))
   });
   if (!response.ok) throw new Error(`${source.name}: HTTP ${response.status}`);
