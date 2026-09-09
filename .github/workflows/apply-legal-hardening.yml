@@ -1,0 +1,129 @@
+name: Apply Play Store Legal Hardening
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-legal-hardening.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  harden:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Apply in-app legal disclosure and public legal pages
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          app_path = Path('frontend/App.js')
+          text = app_path.read_text(encoding='utf-8')
+
+          # 1) Public legal URLs available both in registration and policy center.
+          marker = "const IS_PLAY_STORE_BUILD = process.env.EXPO_PUBLIC_PLAY_STORE_BUILD === 'true';\n"
+          insert = marker + "const PRIVACY_POLICY_URL = 'https://fiko933507.github.io/safe-sentinel-pro/privacy-policy.html';\nconst TERMS_URL = 'https://fiko933507.github.io/safe-sentinel-pro/terms-of-use.html';\nconst ACCOUNT_DELETION_URL = 'https://fiko933507.github.io/safe-sentinel-pro/account-deletion.html';\n"
+          if 'const PRIVACY_POLICY_URL' not in text:
+              if marker not in text:
+                  raise SystemExit('IS_PLAY_STORE_BUILD marker not found')
+              text = text.replace(marker, insert, 1)
+
+          # 2) Registration acceptance state.
+          state_marker = "  const [regWantVip, setRegWantVip] = useState(false);\n"
+          if 'regLegalAccepted' not in text:
+              if state_marker not in text:
+                  raise SystemExit('registration state marker not found')
+              text = text.replace(state_marker, state_marker + "  const [regLegalAccepted, setRegLegalAccepted] = useState(false);\n", 1)
+
+          # 3) Registration cannot complete until the user acknowledges legal terms.
+          password_block = '''    if (cleanPassword.length < 10) {\n      Alert.alert(t(\"runtimeInvalidPasswordTitle\"), t(\"runtimeInvalidPasswordMessage\")\n\n      );\n      return;\n    }\n\n    try {'''
+          legal_gate = '''    if (cleanPassword.length < 10) {\n      Alert.alert(t(\"runtimeInvalidPasswordTitle\"), t(\"runtimeInvalidPasswordMessage\")\n\n      );\n      return;\n    }\n\n    if (!regLegalAccepted) {\n      Alert.alert(\n        selectedLanguage === 'tr' ? 'Yasal Onay Gerekli' : 'Legal Acceptance Required',\n        selectedLanguage === 'tr'\n          ? 'Hesap oluşturmadan önce Kullanım Koşulları, Gizlilik Politikası ve risk bilgilendirmesini okuyup kabul etmelisiniz.'\n          : 'Before creating an account, you must read and accept the Terms of Use, Privacy Policy, and risk disclosure.'\n      );\n      return;\n    }\n\n    try {'''
+          if "'Yasal Onay Gerekli'" not in text:
+              if password_block not in text:
+                  raise SystemExit('registration password gate marker not found')
+              text = text.replace(password_block, legal_gate, 1)
+
+          # 4) Reset legal checkbox after successful registration.
+          reset_marker = "      setRegWantVip(false);\n\n      setCurrentScreen('dashboard');"
+          if 'setRegLegalAccepted(false);' not in text:
+              if reset_marker not in text:
+                  raise SystemExit('registration reset marker not found')
+              text = text.replace(reset_marker, "      setRegWantVip(false);\n      setRegLegalAccepted(false);\n\n      setCurrentScreen('dashboard');", 1)
+
+          # 5) Visible registration disclosure + direct links.
+          button_marker = '''            <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 34, borderRadius: 6, marginTop: 4 }]} onPress={handleCompleteRegistration}>\n              <Text style={[styles.buttonText, { fontSize: 10 }]}>{t('completeRegistration')}</Text>\n            </TouchableOpacity>'''
+          legal_ui = '''            <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: regLegalAccepted ? '#10B981' : '#F59E0B', marginVertical: 8, padding: 10 }]}>\n              <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '800', marginBottom: 5 }}>\n                {selectedLanguage === 'tr' ? 'Önemli Risk ve Yasal Bilgilendirme' : 'Important Risk & Legal Notice'}\n              </Text>\n              <Text style={{ color: theme.textSub, fontSize: 9, lineHeight: 14 }}>\n                {selectedLanguage === 'tr'\n                  ? 'Safe Sentinel bir güvenlik ve risk analiz aracıdır. Risk skorları, Guardian uyarıları, whitelist/blacklist durumları ve tehdit analizleri kesin güvenlik garantisi değildir; yatırım, hukuk, vergi veya finansal danışmanlık oluşturmaz. Kripto işlemleri geri döndürülemez olabilir ve maddi kayıp riski taşır. İşlem öncesi adresi, ağı ve işlem ayrıntılarını bağımsız olarak doğrulayın.'\n                  : 'Safe Sentinel is a security and risk-analysis tool. Risk scores, Guardian alerts, whitelist/blacklist status, and threat analysis are not guarantees of safety and are not investment, legal, tax, or financial advice. Crypto transactions may be irreversible and involve risk of loss. Independently verify the address, network, and transaction details before acting.'}\n              </Text>\n\n              <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 }}>\n                <TouchableOpacity onPress={() => Linking.openURL(TERMS_URL)} style={{ marginRight: 12, marginBottom: 6 }}>\n                  <Text style={{ color: theme.primary, fontSize: 9, fontWeight: '800' }}>{selectedLanguage === 'tr' ? 'Kullanım Koşulları' : 'Terms of Use'}</Text>\n                </TouchableOpacity>\n                <TouchableOpacity onPress={() => Linking.openURL(PRIVACY_POLICY_URL)} style={{ marginRight: 12, marginBottom: 6 }}>\n                  <Text style={{ color: theme.primary, fontSize: 9, fontWeight: '800' }}>{selectedLanguage === 'tr' ? 'Gizlilik Politikası' : 'Privacy Policy'}</Text>\n                </TouchableOpacity>\n                <TouchableOpacity onPress={() => Linking.openURL(ACCOUNT_DELETION_URL)} style={{ marginBottom: 6 }}>\n                  <Text style={{ color: theme.primary, fontSize: 9, fontWeight: '800' }}>{selectedLanguage === 'tr' ? 'Hesap Silme' : 'Account Deletion'}</Text>\n                </TouchableOpacity>\n              </View>\n\n              <TouchableOpacity\n                onPress={() => setRegLegalAccepted((current) => !current)}\n                style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, paddingVertical: 4 }}>\n                <View style={{ width: 18, height: 18, borderRadius: 4, borderWidth: 1.5, borderColor: regLegalAccepted ? '#10B981' : theme.borderCol, backgroundColor: regLegalAccepted ? '#10B981' : 'transparent', alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>\n                  <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '900' }}>{regLegalAccepted ? '✓' : ''}</Text>\n                </View>\n                <Text style={{ color: theme.textMain, fontSize: 9, lineHeight: 13, flex: 1 }}>\n                  {selectedLanguage === 'tr'\n                    ? 'Kullanım Koşulları ve Gizlilik Politikası’nı okudum; yukarıdaki risk bilgilendirmesini anladım ve kabul ediyorum.'\n                    : 'I have read the Terms of Use and Privacy Policy; I understand and accept the risk disclosure above.'}\n                </Text>\n              </TouchableOpacity>\n            </View>\n\n            <TouchableOpacity\n              disabled={!regLegalAccepted}\n              style={[styles.button, { backgroundColor: theme.primary, width: '100%', height: 34, borderRadius: 6, marginTop: 4, opacity: regLegalAccepted ? 1 : 0.45 }]}\n              onPress={handleCompleteRegistration}>\n              <Text style={[styles.buttonText, { fontSize: 10 }]}>{t('completeRegistration')}</Text>\n            </TouchableOpacity>'''
+          if 'Important Risk & Legal Notice' not in text:
+              if button_marker not in text:
+                  raise SystemExit('registration button marker not found')
+              text = text.replace(button_marker, legal_ui, 1)
+
+          # 6) Add public legal links to the existing crypto/financial policy screen.
+          privacy_body = '''                <Text style={{ color: theme.textMain, fontSize: 11, lineHeight: 16 }}>\n                  {t('policiesPrivacyBody')}\n                </Text>'''
+          policy_links = privacy_body + '''\n\n                <View style={{ marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.borderCol }}>\n                  <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '800', marginBottom: 8 }}>\n                    {selectedLanguage === 'tr' ? 'Yasal Belgeler' : 'Legal Documents'}\n                  </Text>\n                  <TouchableOpacity onPress={() => Linking.openURL(TERMS_URL)} style={{ paddingVertical: 5 }}>\n                    <Text style={{ color: theme.primary, fontSize: 10, fontWeight: '800' }}>{selectedLanguage === 'tr' ? 'Kullanım Koşulları ve Sorumluluk Reddi' : 'Terms of Use & Disclaimer'}</Text>\n                  </TouchableOpacity>\n                  <TouchableOpacity onPress={() => Linking.openURL(PRIVACY_POLICY_URL)} style={{ paddingVertical: 5 }}>\n                    <Text style={{ color: theme.primary, fontSize: 10, fontWeight: '800' }}>{selectedLanguage === 'tr' ? 'Gizlilik Politikası' : 'Privacy Policy'}</Text>\n                  </TouchableOpacity>\n                  <TouchableOpacity onPress={() => Linking.openURL(ACCOUNT_DELETION_URL)} style={{ paddingVertical: 5 }}>\n                    <Text style={{ color: theme.primary, fontSize: 10, fontWeight: '800' }}>{selectedLanguage === 'tr' ? 'Hesap ve Veri Silme' : 'Account & Data Deletion'}</Text>\n                  </TouchableOpacity>\n                </View>'''
+          if "selectedLanguage === 'tr' ? 'Yasal Belgeler'" not in text:
+              if privacy_body not in text:
+                  raise SystemExit('policy privacy marker not found')
+              text = text.replace(privacy_body, policy_links, 1)
+
+          app_path.write_text(text, encoding='utf-8')
+
+          # Public Terms + Disclaimer page.
+          Path('docs/terms-of-use.html').write_text('''<!doctype html>\n<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Safe Sentinel Pro — Kullanım Koşulları / Terms of Use</title><style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:900px;margin:40px auto;padding:0 20px;line-height:1.65;color:#111827}h1,h2{color:#0f172a}.warn{background:#fff7ed;border:1px solid #fdba74;border-radius:10px;padding:16px}hr{margin:40px 0;border:0;border-top:1px solid #e2e8f0}a{color:#2563eb}</style></head><body>\n<h1>Safe Sentinel Pro — Kullanım Koşulları ve Sorumluluk Reddi</h1><p><strong>Yürürlük tarihi:</strong> 9 Eylül 2026</p>\n<div class="warn"><strong>Önemli:</strong> Safe Sentinel Pro bir kripto cüzdan güvenliği, blockchain risk analizi ve tehdit istihbaratı aracıdır. Uygulama tarafından gösterilen güvenlik skorları, risk seviyeleri, Guardian uyarıları, whitelist/blacklist durumları, scam intelligence sonuçları ve diğer analizler bir güvenlik garantisi değildir.</div>\n<h2>Danışmanlık değildir</h2><p>Safe Sentinel Pro yatırım, finans, hukuk, vergi veya muhasebe danışmanlığı sağlamaz. Uygulamadaki bilgi ve analizler yalnızca yardımcı güvenlik bilgisi niteliğindedir. Kullanıcı herhangi bir varlık transferi, yetki iptali veya başka bir blockchain işlemi yapmadan önce adresi, ağı, kontratı ve işlem ayrıntılarını bağımsız olarak doğrulamalıdır.</p>\n<h2>Kripto ve blockchain riskleri</h2><p>Blockchain işlemleri geri döndürülemez olabilir; varlık fiyatları değişken olabilir; akıllı sözleşmeler, üçüncü taraf RPC/API sağlayıcıları, ağlar ve cüzdan servisleri hata, gecikme, kesinti veya güvenlik açığı yaşayabilir. Kullanıcı kendi işlemlerinden ve kararlarından sorumludur.</p>\n<h2>Risk analizlerinin sınırları</h2><p>Bir adresin düşük riskli, whitelist'te veya güvenli görünüyor olması fonların ya da işlemin güvenli olduğunu garanti etmez. Benzer şekilde yüksek risk işareti tek başına yasa dışı faaliyet kanıtı değildir. Veriler eksik, gecikmeli veya yanlış pozitif/negatif sonuç içerebilir.</p>\n<h2>Non-custodial tasarım</h2><p>Safe Sentinel Pro kullanıcı fonlarını saklamayı veya transferleri kullanıcı adına yürütmeyi amaçlamaz. Uygulama seed phrase veya private key talep etmemelidir. Seed phrase, private key veya kurtarma ifadenizi hiçbir kişiyle veya destek kanalıyla paylaşmayın.</p>\n<h2>Guardian ve bildirimler</h2><p>Guardian ve diğer izleme/bildirim özellikleri yardımcı uyarı mekanizmalarıdır. Bildirimlerin her zaman anlık, eksiksiz veya kesintisiz geleceği garanti edilmez. Kritik işlemlerde yalnızca uygulama bildirimlerine güvenilmemelidir.</p>\n<h2>Sorumluluğun sınırları</h2><p>Yürürlükteki hukukun izin verdiği ölçüde hizmet "olduğu gibi" sunulur. Safe Sentinel Pro; üçüncü taraf servis kesintileri, blockchain ağ davranışı, kullanıcının yanlış adres/ağ seçimi, piyasa hareketleri veya analiz sonuçlarına dayanılarak yapılan işlemlerden doğan dolaylı kayıpları garanti etmez veya üstlenmez. Kanunen sınırlandırılamayan tüketici hakları saklıdır.</p>\n<h2>Gizlilik ve hesap silme</h2><p><a href="privacy-policy.html">Gizlilik Politikası</a> ve <a href="account-deletion.html">Hesap Silme</a> sayfaları bu koşulların ayrılmaz parçasıdır.</p>\n<hr>\n<h1>Safe Sentinel Pro — Terms of Use & Disclaimer</h1><p><strong>Effective date:</strong> September 9, 2026</p>\n<div class="warn"><strong>Important:</strong> Safe Sentinel Pro is a crypto-wallet security, blockchain risk-analysis, and threat-intelligence tool. Security scores, risk levels, Guardian alerts, whitelist/blacklist status, scam-intelligence results, and other analysis are not guarantees of safety.</div>\n<h2>Not professional advice</h2><p>Safe Sentinel Pro does not provide investment, financial, legal, tax, or accounting advice. Information and analysis are assistive security information only. Independently verify the address, network, contract, and transaction details before transferring assets, revoking permissions, or performing any blockchain action.</p>\n<h2>Crypto and blockchain risks</h2><p>Blockchain transactions may be irreversible; asset prices may be volatile; smart contracts, third-party RPC/API providers, networks, and wallet services may experience errors, delays, outages, or security vulnerabilities. Users remain responsible for their own transactions and decisions.</p>\n<h2>Limits of risk analysis</h2><p>A low-risk, whitelisted, or apparently safe address does not guarantee that funds or a transaction are safe. A high-risk signal is not by itself proof of unlawful activity. Data may be incomplete or delayed and analysis may include false positives or false negatives.</p>\n<h2>Non-custodial design</h2><p>Safe Sentinel Pro is not intended to custody user funds or execute transfers on a user's behalf. The app should not request seed phrases or private keys. Never share a seed phrase, private key, or recovery phrase with any person or support channel.</p>\n<h2>Guardian and alerts</h2><p>Guardian and monitoring/notification features are assistive alert mechanisms. Alerts are not guaranteed to be real-time, complete, or uninterrupted. Do not rely solely on app notifications for critical transactions.</p>\n<h2>Limitation</h2><p>To the extent permitted by applicable law, the service is provided "as is." Nothing here limits non-waivable consumer rights. Safe Sentinel Pro does not guarantee against indirect losses caused by third-party outages, blockchain behavior, incorrect address/network selection, market movements, or actions taken in reliance on analysis results.</p>\n<h2>Privacy and deletion</h2><p>See the <a href="privacy-policy.html">Privacy Policy</a> and <a href="account-deletion.html">Account Deletion</a> pages.</p>\n</body></html>\n''', encoding='utf-8')
+
+          # Replace template privacy page with publishable no-placeholder text.
+          privacy = Path('docs/privacy-policy.html').read_text(encoding='utf-8')
+          privacy = privacy.replace('<p class="note"><strong>Yayın öncesi şablon:</strong> Google Play\'e gönderilmeden önce <code>[GELİŞTİRİCİ / ŞİRKET ADI]</code>, <code>[İLETİŞİM E-POSTASI]</code>, <code>[WEB SİTESİ]</code> ve <code>[YÜRÜRLÜK TARİHİ]</code> alanları doldurulmalıdır.</p>', '<p class="note"><strong>Yürürlük tarihi:</strong> 9 Eylül 2026. Bu politika Safe Sentinel Pro mobil uygulaması ve ilişkili servisleri için geçerlidir.</p>')
+          privacy = privacy.replace('Geliştirici / Şirket: <strong>[GELİŞTİRİCİ / ŞİRKET ADI]</strong><br />E-posta: <strong>[İLETİŞİM E-POSTASI]</strong><br />Web: <strong>[WEB SİTESİ]</strong><br />Yürürlük tarihi: <strong>[YÜRÜRLÜK TARİHİ]</strong>', 'Geliştirici: <strong>Safe Sentinel Pro geliştiricisi</strong><br />Gizlilik iletişimi: <strong>Google Play uygulama sayfasında yayınlanan geliştirici iletişim kanalı</strong><br />Web: <strong>https://fiko933507.github.io/safe-sentinel-pro/</strong><br />Yürürlük tarihi: <strong>9 Eylül 2026</strong>')
+          privacy = privacy.replace('Developer / Company: <strong>[DEVELOPER / COMPANY NAME]</strong><br />Email: <strong>[CONTACT EMAIL]</strong><br />Website: <strong>[WEBSITE]</strong><br />Effective date: <strong>[EFFECTIVE DATE]</strong>', 'Developer: <strong>Safe Sentinel Pro developer</strong><br />Privacy contact: <strong>the developer contact channel published on the Safe Sentinel Pro Google Play listing</strong><br />Website: <strong>https://fiko933507.github.io/safe-sentinel-pro/</strong><br />Effective date: <strong>September 9, 2026</strong>')
+          if '[GELİŞTİRİCİ' in privacy or '[CONTACT EMAIL]' in privacy:
+              raise SystemExit('privacy placeholders remain')
+          Path('docs/privacy-policy.html').write_text(privacy, encoding='utf-8')
+
+          deletion = Path('docs/account-deletion.html').read_text(encoding='utf-8')
+          deletion = deletion.replace('<p class="note"><strong>Yayın öncesi not:</strong> Bu sayfa production için hazır şablondur. Google Play\'e gönderilmeden önce <code>[İLETİŞİM E-POSTASI]</code> ve gerekiyorsa geliştirici/şirket bilgileri doldurulmalıdır.</p>', '<p class="note"><strong>Safe Sentinel Pro hesap ve veri silme kaynağı.</strong> Uygulama içinde hesabı kalıcı silme yolu bulunur. Uygulamaya erişemiyorsanız aşağıdaki harici talep yolunu kullanın.</p>')
+          deletion = deletion.replace('<p>Hesabınıza erişemiyorsanız <strong>[İLETİŞİM E-POSTASI]</strong> adresine, hesabınızla ilişkili e-posta adresini kullanarak “Safe Sentinel Pro hesap silme talebi” konulu bir istek gönderin. Güvenlik amacıyla hesabın size ait olduğunu doğrulamak için ek doğrulama istenebilir. Parolanızı, seed phrase\'inizi veya private key\'inizi e-posta ile göndermeyin.</p>', '<p>Hesabınıza erişemiyorsanız Safe Sentinel Pro’nun Google Play uygulama sayfasında yayınlanan <strong>geliştirici iletişim kanalına</strong>, hesabınızla ilişkili e-posta adresini kullanarak “Safe Sentinel Pro hesap silme talebi” başlıklı bir istek gönderin. Hesap sahipliği doğrulanmadan silme yapılmaz. Parolanızı, seed phrase’inizi veya private key’inizi hiçbir destek mesajına eklemeyin.</p>')
+          deletion = deletion.replace('<p>If you cannot access the app, send an account-deletion request to <strong>[CONTACT EMAIL]</strong> from the email address associated with your account. Additional verification may be required to protect the account. Never send your password, seed phrase or private key by email.</p>', '<p>If you cannot access the app, use the <strong>developer contact channel published on the Safe Sentinel Pro Google Play listing</strong> and send an “Safe Sentinel Pro account deletion request” from the email address associated with the account. Ownership must be verified before deletion. Never include a password, seed phrase, or private key in a support message.</p>')
+          if '[İLETİŞİM' in deletion or '[CONTACT EMAIL]' in deletion:
+              raise SystemExit('deletion placeholders remain')
+          Path('docs/account-deletion.html').write_text(deletion, encoding='utf-8')
+
+          # Public landing page links all required legal resources.
+          Path('docs/index.html').write_text('''<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Safe Sentinel Pro — Legal & Privacy</title><style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:780px;margin:48px auto;padding:0 20px;line-height:1.6;color:#111827}a{display:block;padding:14px 16px;margin:10px 0;border:1px solid #cbd5e1;border-radius:10px;color:#2563eb;text-decoration:none;font-weight:700}</style></head><body><h1>Safe Sentinel Pro</h1><p>Yasal, gizlilik ve hesap silme kaynakları / Legal, privacy and account deletion resources.</p><a href="privacy-policy.html">Gizlilik Politikası / Privacy Policy</a><a href="terms-of-use.html">Kullanım Koşulları ve Sorumluluk Reddi / Terms & Disclaimer</a><a href="account-deletion.html">Hesap ve Veri Silme / Account & Data Deletion</a></body></html>''', encoding='utf-8')
+
+          Path('docs/PLAY_STORE_LEGAL_RELEASE_CHECKLIST_TR.md').write_text('''# Safe Sentinel Pro — Google Play Yasal/Politika Yayın Kontrolü\n\nGüncelleme: 9 Eylül 2026\n\n- Uygulama içi kayıt akışında risk/yasal bilgilendirme ve açık kabul kutusu mevcut.\n- Kullanım Koşulları + sorumluluk reddi herkese açık GitHub Pages kaynağında mevcut.\n- Gizlilik Politikası uygulama içinden erişilebilir ve GitHub Pages üzerinde mevcut.\n- Hesap silme uygulama içinden mevcut; harici hesap silme kaynağı GitHub Pages üzerinde mevcut.\n- Play Console Data Safety formu kodun gerçek veri davranışıyla eşleşecek şekilde son kez doğrulanmalı.\n- Play Console Financial Features Declaration tamamlanmalı. Safe Sentinel yalnız güvenlik/analiz aracı olarak konumlandırılmalı; custody/exchange işlevi sunulmadığı sürece mağaza açıklaması bunu açıkça yansıtmalı.\n- Google Play geliştirici iletişim e-postası aktif ve kullanıcıların erişebileceği bir adres olmalı; gizlilik ve harici hesap silme talepleri bu kanaldan kabul edilmeli.\n- Dağıtım ülkeleri seçilirken kripto/finansal hizmetler için ilgili yerel düzenlemeler ayrıca kontrol edilmeli.\n- Disclaimer yasal sorumluluğu tamamen ortadan kaldırmaz; zorunlu tüketici hakları ve yerel mevzuat saklıdır.\n''', encoding='utf-8')
+
+          print('Legal hardening applied.')
+          print('Registration legal gate:', text.count('regLegalAccepted'))
+          print('Terms URL:', text.count('TERMS_URL'))
+          PY
+
+      - name: Verify legal hardening
+        run: |
+          grep -q "regLegalAccepted" frontend/App.js
+          grep -q "Important Risk & Legal Notice" frontend/App.js
+          grep -q "TERMS_URL" frontend/App.js
+          grep -q "PRIVACY_POLICY_URL" frontend/App.js
+          grep -q "ACCOUNT_DELETION_URL" frontend/App.js
+          grep -q "investment, financial, legal, tax" docs/terms-of-use.html
+          grep -q "9 Eylül 2026" docs/privacy-policy.html
+          grep -q "Google Play" docs/account-deletion.html
+          ! grep -R "\[CONTACT EMAIL\]\|\[İLETİŞİM E-POSTASI\]\|\[GELİŞTİRİCİ / ŞİRKET ADI\]" docs/privacy-policy.html docs/account-deletion.html
+
+      - name: Commit legal hardening
+        run: |
+          git config user.name 'safe-sentinel-release-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add frontend/App.js docs/
+          if git diff --cached --quiet; then
+            echo 'No changes required.'
+            exit 0
+          fi
+          git commit -m 'Harden Play Store legal disclosures and policies'
+          git push origin main
