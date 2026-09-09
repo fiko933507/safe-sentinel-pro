@@ -15,29 +15,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Print Guardian card contexts
+      - name: Print Guardian and inheritance contexts
         run: |
           python - <<'PY'
           from pathlib import Path
-          p = Path('frontend/App.js')
-          text = p.read_text(encoding='utf-8')
-          needle = "setActiveModule('guardianView')"
-          starts=[]
-          pos=0
-          while True:
-              i=text.find(needle,pos)
-              if i<0: break
-              starts.append(i)
-              pos=i+1
-          print('GUARDIAN_OCCURRENCES=', len(starts))
-          for n,i in enumerate(starts,1):
-              a=max(0,text.rfind('<TouchableOpacity',0,i))
-              b=text.find('</TouchableOpacity>',i)
-              if b<0: b=min(len(text),i+1800)
-              else: b += len('</TouchableOpacity>')
-              block=text[a:b]
-              print(f'\n===== GUARDIAN BLOCK {n} =====\n')
-              print(block[:5000])
-          inh = text.count("setActiveModule('inheritView')")
-          print('\nINHERIT_VIEW_OCCURRENCES=', inh)
+          text = Path('frontend/App.js').read_text(encoding='utf-8')
+          for needle in ['guardianView','inheritView','dashboardEmergencySecurity','toolTitleGuardian','toolTitleInheritance']:
+              print(f'\n===== {needle} =====')
+              pos=0; n=0
+              while True:
+                  i=text.find(needle,pos)
+                  if i<0: break
+                  n+=1
+                  a=max(0,i-1400); b=min(len(text),i+2200)
+                  print(f'\n--- occurrence {n} at {i} ---\n{text[a:b]}')
+                  pos=i+1
+              print('COUNT=',n)
           PY
