@@ -23,17 +23,31 @@ jobs:
           from pathlib import Path
           p=Path('frontend/App.js')
           text=p.read_text(encoding='utf-8')
+          marker='''          {/* ACİL GÜVENLİK */}'''
+          marker_index=text.find(marker)
+          if marker_index < 0:
+              raise SystemExit('Emergency Security marker not found')
+          before=text[:marker_index]
+          emergency=text[marker_index:]
           old='''            ["Guardian", t("dashboardSecurityCircle"), "guardianView", t("dashboardAvailable")]].'''
           new='''            [t("dashboardEmergencyAssetLock"), t("dashboardEmergencyProtectionMode"), "emergencyLockView", t("dashboardAvailable")],
             [t("dashboardCryptoInheritance"), t("dashboardEmergencySecurityDescription"), "inheritView", t("dashboardAvailable")]].'''
-          count=text.count(old)
+          count=emergency.count(old)
           if count != 1:
-              raise SystemExit(f'Expected exactly one emergency Guardian row, found {count}')
-          text=text.replace(old,new,1)
+              raise SystemExit(f'Expected exactly one Guardian row after Emergency Security marker, found {count}')
+          emergency=emergency.replace(old,new,1)
+          text=before+emergency
           p.write_text(text,encoding='utf-8')
+          guardian_row='["Guardian", t("dashboardSecurityCircle"), "guardianView", t("dashboardAvailable")]'
+          guardian_count=text.count(guardian_row)
+          inherit_count=text.count('"inheritView", t("dashboardAvailable")')
+          lock_count=text.count('"emergencyLockView", t("dashboardAvailable")')
           print('Emergency dashboard updated successfully.')
-          print('guardian dashboard rows:', text.count('["Guardian", t("dashboardSecurityCircle"), "guardianView", t("dashboardAvailable")]'))
-          print('inherit dashboard rows:', text.count('"inheritView", t("dashboardAvailable")'))
+          print('Guardian dashboard rows remaining:', guardian_count)
+          print('Inheritance dashboard rows:', inherit_count)
+          print('Emergency lock dashboard rows:', lock_count)
+          if guardian_count != 1 or inherit_count < 1 or lock_count < 1:
+              raise SystemExit('Dashboard verification counts are not as expected')
           PY
       - name: Verify expected modules remain
         run: |
