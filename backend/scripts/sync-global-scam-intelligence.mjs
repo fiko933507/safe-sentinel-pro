@@ -15,10 +15,59 @@ const DEFAULT_SOURCES = [
     addressField: 'address',
     descriptionField: 'comment',
     dateField: 'date'
+  },
+  {
+    name: 'Wallet Attribution Multi-Chain Risk Feed',
+    url: 'https://raw.githubusercontent.com/prettydeath/wallet-attribution/main/data/_all.json',
+    format: 'json',
+    addressField: 'address',
+    networkField: 'network',
+    categoryField: 'category',
+    labelField: 'label',
+    descriptionField: 'entity',
+    dateField: 'last_updated',
+    confidenceField: 'confidence',
+    allowedCategories: ['scam', 'sanctioned'],
+    confidence: 70,
+    severity: 80,
+    severityByCategory: {
+      scam: 85,
+      sanctioned: 90
+    }
   }
 ];
 
 const clamp = (value, min = 0, max = 100) => Math.max(min, Math.min(max, Number(value) || 0));
+
+const normalizeConfidence = (value, fallback = 60) => {
+  if (typeof value === 'number' || /^\d+(?:\.\d+)?$/.test(String(value || '').trim())) {
+    return clamp(value);
+  }
+  const normalized = String(value || '').trim().toLowerCase();
+  const map = {
+    verified: 95,
+    high: 90,
+    medium: 70,
+    moderate: 65,
+    low: 50,
+    unknown: 50
+  };
+  return clamp(map[normalized] ?? fallback);
+};
+
+const normalizeCategory = (value) => {
+  const category = String(value || 'SCAM').trim().toLowerCase();
+  const aliases = {
+    phishing: 'PHISHING',
+    drainer: 'DRAINER',
+    scam: 'SCAM',
+    sanctioned: 'SANCTIONED',
+    sanction: 'SANCTIONED',
+    malicious: 'MALICIOUS',
+    darklist_warning: 'DARKLIST_WARNING'
+  };
+  return aliases[category] || category.toUpperCase().replace(/[^A-Z0-9_]+/g, '_').slice(0, 120);
+};
 
 const normalizeNetwork = (value) => {
   const network = String(value || '').trim().toLowerCase();
@@ -27,6 +76,7 @@ const normalizeNetwork = (value) => {
     ethereum: 'ethereum',
     bnb: 'bsc',
     binance: 'bsc',
+    'binance-smart-chain': 'bsc',
     bsc: 'bsc',
     matic: 'polygon',
     polygon: 'polygon',
@@ -121,26 +171,62 @@ const fetchSource = async (source) => {
   return extractRecords(JSON.parse(text), source);
 };
 
+const categoryAllowed = (record, source) => {
+  if (!Array.isArray(source.allowedCategories) || !source.allowedCategories.length) return true;
+  const field = source.categoryField || 'category';
+  const category = String(record?.[field] || '').trim().toLowerCase();
+  return source.allowedCategories.map((v) => String(v).toLowerCase()).includes(category);
+};
+
 const toNormalizedRecord = (record, source) => {
+  if (!categoryAllowed(record, source)) return null;
+
   const address = record?.[source.addressField || 'address'] ?? record?.address ?? record?.wallet ?? record?.id;
   if (!address) return null;
+
   const network = normalizeNetwork(record?.[source.networkField || 'network'] || source.network || detectNetwork(address));
   if (network === 'unknown') return null;
+
   const normalizedAddress = normalizeAddress(address, network);
   if (!normalizedAddress) return null;
+
+  const rawCategory = record?.[source.categoryField || 'category'] || source.category || 'SCAM';
+  const category = normalizeCategory(rawCategory);
   const rawDate = record?.[source.dateField || 'date'] || record?.lastSeenAt || record?.firstSeenAt;
   const parsedDate = rawDate ? new Date(rawDate) : null;
+  const rawConfidence = record?.[source.confidenceField || 'confidence'];
+  const confidence = normalizeConfidence(rawConfidence, source.confidence ?? 60);
+  const rawCategoryKey = String(rawCategory || '').trim().toLowerCase();
+  const severity = clamp(source.severityByCategory?.[rawCategoryKey] ?? record?.[source.severityField || 'severity'] ?? source.severity ?? 60);
+  const upstreamSource = String(record?.source || '').trim();
+  const sourceName = upstreamSource ? `${source.name} / ${upstreamSource}` : source.name;
+  const sourceUrl = String(record?.source_url || record?.sourceUrl || '').trim();
+  const baseDescription = String(record?.[source.descriptionField || 'description'] || record?.comment || source.description || '').trim();
+  const description = [baseDescription, sourceUrl ? `Source URL: ${sourceUrl}` : ''].filter(Boolean).join(' | ').slice(0, 1500) || null;
+
   return {
     network,
     address: normalizedAddress,
-    category: String(record?.[source.categoryField || 'category'] || source.category || 'SCAM').slice(0, 120),
-    label: String(record?.[source.labelField || 'label'] || source.label || source.name).slice(0, 250),
-    description: String(record?.[source.descriptionField || 'description'] || record?.comment || source.description || '').slice(0, 1500) || null,
-    source: String(source.name).slice(0, 250),
-    confidence: clamp(record?.[source.confidenceField || 'confidence'] ?? source.confidence ?? 60),
-    severity: clamp(record?.[source.severityField || 'severity'] ?? source.severity ?? 60),
+    category,
+    label: String(record?.[source.labelField || 'label'] || record?.entity || source.label || source.name).slice(0, 250),
+    description,
+    source: String(sourceName).slice(0, 250),
+    confidence,
+    severity,
     observedAt: parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate : new Date()
   };
+};
+
+const categoryPriority = (category) => {
+  const priority = {
+    SANCTIONED: 100,
+    SCAM: 90,
+    PHISHING: 85,
+    DRAINER: 85,
+    MALICIOUS: 80,
+    DARKLIST_WARNING: 60
+  };
+  return priority[String(category || '').toUpperCase()] || 50;
 };
 
 const mergeRecords = (records) => {
@@ -158,7 +244,8 @@ const mergeRecords = (records) => {
     existing.observedAt = existing.observedAt > item.observedAt ? existing.observedAt : item.observedAt;
     existing.sources = [...new Set([...existing.sources, item.source])];
     if (!existing.description && item.description) existing.description = item.description;
-    if (existing.category === 'DARKLIST_WARNING' && item.category !== 'DARKLIST_WARNING') existing.category = item.category;
+    if (categoryPriority(item.category) > categoryPriority(existing.category)) existing.category = item.category;
+    if ((!existing.label || existing.label.includes('Risk Feed')) && item.label) existing.label = item.label;
   }
   return [...map.values()];
 };
@@ -230,13 +317,18 @@ const main = async () => {
     try {
       const rawRecords = await fetchSource(source);
       let accepted = 0;
+      let filtered = 0;
       for (const raw of rawRecords) {
+        if (!categoryAllowed(raw, source)) {
+          filtered += 1;
+          continue;
+        }
         const record = toNormalizedRecord(raw, source);
         if (record) { normalized.push(record); accepted += 1; }
       }
-      stats.push({ source: source.name, fetched: rawRecords.length, accepted, status: 'ok' });
+      stats.push({ source: source.name, fetched: rawRecords.length, accepted, filtered, status: 'ok' });
     } catch (error) {
-      stats.push({ source: source.name, fetched: 0, accepted: 0, status: 'error', error: error.message });
+      stats.push({ source: source.name, fetched: 0, accepted: 0, filtered: 0, status: 'error', error: error.message });
       if (source.required === true) throw error;
     }
   }
@@ -255,7 +347,12 @@ const main = async () => {
     return acc;
   }, {});
 
-  console.log(JSON.stringify({ success: true, sources: stats, uniqueAddresses: merged.length, imported, byNetwork }, null, 2));
+  const byCategory = merged.reduce((acc, item) => {
+    acc[item.category] = (acc[item.category] || 0) + 1;
+    return acc;
+  }, {});
+
+  console.log(JSON.stringify({ success: true, sources: stats, uniqueAddresses: merged.length, imported, byNetwork, byCategory }, null, 2));
 };
 
 main()
