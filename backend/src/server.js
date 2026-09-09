@@ -4717,7 +4717,14 @@ app.get('/api/live-gas-fees',auth,async(_,res)=>{
     message:{success:false,error:'Too many address list requests. Please try again later.'}
   });
 
-  const normalizeListNetwork=(value)=>String(value||'').trim().toLowerCase();
+  const normalizeListNetwork=(value)=>{
+    const normalized=String(value||'').trim().toLowerCase();
+    if(normalized==='trx') return 'tron';
+    if(normalized==='eth') return 'ethereum';
+    if(normalized==='arb') return 'arbitrum';
+    if(normalized==='avax') return 'avalanche';
+    return normalized;
+  };
 
   const supportedAddressListNetworks=[
     'tron',
@@ -4745,7 +4752,7 @@ app.get('/api/live-gas-fees',auth,async(_,res)=>{
         const firstHash=createHash('sha256').update(payload).digest();
         const secondHash=createHash('sha256').update(firstHash).digest();
 
-        if(!checksum.equals(secondHash.subarray(0,4))){
+        if(!Buffer.from(checksum).equals(Buffer.from(secondHash.subarray(0,4)))){
           return null;
         }
 
