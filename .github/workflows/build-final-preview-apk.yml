@@ -1,4 +1,5 @@
 name: Build Final Preview APK
+# Rebuild after restoring Emergency Lock + Crypto Inheritance dashboard cards.
 
 on:
   push:
