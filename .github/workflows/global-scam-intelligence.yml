@@ -54,3 +54,5 @@ jobs:
             exit 0
           fi
           npm run scam:sync
+
+# Secret verification trigger: 2026-09-09
