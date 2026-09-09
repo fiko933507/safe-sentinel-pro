@@ -44,10 +44,10 @@ process.env.EXPO_PUBLIC_VIP_PAYMENT_USDT_ADDRESS ||
 'TY8UwgeCoEog8Lz6BseBXfaBRoZMG28QNn';
 
 const VIP_MONTHLY_USDT =
-Number(process.env.EXPO_PUBLIC_VIP_MONTHLY_USDT || 100);
+Number(process.env.EXPO_PUBLIC_VIP_MONTHLY_USDT || 15);
 
 const VIP_YEARLY_USDT =
-Number(process.env.EXPO_PUBLIC_VIP_YEARLY_USDT || 1000);
+Number(process.env.EXPO_PUBLIC_VIP_YEARLY_USDT || 150);
 const API_BASE_URL = BACKEND_URL;
 const IS_PLAY_STORE_BUILD = process.env.EXPO_PUBLIC_PLAY_STORE_BUILD === 'true';
 const PRIVACY_POLICY_URL = 'https://fiko933507.github.io/safe-sentinel-pro/privacy-policy.html';
@@ -2478,6 +2478,49 @@ function App() {
 
     setBlacklist(normalized);
 
+    const removedOutboundBlacklist =
+    outboundCheckResult?.listStatus === 'BLACKLIST' &&
+    String(outboundCheckResult?.recipient || '').trim().toLowerCase() ===
+    String(outboundRecipient || '').trim().toLowerCase() &&
+    !securityListContains(normalized, outboundRecipient, selectedNetwork);
+
+    if (removedOutboundBlacklist) {
+      const recipientIsWhitelisted =
+      securityListContains(whitelist, outboundRecipient, selectedNetwork);
+      const stillScamMatched = Boolean(outboundCheckResult?.scamMatched);
+
+      setOutboundCheckResult((previousResult) => ({
+        ...previousResult,
+        listStatus: recipientIsWhitelisted ? 'WHITELIST' : null,
+        status: selectedLanguage === 'tr'
+          ? (stillScamMatched
+              ? '⚠️ YÜKSEK RİSK'
+              : recipientIsWhitelisted
+              ? 'WHITELIST KAYDI'
+              : 'BLACKLIST KAYDI KALDIRILDI')
+          : (stillScamMatched
+              ? '⚠️ HIGH RISK'
+              : recipientIsWhitelisted
+              ? 'WHITELIST ENTRY'
+              : 'BLACKLIST ENTRY REMOVED'),
+        riskLevel: selectedLanguage === 'tr'
+          ? (stillScamMatched ? 'Çok Yüksek' : recipientIsWhitelisted ? 'Whitelist Kaydı' : 'Belirlenemedi')
+          : (stillScamMatched ? 'Very High' : recipientIsWhitelisted ? 'Whitelisted' : 'Unknown'),
+        actionTaken: selectedLanguage === 'tr'
+          ? (stillScamMatched
+              ? 'Kişisel blacklist kaydı kaldırıldı; ancak adres scam istihbaratında eşleşmeye devam ediyor. Transferi durdurun ve adresi bağımsız olarak doğrulayın.'
+              : recipientIsWhitelisted
+              ? 'Adres artık blacklist içinde değil ve kişisel Whitelist listenizde. Whitelist kaydı zincir üstü güvenlik garantisi değildir.'
+              : 'Adres kişisel blacklist listenizden kaldırıldı. Transfer Kalkanı artık blacklist engelini uygulamıyor; transfer öncesinde adresi ve ağı yine doğrulayın.')
+          : (stillScamMatched
+              ? 'The personal blacklist entry was removed, but the address still matches scam intelligence. Stop and independently verify the destination.'
+              : recipientIsWhitelisted
+              ? 'The address is no longer blacklisted and is in your personal Whitelist. A whitelist entry is not an on-chain security guarantee.'
+              : 'The address was removed from your personal blacklist. Transfer Shield no longer applies the blacklist block; still verify the address and network before sending.'),
+        isBlocked: stillScamMatched
+      }));
+    }
+
     await AsyncStorage.setItem(
       '@blacklist',
       JSON.stringify(normalized)
@@ -4047,7 +4090,14 @@ function App() {
           setCurrentBalanceText(`Bakiye: ${formattedBal} ${NETWORKS[selectedNetwork].symbol}`);
         }
 
-        const rawTxList = response.data.transactions || [];
+        const rawTxList =
+        [
+          response.data.transactions,
+          response.data.recentTransactions,
+          response.data.history,
+          response.data.transfers,
+          response.data.activity
+        ].find((candidate) => Array.isArray(candidate) && candidate.length > 0) || [];
 
         const counterpartyIntel =
 
@@ -4121,11 +4171,30 @@ function App() {
             )?.scamIntelligence?.severity ?? null };
         });
 
-        setTransactionHistory(formattedTx);
-        await AsyncStorage.setItem(
-          '@safe_sentinel_recent_transactions',
-          JSON.stringify(formattedTx.slice(0, 30))
-        );
+        if (formattedTx.length > 0) {
+          setTransactionHistory(formattedTx);
+          await AsyncStorage.setItem(
+            '@safe_sentinel_recent_transactions',
+            JSON.stringify(formattedTx.slice(0, 30))
+          );
+        } else {
+          const cachedTransactions = await AsyncStorage.getItem(
+            '@safe_sentinel_recent_transactions'
+          );
+          if (cachedTransactions) {
+            try {
+              const parsedTransactions = JSON.parse(cachedTransactions);
+              if (Array.isArray(parsedTransactions) && parsedTransactions.length > 0) {
+                setTransactionHistory(parsedTransactions.slice(0, 30));
+              }
+            } catch (recentTransactionCacheError) {
+              console.warn(
+                '[RECENT TRANSACTIONS] cache restore failed:',
+                recentTransactionCacheError?.message || recentTransactionCacheError
+              );
+            }
+          }
+        }
 
         if (userStatus !== 'vip') {
           setQueryCount((prev) => prev + 1);
@@ -6611,6 +6680,14 @@ function App() {
                 </Text>
 
                 <View style={{ marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.borderCol }}>
+                  <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '900', marginBottom: 6 }}>
+                    {selectedLanguage === 'tr' ? 'Sorumluluk Reddi' : 'Disclaimer'}
+                  </Text>
+                  <Text style={{ color: theme.textSub, fontSize: 9, lineHeight: 14, marginBottom: 10 }}>
+                    {selectedLanguage === 'tr'
+                      ? 'Safe Sentinel güvenlik ve risk analizi sağlayan yardımcı bir araçtır. Güvenlik skorları, Guardian uyarıları, whitelist/blacklist durumları ve tehdit analizleri kesin güvenlik garantisi değildir ve yatırım, finans, hukuk veya vergi danışmanlığı oluşturmaz. Kripto işlemleri geri döndürülemez olabilir; işlem öncesinde adresi, ağı ve işlem ayrıntılarını bağımsız olarak doğrulayın.'
+                      : 'Safe Sentinel is an assisting security and risk-analysis tool. Security scores, Guardian alerts, whitelist/blacklist status, and threat analysis are not guarantees of safety and are not investment, financial, legal, or tax advice. Crypto transactions may be irreversible; independently verify the address, network, and transaction details before acting.'}
+                  </Text>
                   <Text style={{ color: theme.textMain, fontSize: 10, fontWeight: '800', marginBottom: 8 }}>
                     {selectedLanguage === 'tr' ? 'Yasal Belgeler' : 'Legal Documents'}
                   </Text>
@@ -8541,10 +8618,7 @@ function App() {
                   marginTop: 3
                 }}>
 
-                  ${portfolioUsdValue > 0 ? portfolioUsdValue.toLocaleString("en-US", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                }) : "--"}
+                  {portfolioUsdValue > 0 ? formatCurrency(portfolioUsdValue) : "--"}
                 </Text>
                 {walletNativeBalance !== null && walletNativeBalance !== undefined ?
                 <Text style={{ color: theme.primary, fontSize: 11, fontWeight: "900", marginTop: 4 }}>
