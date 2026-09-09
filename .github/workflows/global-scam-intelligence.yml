@@ -1,0 +1,50 @@
+name: Safe Sentinel Global Scam Intelligence
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 3 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: safe-sentinel-global-scam-intelligence
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: ${{ secrets.SCAM_DATABASE_URL || secrets.DATABASE_URL }}
+      SCAM_FEED_URLS: ${{ secrets.SCAM_FEED_URLS }}
+      SCAM_IMPORT_BATCH_SIZE: '25'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Generate Prisma client
+        working-directory: backend
+        run: npx prisma generate --schema ./schema.prisma
+
+      - name: Sync scam intelligence into production database
+        working-directory: backend
+        shell: bash
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::warning::SCAM_DATABASE_URL/DATABASE_URL is not configured. Scam feed sync was skipped safely."
+            exit 0
+          fi
+          npm run scam:sync
