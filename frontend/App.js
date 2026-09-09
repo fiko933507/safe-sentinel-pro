@@ -2787,14 +2787,8 @@ function App() {
     setCentralNotificationsError('');
 
     try {
-      const res = await axios.get(
-        `${API_BASE_URL}/api/notifications`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
-          timeout: 12000
-        }
+      const res = await requestWithBackendRecovery(() =>
+        api.get('/api/notifications', { timeout: 30000 })
       );
 
       const notifications = Array.isArray(res.data?.notifications) ?
@@ -3828,6 +3822,21 @@ function App() {
       }
       reasons.push(selectedLanguage === 'tr' ? 'Sentinel Score bir güvenlik garantisi değildir; işlem imzalamadan önce ayrıntıları doğrulayın.' : 'Sentinel Score is not a security guarantee; verify details before signing a transaction.');
 
+      const verdict = getSentinelVerdict(score);
+      setWalletRisk(data.risk || {
+        score,
+        riskScore: score,
+        level: verdict
+      });
+      setWalletScamIntel(data.scamIntelligence || {
+        matched: scamMatched,
+        source: data.scamSource || 'Threat Intelligence',
+        checked: true
+      });
+      setWalletNativeBalance(data.balance ?? null);
+      setWalletTokens(Array.isArray(data.tokens) ? data.tokens : []);
+      setWalletLatestBlock(data.latestBlock ?? null);
+
       setSelectedNetwork(frontendNetwork);
       setAddress(target.value);
       setUniversalScanResult({
@@ -4002,7 +4011,11 @@ function App() {
         );
 
         setWalletScamIntel(
-          response.data.scamIntelligence || null
+          response.data.scamIntelligence || {
+            matched: Boolean(response.data.isScam || response.data.risk?.scamMatched),
+            source: response.data.scamSource || 'Threat Intelligence',
+            checked: true
+          }
         );
 
         setWalletLatestBlock(
