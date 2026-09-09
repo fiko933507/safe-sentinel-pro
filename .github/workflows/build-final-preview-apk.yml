@@ -1,5 +1,5 @@
 name: Build Final Preview APK
-# Rebuild after restoring Emergency Lock + Crypto Inheritance dashboard cards.
+# Rebuild after Play Store legal hardening, privacy, terms, and account-deletion updates.
 
 on:
   push:
