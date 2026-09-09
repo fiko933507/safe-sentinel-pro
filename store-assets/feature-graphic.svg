@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#03121c"/><stop offset="0.55" stop-color="#062838"/><stop offset="1" stop-color="#02080e"/></linearGradient>
+  <radialGradient id="glow"><stop stop-color="#23f0bd" stop-opacity=".32"/><stop offset="1" stop-color="#23f0bd" stop-opacity="0"/></radialGradient>
+  <linearGradient id="shield" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#58f5d1"/><stop offset="1" stop-color="#0aa9d6"/></linearGradient>
+  <filter id="blur"><feGaussianBlur stdDeviation="24"/></filter>
+</defs>
+<rect width="1024" height="500" fill="url(#bg)"/>
+<circle cx="830" cy="245" r="230" fill="url(#glow)"/>
+<circle cx="830" cy="245" r="155" fill="none" stroke="#1dd8c0" stroke-opacity=".12" stroke-width="1"/>
+<circle cx="830" cy="245" r="120" fill="none" stroke="#4fdcff" stroke-opacity=".1" stroke-width="1"/>
+<path d="M0 410 C180 350 300 455 480 395 C630 345 760 430 1024 350 V500 H0Z" fill="#02080d" opacity=".72"/>
+<g transform="translate(76 64)">
+  <rect width="72" height="72" rx="18" fill="#082b34" stroke="#2af0c3" stroke-opacity=".55"/>
+  <path d="M36 11 L59 20 V38 C59 52 49 62 36 67 C23 62 13 52 13 38 V20Z" fill="none" stroke="url(#shield)" stroke-width="5"/>
+  <path d="M45 25 C40 21 29 21 27 27 C25 34 45 34 43 42 C41 49 29 50 23 44" fill="none" stroke="#55f3ce" stroke-width="5" stroke-linecap="round"/>
+</g>
+<text x="172" y="93" fill="#f4fbff" font-family="Arial,sans-serif" font-size="27" font-weight="700" letter-spacing="1.5">SAFE SENTINEL <tspan fill="#38efbd">PRO</tspan></text>
+<text x="76" y="184" fill="#ffffff" font-family="Arial,sans-serif" font-size="48" font-weight="800">Dijital varlıklarını</text>
+<text x="76" y="240" fill="#42efbf" font-family="Arial,sans-serif" font-size="48" font-weight="800">güvenle koru.</text>
+<text x="78" y="290" fill="#b8cbd4" font-family="Arial,sans-serif" font-size="21">Riskleri önceden gör. Cüzdanını izle.</text>
+<text x="78" y="322" fill="#b8cbd4" font-family="Arial,sans-serif" font-size="21">Kontrol her zaman sende kalsın.</text>
+<g transform="translate(78 365)" font-family="Arial,sans-serif" font-size="15" fill="#dceaf0">
+ <g><circle cx="12" cy="12" r="12" fill="#0c3b43"/><path d="M6 12l4 4 8-9" fill="none" stroke="#39efbd" stroke-width="2.5"/><text x="34" y="17">Transfer Kalkanı</text></g>
+ <g transform="translate(178 0)"><circle cx="12" cy="12" r="12" fill="#0c3b43"/><path d="M12 5v14M5 12h14" stroke="#39efbd" stroke-width="2"/><text x="34" y="17">Guardian</text></g>
+ <g transform="translate(304 0)"><circle cx="12" cy="12" r="12" fill="#0c3b43"/><path d="M6 16l4-5 4 3 5-8" fill="none" stroke="#39efbd" stroke-width="2.2"/><text x="34" y="17">Portföy</text></g>
+</g>
+<g transform="translate(702 85)">
+ <path d="M128 0 L245 45 V143 C245 214 198 265 128 292 C58 265 11 214 11 143 V45Z" fill="#052a34" stroke="#4bf1d0" stroke-width="6"/>
+ <path d="M128 27 L218 62 V141 C218 194 184 232 128 256 C72 232 38 194 38 141 V62Z" fill="#063b46" stroke="#17bfc5" stroke-width="2"/>
+ <path d="M162 86 C147 72 111 72 100 93 C87 120 161 118 155 148 C149 177 108 180 87 157" fill="none" stroke="url(#shield)" stroke-width="18" stroke-linecap="round"/>
+</g>
+<text x="760" y="420" fill="#d7f8f1" font-family="Arial,sans-serif" font-size="16" letter-spacing="4">GÜVENLİK • KONTROL • UYARI</text>
+</svg>
