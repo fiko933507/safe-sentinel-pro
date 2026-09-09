@@ -9019,7 +9019,8 @@ function App() {
 
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
               {[
-            ["Guardian", t("dashboardSecurityCircle"), "guardianView", t("dashboardAvailable")]].
+            [t("dashboardEmergencyAssetLock"), t("dashboardEmergencyProtectionMode"), "emergencyLockView", t("dashboardAvailable")],
+  [t("dashboardCryptoInheritance"), t("dashboardEmergencySecurityDescription"), "inheritView", t("dashboardAvailable")]].
             map((item, index) =>
             <TouchableOpacity
               key={index}
