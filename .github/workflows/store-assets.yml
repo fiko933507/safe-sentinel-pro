@@ -1,0 +1,42 @@
+name: Safe Sentinel Play Store Assets
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'store-assets/**'
+      - '.github/workflows/store-assets.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install SVG renderer
+        run: sudo apt-get update && sudo apt-get install -y librsvg2-bin
+      - name: Render exact Play Store feature graphic
+        run: |
+          mkdir -p store-assets/rendered
+          rsvg-convert -w 1024 -h 500 store-assets/feature-graphic.svg -o store-assets/rendered/feature-graphic-1024x500.png
+          file store-assets/rendered/feature-graphic-1024x500.png
+      - name: Commit rendered graphics
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add store-assets/rendered/feature-graphic-1024x500.png
+          if git diff --cached --quiet; then
+            echo "Rendered asset unchanged."
+          else
+            git commit -m "chore(store): render Play Store feature graphic"
+            git push
+          fi
+      - name: Upload Play Store graphics artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: safe-sentinel-play-store-graphics
+          path: store-assets/rendered/
+          retention-days: 30
