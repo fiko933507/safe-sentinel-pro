@@ -1,0 +1,133 @@
+name: Safe Sentinel Play Store Release Gate
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/play-store-release-gate.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: safe-sentinel-play-store-release-gate
+  cancel-in-progress: false
+
+jobs:
+  db-audit:
+    name: Production Neon DB audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: ${{ secrets.SCAM_DATABASE_URL || secrets.DATABASE_URL }}
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate --schema ./schema.prisma
+      - name: Require production DB secret
+        run: test -n "$DATABASE_URL" || (echo '::error::SCAM_DATABASE_URL/DATABASE_URL missing' && exit 1)
+      - name: Audit ScamAddress production table
+        run: node scripts/audit-scam-addresses.mjs | tee db-audit.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: production-db-audit-${{ github.sha }}
+          path: backend/db-audit.log
+          retention-days: 30
+
+  security-e2e:
+    name: Security E2E and production smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: ${{ secrets.SCAM_DATABASE_URL || secrets.DATABASE_URL }}
+      SMOKE_BASE_URL: https://safe-sentinel-pro-1.onrender.com
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate --schema ./schema.prisma
+      - name: Backend security regression tests
+        run: npm test
+      - name: Production API smoke test
+        run: npm run smoke:local
+
+  android-api36:
+    name: Android API 36 gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Play target/compile SDK and release signing policy
+        shell: bash
+        run: |
+          grep -Eq 'compileSdk[[:space:]]+36' frontend/android/app/build.gradle
+          grep -Eq 'targetSdkVersion[[:space:]]+36' frontend/android/app/build.gradle
+          grep -Eq 'buildType"?:?[[:space:]]*"app-bundle"|"buildType"[[:space:]]*:[[:space:]]*"app-bundle"' frontend/eas.json
+          if awk '/release \{/{f=1} f&&/signingConfig signingConfigs\.debug/{exit 0} f&&/^        \}/{f=0} END{exit 1}' frontend/android/app/build.gradle; then
+            echo '::error::Release build uses debug signing'
+            exit 1
+          fi
+          echo 'Android API 36 and release AAB policy: PASS'
+
+  release-aab:
+    name: Signed Play Store AAB
+    needs: [db-audit, security-e2e, android-api36]
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      EXPO_PUBLIC_BACKEND_URL: https://safe-sentinel-pro-1.onrender.com
+      EXPO_PUBLIC_PLAY_STORE_BUILD: 'true'
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require EAS token
+        run: test -n "$EXPO_TOKEN" || (echo '::error::GitHub secret EXPO_TOKEN missing' && exit 1)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.4'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - name: Build signed production AAB with EAS
+        run: npx --yes eas-cli@latest build --platform android --profile production --non-interactive --wait --json > eas-production-build.json
+      - name: Download and verify AAB
+        shell: bash
+        run: |
+          node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('eas-production-build.json','utf8'));const b=Array.isArray(d)?d[0]:d;const u=b?.artifacts?.buildUrl;if(!u)throw new Error('EAS AAB URL not found');fs.writeFileSync('eas-aab-url.txt',u);"
+          curl --fail --location --retry 3 --output safe-sentinel-production.aab "$(cat eas-aab-url.txt)"
+          test -s safe-sentinel-production.aab
+          file safe-sentinel-production.aab | grep -Eiq 'Zip archive|Android'
+          echo "AAB_SIZE_BYTES=$(wc -c < safe-sentinel-production.aab)" >> "$GITHUB_ENV"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: safe-sentinel-play-store-aab-${{ github.sha }}
+          path: frontend/safe-sentinel-production.aab
+          if-no-files-found: error
+          retention-days: 30
+      - name: Release summary
+        run: |
+          echo '## Safe Sentinel Play Store release gate' >> "$GITHUB_STEP_SUMMARY"
+          echo 'DB audit: PASS' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Security E2E: PASS' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Android API 36: PASS' >> "$GITHUB_STEP_SUMMARY"
+          echo "Signed AAB size: ${AAB_SIZE_BYTES} bytes" >> "$GITHUB_STEP_SUMMARY"
