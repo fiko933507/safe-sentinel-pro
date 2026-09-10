@@ -51,3 +51,5 @@ jobs:
             exit 0
           fi
           node scripts/sync-etherscamdb-historical.mjs
+
+# Triggered after initial workflow creation: 2026-09-10
