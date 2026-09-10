@@ -1,0 +1,53 @@
+name: Safe Sentinel GraphSense Threat Intelligence
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 5 * * 2'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/graphsense-threat-intelligence.yml'
+      - 'backend/scripts/sync-graphsense-threat-intelligence.mjs'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: safe-sentinel-graphsense-threat-intelligence
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DATABASE_URL: ${{ secrets.SCAM_DATABASE_URL || secrets.DATABASE_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Generate Prisma client
+        working-directory: backend
+        run: npx prisma generate --schema ./schema.prisma
+
+      - name: Sync GraphSense threat intelligence
+        working-directory: backend
+        shell: bash
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::warning::SCAM_DATABASE_URL/DATABASE_URL is not configured. GraphSense threat sync skipped safely."
+            exit 0
+          fi
+          node scripts/sync-graphsense-threat-intelligence.mjs
