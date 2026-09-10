@@ -6,6 +6,9 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/play-store-release-gate.yml'
+      - 'frontend/android/**'
+      - 'frontend/package.json'
+      - 'frontend/package-lock.json'
 
 permissions:
   contents: read
@@ -113,48 +116,90 @@ jobs:
           echo 'Android API 36 and release AAB policy: PASS'
 
   release-aab:
-    name: Signed Play Store AAB
+    name: Signed Play Store AAB (GitHub Gradle)
     needs: [db-audit, security-e2e, android-api36]
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
-      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       EXPO_PUBLIC_BACKEND_URL: https://safe-sentinel-pro-1.onrender.com
       EXPO_PUBLIC_PLAY_STORE_BUILD: 'true'
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      ANDROID_KEYSTORE_PATH: release.keystore
     defaults:
       run:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-      - name: Require EAS token
-        run: test -n "$EXPO_TOKEN" || (echo '::error::GitHub secret EXPO_TOKEN missing' && exit 1)
+      - name: Require Android signing secrets
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64" || (echo '::error::ANDROID_KEYSTORE_BASE64 missing' && exit 1)
+          test -n "$ANDROID_KEYSTORE_PASSWORD" || (echo '::error::ANDROID_KEYSTORE_PASSWORD missing' && exit 1)
+          test -n "$ANDROID_KEY_ALIAS" || (echo '::error::ANDROID_KEY_ALIAS missing' && exit 1)
+          test -n "$ANDROID_KEY_PASSWORD" || (echo '::error::ANDROID_KEY_PASSWORD missing' && exit 1)
       - uses: actions/setup-node@v4
         with:
           node-version: '20.19.4'
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
       - name: Install frontend dependencies
         run: npm ci --legacy-peer-deps --no-audit --no-fund
-      - name: Build signed production AAB with EAS
-        run: npx --yes eas-cli@latest build --platform android --profile production --non-interactive --wait --json > eas-production-build.json
-      - name: Download and verify AAB
+      - name: Restore release keystore
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/release.keystore
+          test -s android/app/release.keystore
+          chmod 600 android/app/release.keystore
+      - name: Verify keystore credentials
         shell: bash
         run: |
-          node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('eas-production-build.json','utf8'));const b=Array.isArray(d)?d[0]:d;const u=b?.artifacts?.buildUrl;if(!u)throw new Error('EAS AAB URL not found');fs.writeFileSync('eas-aab-url.txt',u);"
-          curl --fail --location --retry 3 --output safe-sentinel-production.aab "$(cat eas-aab-url.txt)"
-          test -s safe-sentinel-production.aab
-          file safe-sentinel-production.aab | grep -Eiq 'Zip archive|Android'
+          keytool -list \
+            -keystore android/app/release.keystore \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -alias "$ANDROID_KEY_ALIAS" >/dev/null
+          echo 'Release keystore credentials: PASS'
+      - name: Build signed production AAB with Gradle
+        shell: bash
+        run: |
+          chmod +x android/gradlew
+          cd android
+          ./gradlew --no-daemon clean bundleRelease
+      - name: Verify signed AAB
+        shell: bash
+        run: |
+          AAB='android/app/build/outputs/bundle/release/app-release.aab'
+          test -s "$AAB"
+          jarsigner -verify "$AAB" >/dev/null
+          cp "$AAB" safe-sentinel-production.aab
           echo "AAB_SIZE_BYTES=$(wc -c < safe-sentinel-production.aab)" >> "$GITHUB_ENV"
+          echo 'AAB signature verification: PASS'
       - uses: actions/upload-artifact@v4
         with:
           name: safe-sentinel-play-store-aab-${{ github.sha }}
           path: frontend/safe-sentinel-production.aab
           if-no-files-found: error
           retention-days: 30
+      - name: Remove restored keystore
+        if: always()
+        shell: bash
+        run: rm -f android/app/release.keystore
       - name: Release summary
+        if: success()
         run: |
           echo '## Safe Sentinel Play Store release gate' >> "$GITHUB_STEP_SUMMARY"
           echo 'DB audit: PASS' >> "$GITHUB_STEP_SUMMARY"
           echo 'Security E2E: PASS' >> "$GITHUB_STEP_SUMMARY"
           echo 'Android API 36: PASS' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Signing: GitHub-hosted Gradle + production EAS keystore' >> "$GITHUB_STEP_SUMMARY"
           echo "Signed AAB size: ${AAB_SIZE_BYTES} bytes" >> "$GITHUB_STEP_SUMMARY"
