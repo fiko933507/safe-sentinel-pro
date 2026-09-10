@@ -18,7 +18,10 @@ const PACKS = [
   { file: 'twitter_hack_scam.yaml', category: 'SCAM', confidence: 95, severity: 96 },
   { file: 'africrypt-hack.yaml', category: 'HACK_THEFT', confidence: 95, severity: 97 },
   { file: 'binance_hack.yaml', category: 'HACK_THEFT', confidence: 95, severity: 97 },
-  { file: 'plustoken.yaml', category: 'SCAM', confidence: 95, severity: 96 }
+  { file: 'plustoken.yaml', category: 'SCAM', confidence: 95, severity: 96 },
+  { file: 'lazarus.yaml', category: 'SANCTIONED', confidence: 100, severity: 100 },
+  { file: 'lazarus2.yaml', category: 'SANCTIONED', confidence: 100, severity: 100 },
+  { file: 'etherhiding.yaml', category: 'MALICIOUS', confidence: 95, severity: 96 }
 ];
 
 const networkAliases = {
@@ -59,6 +62,7 @@ const parseTagpack = (text, pack) => {
   let packLabel = pack.file.replace(/\.yaml$/i, '');
   let abuse = '';
   let description = '';
+  let defaultCurrency = '';
   const records = [];
 
   for (const line of lines) {
@@ -67,13 +71,14 @@ const parseTagpack = (text, pack) => {
       packLabel = parseScalar(line, 'label') || packLabel;
       abuse = parseScalar(line, 'abuse') || abuse;
       description = parseScalar(line, 'description') || description;
+      defaultCurrency = parseScalar(line, 'currency') || defaultCurrency;
     }
   }
 
   let current = null;
   const flush = () => {
     if (!current?.address) return;
-    const network = normalizeNetwork(current.currency, current.address);
+    const network = normalizeNetwork(current.currency || defaultCurrency, current.address);
     if (!network) { current = null; return; }
     const address = normalizeAddress(current.address, network);
     if (!address) { current = null; return; }
@@ -111,7 +116,7 @@ const parseTagpack = (text, pack) => {
 const fetchPack = async (pack) => {
   const url = `${BASE}/${pack.file}`;
   const response = await fetch(url, {
-    headers: { 'user-agent': 'Safe-Sentinel-Pro-GraphSense-Importer/1.0', accept: 'text/yaml,text/plain,*/*' },
+    headers: { 'user-agent': 'Safe-Sentinel-Pro-GraphSense-Importer/1.1', accept: 'text/yaml,text/plain,*/*' },
     signal: AbortSignal.timeout(120000)
   });
   if (!response.ok) throw new Error(`${pack.file}: HTTP ${response.status}`);
@@ -120,7 +125,7 @@ const fetchPack = async (pack) => {
 
 const dedupe = (rows) => {
   const map = new Map();
-  const priority = { SANCTIONED: 100, HACK_THEFT: 96, RANSOMWARE: 95, PHISHING: 92, EXTORTION: 90, FRAUD: 88, PONZI: 87, SCAM: 85 };
+  const priority = { SANCTIONED: 100, HACK_THEFT: 96, RANSOMWARE: 95, PHISHING: 92, EXTORTION: 90, MALICIOUS: 89, FRAUD: 88, PONZI: 87, SCAM: 85 };
   for (const row of rows) {
     const key = `${row.network}:${row.address}`;
     const old = map.get(key);
@@ -174,7 +179,6 @@ const main = async () => {
     inserted += result.count;
   }
 
-  // Strengthen existing records without downgrading confidence/severity.
   for (const batch of chunks(merged, 50)) {
     await Promise.all(batch.map(async (x) => {
       const existing = await db.scamAddress.findUnique({ where: { network_address: { network: x.network, address: x.address } }, select: { id: true, confidence: true, severity: true, category: true, source: true } });
