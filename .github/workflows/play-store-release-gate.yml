@@ -86,7 +86,7 @@ jobs:
           exit 1
       - name: Backend security regression tests
         env:
-          BASE_URL: http://127.0.0.1:3000
+          TEST_API_BASE_URL: http://127.0.0.1:3000
         run: npm test
       - name: Production API smoke test
         run: npm run smoke:local
