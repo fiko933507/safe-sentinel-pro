@@ -51,6 +51,7 @@ jobs:
       DATABASE_URL: ${{ secrets.SCAM_DATABASE_URL || secrets.DATABASE_URL }}
       SMOKE_BASE_URL: https://safe-sentinel-pro-1.onrender.com
       PORT: '3000'
+      JWT_SECRET: safe-sentinel-ci-only-jwt-secret-2026-09-10-strong-value
     defaults:
       run:
         working-directory: backend
