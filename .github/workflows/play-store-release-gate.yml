@@ -50,6 +50,7 @@ jobs:
     env:
       DATABASE_URL: ${{ secrets.SCAM_DATABASE_URL || secrets.DATABASE_URL }}
       SMOKE_BASE_URL: https://safe-sentinel-pro-1.onrender.com
+      PORT: '3000'
     defaults:
       run:
         working-directory: backend
@@ -62,10 +63,35 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
       - run: npx prisma generate --schema ./schema.prisma
+      - name: Start local backend for regression tests
+        shell: bash
+        run: |
+          nohup npm start > /tmp/safe-sentinel-backend.log 2>&1 &
+          echo $! > /tmp/safe-sentinel-backend.pid
+          for i in {1..45}; do
+            if curl --fail --silent http://127.0.0.1:3000/health >/dev/null; then
+              echo 'Local backend is ready.'
+              exit 0
+            fi
+            if ! kill -0 "$(cat /tmp/safe-sentinel-backend.pid)" 2>/dev/null; then
+              echo '::error::Local backend exited before becoming healthy'
+              cat /tmp/safe-sentinel-backend.log || true
+              exit 1
+            fi
+            sleep 2
+          done
+          echo '::error::Local backend did not become healthy in time'
+          cat /tmp/safe-sentinel-backend.log || true
+          exit 1
       - name: Backend security regression tests
+        env:
+          BASE_URL: http://127.0.0.1:3000
         run: npm test
       - name: Production API smoke test
         run: npm run smoke:local
+      - name: Local backend log on failure
+        if: failure()
+        run: cat /tmp/safe-sentinel-backend.log || true
 
   android-api36:
     name: Android API 36 gate
