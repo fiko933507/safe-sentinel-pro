@@ -1,0 +1,53 @@
+name: Safe Sentinel Historical Scam Intelligence
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '47 4 * * 0'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/etherscamdb-historical-sync.yml'
+      - 'backend/scripts/sync-etherscamdb-historical.mjs'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: safe-sentinel-historical-scam-intelligence
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: ${{ secrets.SCAM_DATABASE_URL || secrets.DATABASE_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Generate Prisma client
+        working-directory: backend
+        run: npx prisma generate --schema ./schema.prisma
+
+      - name: Sync historical scam addresses
+        working-directory: backend
+        shell: bash
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::warning::SCAM_DATABASE_URL/DATABASE_URL is not configured. Historical scam sync skipped safely."
+            exit 0
+          fi
+          node scripts/sync-etherscamdb-historical.mjs
