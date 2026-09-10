@@ -17,6 +17,7 @@ concurrency:
   group: safe-sentinel-graphsense-threat-intelligence
   cancel-in-progress: false
 
+# Imports public threat-focused TagPacks while preserving upstream attribution.
 jobs:
   sync:
     runs-on: ubuntu-latest
