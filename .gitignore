@@ -26,6 +26,13 @@ Thumbs.db
 **/.gradle/
 **/build/
 
+# Android release credentials - NEVER COMMIT
+frontend/credentials.json
+frontend/credentials/
+frontend/android/app/release.keystore
+frontend/android/app/*.jks
+frontend/android/app/*.keystore
+
 # Runtime threat-intelligence datasets
 backend/urlhaus-recent-unpacked/
 backend/wallet-attribution-ethereum.json
