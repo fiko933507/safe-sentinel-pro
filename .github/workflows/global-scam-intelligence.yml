@@ -9,6 +9,7 @@ on:
     paths:
       - '.github/workflows/global-scam-intelligence.yml'
       - 'backend/scripts/sync-global-scam-intelligence.mjs'
+      - 'backend/scripts/sync-graphsense-risk-intelligence.mjs'
       - 'backend/package.json'
 
 permissions:
@@ -21,7 +22,7 @@ concurrency:
 jobs:
   sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 120
     env:
       DATABASE_URL: ${{ secrets.SCAM_DATABASE_URL || secrets.DATABASE_URL }}
       SCAM_FEED_URLS: ${{ secrets.SCAM_FEED_URLS }}
@@ -45,14 +46,20 @@ jobs:
         working-directory: backend
         run: npx prisma generate --schema ./schema.prisma
 
-      - name: Sync scam intelligence into production database
-        working-directory: backend
+      - name: Verify production database secret
         shell: bash
         run: |
           if [ -z "$DATABASE_URL" ]; then
             echo "::warning::SCAM_DATABASE_URL/DATABASE_URL is not configured. Scam feed sync was skipped safely."
             exit 0
           fi
-          npm run scam:sync
 
-# Secret verification trigger: 2026-09-09
+      - name: Sync core global scam intelligence
+        if: ${{ env.DATABASE_URL != '' }}
+        working-directory: backend
+        run: npm run scam:sync
+
+      - name: Sync GraphSense risk intelligence
+        if: ${{ env.DATABASE_URL != '' }}
+        working-directory: backend
+        run: node scripts/sync-graphsense-risk-intelligence.mjs
