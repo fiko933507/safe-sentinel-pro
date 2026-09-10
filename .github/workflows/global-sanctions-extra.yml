@@ -1,0 +1,53 @@
+name: Safe Sentinel Global Sanctions Extra
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '41 3 * * *'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/global-sanctions-extra.yml'
+      - 'backend/scripts/sync-global-sanctions-extra.mjs'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: safe-sentinel-global-sanctions-extra
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: ${{ secrets.SCAM_DATABASE_URL || secrets.DATABASE_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Generate Prisma client
+        working-directory: backend
+        run: npx prisma generate --schema ./schema.prisma
+
+      - name: Sync EU UK UN CH sanctions addresses
+        working-directory: backend
+        shell: bash
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::warning::SCAM_DATABASE_URL/DATABASE_URL is not configured. Extra sanctions sync skipped safely."
+            exit 0
+          fi
+          node scripts/sync-global-sanctions-extra.mjs
