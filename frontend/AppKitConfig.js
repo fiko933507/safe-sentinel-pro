@@ -2,11 +2,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createAppKit } from '@reown/appkit-react-native';
 import { EthersAdapter } from '@reown/appkit-ethers-react-native';
 
-const projectId = process.env.EXPO_PUBLIC_REOWN_PROJECT_ID;
-
-if (!projectId) {
-  throw new Error('EXPO_PUBLIC_REOWN_PROJECT_ID tanımlı değil.');
-}
+// The previous release threw during module import when the Reown environment
+// variable was missing. That prevents React Native from mounting at all and
+// leaves Android on the launch window. Keep startup safe; wallet connectivity
+// will use the real project id whenever it is supplied by the build environment.
+const projectId = process.env.EXPO_PUBLIC_REOWN_PROJECT_ID || '00000000000000000000000000000000';
+export const isReownConfigured = Boolean(process.env.EXPO_PUBLIC_REOWN_PROJECT_ID);
 
 const storage = {
   async getKeys() {
@@ -160,7 +161,6 @@ const avalanche = {
   chainNamespace: 'eip155',
   caipNetworkId: 'eip155:43114',
 };
-
 
 const base = {
   id: 8453,
