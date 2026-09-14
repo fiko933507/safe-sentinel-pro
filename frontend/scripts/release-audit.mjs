@@ -31,7 +31,15 @@ check(manifest.includes('android:usesCleartextTraffic="false"'), 'Cleartext HTTP
 check(manifest.includes('android:dataExtractionRules="@xml/secure_store_data_extraction_rules"'), 'SecureStore data extraction rule manifestte bağlı değil.');
 check(secureStoreRules.includes('<exclude domain="sharedpref" path="SecureStore"/>'), 'SecureStore backup/device-transfer dışlaması eksik.');
 check(manifest.includes('android:icon="@mipmap/ic_launcher"'), 'Native launcher icon kaynağı tanımlı değil.');
-check(!/release\s*\{[\s\S]*?signingConfig\s+signingConfigs\.debug/.test(gradle), 'Release hâlâ debug anahtarıyla imzalanıyor.');
+
+// Only inspect the release buildType body. The old regex started at signingConfigs.release
+// and could span forward into buildTypes.debug, causing a false "debug signing" failure.
+const buildTypesBlock = gradle.match(/buildTypes\s*\{([\s\S]*?)\n\s*\}\n\s*\n\s*packagingOptions/);
+const releaseBuildType = buildTypesBlock?.[1]?.match(/release\s*\{([\s\S]*?)\n\s*\}/)?.[1] || '';
+check(Boolean(releaseBuildType), 'Release buildType bulunamadı.');
+check(!/signingConfig\s+signingConfigs\.debug/.test(releaseBuildType), 'Release hâlâ debug anahtarıyla imzalanıyor.');
+check(/hasCiReleaseSigning/.test(releaseBuildType) && /signingConfig\s+signingConfigs\.release/.test(releaseBuildType), 'Release CI imzalama yapılandırması eksik.');
+
 check(gradle.includes('targetSdkVersion 36'), 'targetSdkVersion 36 değil.');
 check(gradle.includes('compileSdk 36'), 'compileSdk 36 değil.');
 check(!/https?:\/\/(localhost|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01]))/.test(source), 'App.js içinde yerel/LAN API adresi var.');
