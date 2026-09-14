@@ -1,0 +1,43 @@
+name: Align Expo SDK 57 Dependencies Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/update-expo-deps-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Align Expo SDK patch versions and lockfile
+        working-directory: frontend
+        run: |
+          npm install --package-lock-only --legacy-peer-deps --ignore-scripts --no-audit --no-fund \
+            expo@~57.0.22 \
+            expo-application@~57.0.3 \
+            expo-clipboard@~57.0.2 \
+            expo-dev-client@~57.0.19 \
+            expo-linear-gradient@~57.0.2 \
+            expo-notifications@~57.0.18 \
+            expo-secure-store@~57.0.4
+      - name: Commit dependency alignment
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add frontend/package.json frontend/package-lock.json
+          if git diff --cached --quiet; then
+            echo 'Dependencies already aligned.'
+            exit 0
+          fi
+          git commit -m 'chore: align Expo SDK 57 patch dependencies'
+          git push origin HEAD:main
