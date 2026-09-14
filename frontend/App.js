@@ -3268,57 +3268,27 @@ function App() {
     try {
       setLoading(true);
 
-      let response = null;
-      let lastError = null;
-      const maximumAttempts = 4;
-
-      for (let attempt = 1; attempt <= maximumAttempts; attempt += 1) {
-        try {
-          response = await axios.post(
-            `${API_BASE_URL}/api/auth/login`,
-            { email: cleanEmail, password: cleanPassword },
-            {
-              headers: { ...SecurityScannerMiddleware.auditHeaders },
-              timeout: 20000
-            }
-          );
-          break;
-        } catch (attemptError) {
-          lastError = attemptError;
-          const status = attemptError?.response?.status;
-          const retryable =
-            !attemptError?.response ||
-            attemptError?.code === 'ECONNABORTED' ||
-            [502, 503, 504].includes(status);
-
-          if (!retryable || attempt === maximumAttempts) throw attemptError;
-
-          setApiOnline(false);
-
-          try {
-            await axios.get(`${API_BASE_URL}/health`, { timeout: 25000 });
-          } catch (_) {}
-
-          await new Promise((resolve) => setTimeout(resolve, 900));
+      const response = await axios.post(
+        `${API_BASE_URL}/api/auth/login`,
+        { email: cleanEmail, password: cleanPassword },
+        {
+          headers: { ...SecurityScannerMiddleware.auditHeaders },
+          timeout: 15000
         }
-      }
+      );
 
-      if (!response) throw lastError || new Error('LOGIN_UNAVAILABLE');
-
-      const { token, user } = response.data || {};
-      if (!token || !user) {
+      const { token: sessionToken, user } = response.data || {};
+      if (!sessionToken || !user) {
         throw new Error('INVALID_LOGIN_RESPONSE');
       }
 
-      // Persist before navigation. The token is removed only by explicit
-      // logout/account deletion or a confirmed 401/403 validation response.
       if (Platform.OS === 'web') {
-        await AsyncStorage.setItem('user_secure_token', token);
+        await AsyncStorage.setItem('user_secure_token', sessionToken);
       } else {
-        await SecureStore.setItemAsync('user_secure_token', token);
+        await SecureStore.setItemAsync('user_secure_token', sessionToken);
       }
 
-      setToken(token);
+      setToken(sessionToken);
       setName(user.name || '');
       setEmail(user.email || cleanEmail);
       setUserStatus(user.status || 'free');
@@ -3326,13 +3296,6 @@ function App() {
       setApiOnline(true);
       setCurrentScreen('dashboard');
       setActiveModule('dashboard');
-
-      Alert.alert(
-        t('runtimeLoginSuccessTitle'),
-        selectedLanguage === 'tr'
-          ? `Hoş geldiniz ${user.name || ''}!`
-          : `Welcome ${user.name || ''}!`
-      );
     } catch (error) {
       console.error('Login error:', error);
       const status = error?.response?.status;
@@ -3340,11 +3303,13 @@ function App() {
 
       const message = status === 401
         ? (selectedLanguage === 'tr' ? 'E-posta veya şifre hatalı.' : 'Incorrect email or password.')
+        : status === 403
+        ? (selectedLanguage === 'tr' ? 'Bu özel test sürümüne erişim yetkiniz yok.' : 'You do not have access to this private test build.')
         : status === 429
         ? (selectedLanguage === 'tr' ? 'Çok fazla giriş denemesi yapıldı. Kısa bir süre sonra tekrar deneyin.' : 'Too many login attempts. Please try again shortly.')
         : selectedLanguage === 'tr'
-        ? 'Sunucuya şu anda ulaşılamıyor. Uygulama bir sonraki açılışta sunucuyu arka planda yeniden hazırlayacak.'
-        : 'The server is currently unreachable. The app will warm it in the background the next time it opens.';
+        ? 'Sunucu yanıt vermedi. Lütfen birkaç saniye sonra tekrar deneyin.'
+        : 'The server did not respond. Please try again in a few seconds.';
 
       Alert.alert(t('runtimeLoginFailedTitle'), serverMessage || message);
     } finally {
@@ -5463,8 +5428,13 @@ function App() {
                 alignItems: 'center'
               }}
               activeOpacity={0.82}
-              onPress={() => setCurrentScreen('register')}>
-              <Text style={{ color: theme.primary, fontWeight: '900', fontSize: 15 }}>{t('createAccount')}</Text>
+              onPress={() => Alert.alert(
+                selectedLanguage === 'tr' ? 'Özel Test Sürümü' : 'Private Test Build',
+                selectedLanguage === 'tr' ? 'Yeni kayıtlar geçici olarak kapalıdır.' : 'New registrations are temporarily disabled.'
+              )}>
+              <Text style={{ color: theme.primary, fontWeight: '900', fontSize: 15 }}>
+                {selectedLanguage === 'tr' ? 'Özel Test — Yeni Kayıt Kapalı' : 'Private Test — Registration Closed'}
+              </Text>
             </TouchableOpacity>
 
             <View
@@ -8358,7 +8328,12 @@ function App() {
         onPress={() => setProfileMenuOpen((prev) => !prev)}
         activeOpacity={0.82}
         style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: theme.inputBg, borderColor: theme.borderCol, borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, maxWidth: '76%' }}>
-        <Text style={{ color: theme.primary, fontSize: 17, marginRight: 8 }}>◉</Text>
+        <View style={{ width: 34, height: 34, borderRadius: 9, overflow: 'hidden', marginRight: 8, backgroundColor: '#0B1522', borderWidth: 1, borderColor: theme.borderCol }}>
+          <Image
+            source={require('./assets/yenilogo.png')}
+            style={{ width: 46, height: 46, position: 'absolute', left: -6, top: -6 }}
+            resizeMode="cover" />
+        </View>
         <View style={{ flexShrink: 1 }}>
           <Text numberOfLines={1} style={{ color: theme.textMain, fontSize: 10, fontWeight: '900' }}>{name || (selectedLanguage === 'tr' ? 'Profil' : 'Profile')}</Text>
           <Text style={{ color: theme.textSub, fontSize: 8 }}>{userStatus === 'vip' ? 'VIP' : (selectedLanguage === 'tr' ? 'Standart' : 'Standard')}</Text>
