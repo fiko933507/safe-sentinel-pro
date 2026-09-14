@@ -1,5 +1,4 @@
 name: Safe Sentinel APK Test Gate
-# Manual test APK trigger after splash/backend fixes - 2026-09-14
 
 on:
   workflow_dispatch:
@@ -7,16 +6,14 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/play-store-release-gate.yml'
-      - 'frontend/android/**'
-      - 'frontend/package.json'
-      - 'frontend/package-lock.json'
+      - 'frontend/**'
 
 permissions:
   contents: read
 
 concurrency:
   group: safe-sentinel-apk-test-gate
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   db-audit:
@@ -164,10 +161,7 @@ jobs:
       - name: Verify keystore credentials
         shell: bash
         run: |
-          keytool -list \
-            -keystore android/app/release.keystore \
-            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
-            -alias "$ANDROID_KEY_ALIAS" >/dev/null
+          keytool -list -keystore android/app/release.keystore -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null
           echo 'Release keystore credentials: PASS'
       - name: Build signed test APK with Gradle
         shell: bash
@@ -186,7 +180,6 @@ jobs:
           "$APKSIGNER" verify --verbose "$APK"
           cp "$APK" safe-sentinel-test.apk
           echo "APK_SIZE_BYTES=$(wc -c < safe-sentinel-test.apk)" >> "$GITHUB_ENV"
-          echo 'APK signature verification: PASS'
       - uses: actions/upload-artifact@v4
         with:
           name: safe-sentinel-test-apk-${{ github.sha }}
@@ -204,6 +197,5 @@ jobs:
           echo 'DB audit: PASS' >> "$GITHUB_STEP_SUMMARY"
           echo 'Security E2E: PASS' >> "$GITHUB_STEP_SUMMARY"
           echo 'Android API 36: PASS' >> "$GITHUB_STEP_SUMMARY"
-          echo 'AAB generation: PAUSED until manual APK testing is approved' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Signing: GitHub-hosted Gradle + production EAS keystore' >> "$GITHUB_STEP_SUMMARY"
+          echo 'AAB generation: DISABLED during APK testing' >> "$GITHUB_STEP_SUMMARY"
           echo "Signed test APK size: ${APK_SIZE_BYTES} bytes" >> "$GITHUB_STEP_SUMMARY"
