@@ -89,7 +89,7 @@ jobs:
     env:
       NODE_ENV: production
       EXPO_PUBLIC_BACKEND_URL: https://safe-sentinel-pro-1.onrender.com
-      EXPO_PUBLIC_PLAY_STORE_BUILD: 'true'
+      EXPO_PUBLIC_PLAY_STORE_BUILD: 'false'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -112,60 +112,4 @@ jobs:
       - name: Verify Expo export
         run: test -d dist-ci
 
-  android-release:
-    name: Android release AAB
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
-    env:
-      NODE_ENV: production
-      EXPO_PUBLIC_BACKEND_URL: https://safe-sentinel-pro-1.onrender.com
-      EXPO_PUBLIC_PLAY_STORE_BUILD: 'true'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-      - name: Setup Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: '17'
-          cache: gradle
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps --no-audit --no-fund
-      - name: Build Android release bundle
-        run: |
-          chmod +x android/gradlew
-          ./android/gradlew --no-daemon -p android bundleRelease
-      - name: Verify AAB and release metadata
-        run: |
-          test -s android/app/build/outputs/bundle/release/app-release.aab
-          grep -q "applicationId 'com.fiko93.safesentinel'" android/app/build.gradle
-          grep -q 'versionCode 5' android/app/build.gradle
-          grep -q 'targetSdkVersion 36' android/app/build.gradle
-          grep -q 'compileSdk 36' android/app/build.gradle
-          grep -q 'android:allowBackup="false"' android/app/src/main/AndroidManifest.xml
-          grep -q 'android:usesCleartextTraffic="false"' android/app/src/main/AndroidManifest.xml
-          ! grep -q 'SYSTEM_ALERT_WINDOW' android/app/src/main/AndroidManifest.xml
-          ! grep -q 'READ_EXTERNAL_STORAGE' android/app/src/main/AndroidManifest.xml
-          ! grep -q 'WRITE_EXTERNAL_STORAGE' android/app/src/main/AndroidManifest.xml
-          ICON_INFO="$(file assets/yenilogo.png)"
-          echo "$ICON_INFO"
-          echo "$ICON_INFO" | grep -q 'PNG image data'
-          WIDTH="$(echo "$ICON_INFO" | sed -nE 's/.*PNG image data, ([0-9]+) x ([0-9]+).*/\1/p')"
-          HEIGHT="$(echo "$ICON_INFO" | sed -nE 's/.*PNG image data, ([0-9]+) x ([0-9]+).*/\2/p')"
-          test -n "$WIDTH"
-          test "$WIDTH" = "$HEIGHT"
-      - name: Upload AAB artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: safe-sentinel-play-store-aab-${{ github.sha }}
-          path: frontend/android/app/build/outputs/bundle/release/app-release.aab
-          if-no-files-found: error
-          retention-days: 14
+# AAB generation is intentionally paused while signed APK testing is in progress.
