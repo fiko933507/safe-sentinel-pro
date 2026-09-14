@@ -147,7 +147,7 @@ jobs:
         run: |
           test -s android/app/build/outputs/bundle/release/app-release.aab
           grep -q "applicationId 'com.fiko93.safesentinel'" android/app/build.gradle
-          grep -q 'versionCode 1' android/app/build.gradle
+          grep -q 'versionCode 5' android/app/build.gradle
           grep -q 'targetSdkVersion 36' android/app/build.gradle
           grep -q 'compileSdk 36' android/app/build.gradle
           grep -q 'android:allowBackup="false"' android/app/src/main/AndroidManifest.xml
