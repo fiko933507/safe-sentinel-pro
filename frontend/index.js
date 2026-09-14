@@ -23,6 +23,21 @@ if (!(Platform.OS === 'android' && __DEV__)) {
   });
 }
 
+const warmBackend = async () => {
+  if (!BACKEND_URL) return false;
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/health`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' }
+    });
+    return response.ok;
+  } catch (error) {
+    console.warn('[SAFE SENTINEL BACKEND WARMUP]', error?.message || error);
+    return false;
+  }
+};
+
 const ensurePermission = async () => {
   let permission = await Notifications.getPermissionsAsync();
   if (permission?.status !== 'granted') {
@@ -98,6 +113,10 @@ const registerPushDevice = async () => {
 };
 
 function SafeSentinelRoot() {
+  useEffect(() => {
+    warmBackend();
+  }, []);
+
   useEffect(() => {
     if (Platform.OS === 'web' || (Platform.OS === 'android' && __DEV__)) return undefined;
 
