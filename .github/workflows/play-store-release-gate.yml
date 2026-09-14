@@ -1,4 +1,5 @@
 name: Safe Sentinel APK Test Gate
+# Manual test APK trigger after splash/backend fixes - 2026-09-14
 
 on:
   workflow_dispatch:
@@ -179,7 +180,8 @@ jobs:
         run: |
           APK='android/app/build/outputs/apk/release/app-release.apk'
           test -s "$APK"
-          APKSIGNER="$(find "$ANDROID_SDK_ROOT/build-tools" -type f -name apksigner | sort -V | tail -1)"
+          SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          APKSIGNER="$(find "$SDK_ROOT/build-tools" -type f -name apksigner | sort -V | tail -1)"
           test -x "$APKSIGNER"
           "$APKSIGNER" verify --verbose "$APK"
           cp "$APK" safe-sentinel-test.apk
