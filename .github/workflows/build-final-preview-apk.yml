@@ -1,12 +1,7 @@
 name: Build Final Preview APK
-# Rebuild after Play Store legal hardening, privacy, terms, and account-deletion updates.
+# Manual-only fallback preview build. EAS Free quota must not block production CI or Play Store release.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/build-final-preview-apk.yml'
-      - 'frontend/**'
   workflow_dispatch:
 
 permissions:
@@ -18,7 +13,7 @@ concurrency:
 
 jobs:
   build:
-    name: EAS signed preview APK
+    name: EAS signed preview APK (manual)
     runs-on: ubuntu-latest
     timeout-minutes: 60
     defaults:
