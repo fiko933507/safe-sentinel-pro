@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "node --import ./src/guardian-bootstrap.js --watch src/server.js",
-    "start": "prisma migrate deploy && node --import ./src/guardian-bootstrap.js src/server.js",
+    "start": "node --import ./src/guardian-bootstrap.js src/server.js",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "prisma:migrate:deploy": "prisma migrate deploy",
