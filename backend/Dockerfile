@@ -4,6 +4,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 COPY package*.json ./
+COPY schema.prisma ./
+COPY prisma ./prisma
 RUN npm install --include=dev --legacy-peer-deps --no-audit --no-fund
 
 COPY . .
