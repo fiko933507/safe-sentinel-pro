@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/play-store-release-gate.yml'
       - 'frontend/**'
+      - 'backend/**'
 
 permissions:
   contents: read
