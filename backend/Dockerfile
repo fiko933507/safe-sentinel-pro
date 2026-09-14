@@ -5,7 +5,7 @@ ENV NODE_ENV=production
 
 COPY package*.json ./
 COPY schema.prisma ./
-COPY prisma ./prisma
+COPY migrations ./migrations
 RUN npm install --include=dev --legacy-peer-deps --no-audit --no-fund
 
 COPY . .
