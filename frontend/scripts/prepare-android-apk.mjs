@@ -10,7 +10,8 @@ let app = fs.readFileSync(appPath, 'utf8');
 const hasLoginEndpoint = app.includes('`${API_BASE_URL}/api/auth/login`');
 const hasBackendRecovery =
   app.includes('requestWithBackendRecovery(() =>') &&
-  app.includes('attempts = 3');
+  app.includes('attempts = 2') &&
+  app.includes('loginWarmupStartedRef');
 
 if (!hasLoginEndpoint || !hasBackendRecovery) {
   throw new Error('Resilient login flow marker not found');
