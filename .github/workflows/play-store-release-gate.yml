@@ -69,7 +69,7 @@ jobs:
       - name: Start local backend for regression tests
         shell: bash
         run: |
-          nohup npm start > /tmp/safe-sentinel-backend.log 2>&1 &
+          nohup node --import ./src/guardian-bootstrap.js src/server.js > /tmp/safe-sentinel-backend.log 2>&1 &
           echo $! > /tmp/safe-sentinel-backend.pid
           for i in {1..45}; do
             if curl --fail --silent http://127.0.0.1:3000/health >/dev/null; then
