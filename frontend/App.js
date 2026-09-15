@@ -3284,7 +3284,7 @@ function App() {
           { email: cleanEmail, password: cleanPassword },
           {
             headers: { ...SecurityScannerMiddleware.auditHeaders },
-            timeout: 15000
+            timeout: 30000
           }
         )
       );
@@ -3311,19 +3311,22 @@ function App() {
     } catch (error) {
       console.error('Login error:', error);
       const status = error?.response?.status;
-      const serverMessage = error?.response?.data?.error || error?.response?.data?.message;
 
-      const message = status === 401
+      const message = status === 400
+        ? (selectedLanguage === 'tr' ? 'E-posta veya şifre bilgisi geçersiz.' : 'The email or password input is invalid.')
+        : status === 401
         ? (selectedLanguage === 'tr' ? 'E-posta veya şifre hatalı.' : 'Incorrect email or password.')
         : status === 403
-        ? (selectedLanguage === 'tr' ? 'Bu özel test sürümüne erişim yetkiniz yok.' : 'You do not have access to this private test build.')
+        ? (selectedLanguage === 'tr' ? 'Bu hesap için giriş yetkisi bulunmuyor.' : 'This account is not authorized to sign in.')
         : status === 429
         ? (selectedLanguage === 'tr' ? 'Çok fazla giriş denemesi yapıldı. Kısa bir süre sonra tekrar deneyin.' : 'Too many login attempts. Please try again shortly.')
-        : selectedLanguage === 'tr'
-        ? 'Sunucu yanıt vermedi. Lütfen birkaç saniye sonra tekrar deneyin.'
-        : 'The server did not respond. Please try again in a few seconds.';
+        : status && status >= 500
+        ? (selectedLanguage === 'tr' ? 'Giriş servisi geçici olarak kullanılamıyor. Lütfen birkaç saniye sonra tekrar deneyin.' : 'The sign-in service is temporarily unavailable. Please try again in a few seconds.')
+        : (selectedLanguage === 'tr'
+          ? 'Sunucuya ulaşılamıyor. Bağlantınızı kontrol edip tekrar deneyin.'
+          : 'The server cannot be reached. Check your connection and try again.');
 
-      Alert.alert(t('runtimeLoginFailedTitle'), serverMessage || message);
+      Alert.alert(t('runtimeLoginFailedTitle'), message);
     } finally {
       setLoading(false);
     }
@@ -3429,9 +3432,15 @@ function App() {
       const duplicateEmail = /already registered|already exists/i.test(String(serverMessage || ''));
       const message = (status === 409 || duplicateEmail)
         ? (selectedLanguage === 'tr' ? 'Bu e-posta adresi zaten kayıtlı.' : 'This email address is already registered.')
+        : status === 400
+        ? (selectedLanguage === 'tr' ? 'Kayıt bilgilerini kontrol edin. Şifre en az 10 karakter olmalıdır.' : 'Check your registration details. The password must be at least 10 characters.')
+        : status === 429
+        ? (selectedLanguage === 'tr' ? 'Çok fazla kayıt denemesi yapıldı. Kısa bir süre sonra tekrar deneyin.' : 'Too many registration attempts. Please try again shortly.')
+        : status && status >= 500
+        ? (selectedLanguage === 'tr' ? 'Kayıt servisi geçici olarak kullanılamıyor. Lütfen birkaç saniye sonra tekrar deneyin.' : 'The registration service is temporarily unavailable. Please try again in a few seconds.')
         : !error?.response
         ? (selectedLanguage === 'tr' ? 'Sunucuya ulaşılamıyor. Lütfen tekrar deneyin.' : 'Cannot reach the server. Please try again.')
-        : serverMessage || t("runtimeRegisterFailedGeneric");
+        : t("runtimeRegisterFailedGeneric");
 
       Alert.alert(t("runtimeRegisterFailedTitle"), message);
     } finally {
@@ -5440,12 +5449,9 @@ function App() {
                 alignItems: 'center'
               }}
               activeOpacity={0.82}
-              onPress={() => Alert.alert(
-                selectedLanguage === 'tr' ? 'Özel Test Sürümü' : 'Private Test Build',
-                selectedLanguage === 'tr' ? 'Yeni kayıtlar geçici olarak kapalıdır.' : 'New registrations are temporarily disabled.'
-              )}>
+              onPress={() => setCurrentScreen('register')}>
               <Text style={{ color: theme.primary, fontWeight: '900', fontSize: 15 }}>
-                {selectedLanguage === 'tr' ? 'Özel Test — Yeni Kayıt Kapalı' : 'Private Test — Registration Closed'}
+                {t('createAccount')}
               </Text>
             </TouchableOpacity>
 
