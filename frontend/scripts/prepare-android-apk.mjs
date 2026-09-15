@@ -9,20 +9,51 @@ let app = fs.readFileSync(appPath, 'utf8');
 // failing the auth request while Render is still cold-starting.
 const loginMarker = `    try {\n      setLoading(true);\n\n      const response = await axios.post(\n        \`${'${API_BASE_URL}'}/api/auth/login\`,`;
 const loginReplacement = `    try {\n      setLoading(true);\n\n      // Warm the production API first. A sleeping instance can take longer\n      // than the auth timeout to become ready. No credentials are sent here.\n      try {\n        await axios.get(\`${'${API_BASE_URL}'}/health\`, { timeout: 45000 });\n      } catch (warmupError) {\n        console.warn('[LOGIN WARMUP]', warmupError?.message || warmupError);\n      }\n\n      const response = await axios.post(\n        \`${'${API_BASE_URL}'}/api/auth/login\`,`;
-if (!app.includes(loginMarker)) throw new Error('Login marker not found');
-app = app.replace(loginMarker, loginReplacement);
+
+if (app.includes(loginMarker)) {
+  app = app.replace(loginMarker, loginReplacement);
+} else if (!app.includes('[LOGIN WARMUP]')) {
+  throw new Error('Login flow marker not found');
+}
+
 app = app.replace(
   `          timeout: 15000\n        }\n      );\n\n      const { token: sessionToken, user } = response.data || {};`,
   `          timeout: 30000\n        }\n      );\n\n      const { token: sessionToken, user } = response.data || {};`
 );
 
 // Registration: replace the temporary private-test lock with the real flow.
-const closedRegistration = /<TouchableOpacity\s+style=\{\[styles\.secondaryButton,[\s\S]*?onPress=\{\(\) => Alert\.alert\([\s\S]*?Private Test — Registration Closed'\}\s*<\/Text>\s*<\/TouchableOpacity>/;
-const match = app.match(closedRegistration);
-if (!match) throw new Error('Closed registration control not found');
-const styleMatch = match[0].match(/style=\{\[styles\.secondaryButton,[\s\S]*?\]\}/);
-const style = styleMatch?.[0] || `style={[styles.secondaryButton]}`;
-app = app.replace(closedRegistration, `<TouchableOpacity\n              ${style}\n              onPress={() => setCurrentScreen('register')}>\n              <Text style={{ color: theme.primary, fontWeight: '900', fontSize: 15 }}>\n                {t('createAccount')}\n              </Text>\n            </TouchableOpacity>`);
+// Keep this patch independent from styling so UI refactors do not break npm ci.
+const registrationClosedMarker = 'Private Test — Registration Closed';
+if (app.includes(registrationClosedMarker)) {
+  const markerIndex = app.indexOf(registrationClosedMarker);
+  const controlStart = app.lastIndexOf('<TouchableOpacity', markerIndex);
+  const closingTag = '</TouchableOpacity>';
+  const controlEndStart = app.indexOf(closingTag, markerIndex);
+
+  if (controlStart < 0 || controlEndStart < 0) {
+    throw new Error('Closed registration control boundaries not found');
+  }
+
+  const controlEnd = controlEndStart + closingTag.length;
+  const control = app.slice(controlStart, controlEnd);
+  let updatedControl = control.replace(
+    /onPress=\{\(\) => Alert\.alert\([\s\S]*?\)\}>/,
+    `onPress={() => setCurrentScreen('register')}>`
+  );
+  updatedControl = updatedControl.replace(
+    /\{selectedLanguage === 'tr' \? 'Özel Test — Yeni Kayıt Kapalı' : 'Private Test — Registration Closed'\}/,
+    `{t('createAccount')}`
+  );
+
+  if (updatedControl === control || updatedControl.includes(registrationClosedMarker)) {
+    throw new Error('Closed registration control could not be converted');
+  }
+
+  app = `${app.slice(0, controlStart)}${updatedControl}${app.slice(controlEnd)}`;
+} else if (!app.includes("setCurrentScreen('register')")) {
+  throw new Error('Registration flow marker not found');
+}
+
 fs.writeFileSync(appPath, app);
 
 // Android launcher: use the actual Safe Sentinel artwork for both legacy and
