@@ -57,7 +57,19 @@ jobs:
           npx --yes expo-doctor@1.20.4
 
       - name: Production backend health smoke
-        run: curl --fail --silent --show-error --max-time 20 https://safe-sentinel-pro-1.onrender.com/health
+        shell: bash
+        run: |
+          for i in $(seq 1 18); do
+            if curl --fail --silent --show-error --max-time 10 https://safe-sentinel-pro-1.onrender.com/health >/tmp/health.json; then
+              cat /tmp/health.json
+              echo 'Production backend health: PASS'
+              exit 0
+            fi
+            echo "Backend is redeploying; health retry $i/18"
+            sleep 5
+          done
+          echo '::error::Production backend did not become healthy'
+          exit 1
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -118,4 +130,4 @@ jobs:
           git commit -m 'fix(app): connect Vault inheritance and Guardian wallet flows'
           git push origin HEAD:main
 
-# Retry after aligning Android postinstall with the two-attempt login recovery policy.
+# Final retry uses a bounded health loop so a Render rolling restart is not mistaken for an application failure.
