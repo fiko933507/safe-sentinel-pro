@@ -2,7 +2,21 @@
   "expo": {
     "name": "Safe Sentinel",
     "slug": "safe-sentinel",
+    "scheme": "safesentinel",
     "version": "1.0.0",
+    "icon": "./assets/yenilogo.png",
+    "splash": {
+      "image": "./assets/yenilogo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#07111F"
+    },
+    "android": {
+      "package": "com.fiko93.safesentinel",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/yenilogo.png",
+        "backgroundColor": "#07111F"
+      }
+    },
     "assetBundlePatterns": [
       "**/*"
     ],
