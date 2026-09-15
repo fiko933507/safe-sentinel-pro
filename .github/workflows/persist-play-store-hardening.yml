@@ -45,13 +45,13 @@ jobs:
           fi
           node -e "require('@babel/core').transformFileSync('App.js',{configFile:'./babel.config.js'}); console.log('BABEL PARSE PASSED')"
           npx expo install --check
-      - name: Persist source and remove one-time workflow
+      - name: Persist source and launcher assets, then remove one-time workflow
         shell: bash
         run: |
           rm -f .github/workflows/persist-play-store-hardening.yml
           git config user.name 'safe-sentinel-release-bot'
           git config user.email 'safe-sentinel-release-bot@users.noreply.github.com'
-          git add frontend/App.js .github/workflows/persist-play-store-hardening.yml
+          git add -A frontend/App.js frontend/android/app/src/main/res .github/workflows/persist-play-store-hardening.yml
           if git diff --cached --quiet; then
             echo 'No source changes to persist.'
             exit 0
