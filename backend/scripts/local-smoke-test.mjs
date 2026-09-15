@@ -1,4 +1,6 @@
 const BASE_URL = String(process.env.SMOKE_BASE_URL || 'http://127.0.0.1:3000').replace(/\/$/, '');
+const REQUEST_TIMEOUT_MS = Number(process.env.SMOKE_REQUEST_TIMEOUT_MS || 30000);
+const HEALTH_ATTEMPTS = Number(process.env.SMOKE_HEALTH_ATTEMPTS || 3);
 
 let failures = 0;
 
@@ -6,9 +8,12 @@ const log = (status, name, detail = '') => {
   console.log(`${status.padEnd(5)} ${name}${detail ? ` — ${detail}` : ''}`);
 };
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const request = async (path, options = {}) => {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const startedAt = Date.now();
 
   try {
     const headers = {
@@ -33,7 +38,10 @@ const request = async (path, options = {}) => {
       }
     }
 
-    return { response, body };
+    return { response, body, durationMs: Date.now() - startedAt };
+  } catch (error) {
+    const timeoutDetail = error?.name === 'AbortError' ? `timed out after ${REQUEST_TIMEOUT_MS}ms` : (error?.message || String(error));
+    throw new Error(`${path} ${timeoutDetail}`);
   } finally {
     clearTimeout(timeout);
   }
@@ -48,44 +56,51 @@ const expect = (condition, name, detail = '') => {
   }
 };
 
-try {
-  console.log(`Safe Sentinel Pro private-beta smoke test: ${BASE_URL}`);
+const checkHealth = async () => {
+  let lastError;
+  for (let attempt = 1; attempt <= HEALTH_ATTEMPTS; attempt += 1) {
+    try {
+      const result = await request('/health');
+      if (result.response.status === 200 && result.body?.ok === true && result.body?.database === 'connected') {
+        log('PASS', 'Health + PostgreSQL', `HTTP ${result.response.status}, ${result.durationMs}ms, attempt ${attempt}/${HEALTH_ATTEMPTS}`);
+        return true;
+      }
+      lastError = new Error(`/health returned HTTP ${result.response.status}`);
+    } catch (error) {
+      lastError = error;
+    }
 
-  {
-    const { response, body } = await request('/health');
-    expect(
-      response.status === 200 && body?.ok === true && body?.database === 'connected',
-      'Health + PostgreSQL',
-      `HTTP ${response.status}`
-    );
+    log('WAIT', 'Production API warm-up', `attempt ${attempt}/${HEALTH_ATTEMPTS}: ${lastError?.message || lastError}`);
+    if (attempt < HEALTH_ATTEMPTS) await sleep(5000);
   }
 
-  {
-    const { response } = await request('/api/me');
-    expect(response.status === 401, 'Protected /api/me rejects anonymous access', `HTTP ${response.status}`);
-  }
-
-  {
-    const { response } = await request('/api/me', {
-      headers: { Authorization: 'Bearer definitely-invalid-token' }
-    });
-    expect(response.status === 401, 'Invalid JWT rejected', `HTTP ${response.status}`);
-  }
-
-  {
-    const { response } = await request('/api/check-wallet', {
-      method: 'POST',
-      body: JSON.stringify({ network: 'ethereum', address: '0x0000000000000000000000000000000000000000' })
-    });
-    expect(response.status === 401, 'Wallet scan rejects anonymous access', `HTTP ${response.status}`);
-  }
-} catch (error) {
   failures += 1;
-  log(
-    'FAIL',
-    'Unexpected smoke-test exception',
-    error?.name === 'AbortError' ? 'request timed out after 30s' : (error?.message || String(error))
-  );
+  log('FAIL', 'Health + PostgreSQL', lastError?.message || String(lastError));
+  return false;
+};
+
+const runCheck = async (name, path, options, expectedStatus) => {
+  try {
+    const { response, durationMs } = await request(path, options);
+    expect(response.status === expectedStatus, name, `HTTP ${response.status}, ${durationMs}ms`);
+  } catch (error) {
+    failures += 1;
+    log('FAIL', name, error?.message || String(error));
+  }
+};
+
+console.log(`Safe Sentinel Pro private-beta smoke test: ${BASE_URL}`);
+
+const healthy = await checkHealth();
+if (healthy) {
+  await runCheck('Protected /api/me rejects anonymous access', '/api/me', {}, 401);
+  await runCheck('Invalid JWT rejected', '/api/me', {
+    headers: { Authorization: 'Bearer definitely-invalid-token' }
+  }, 401);
+  await runCheck('Wallet scan rejects anonymous access', '/api/check-wallet', {
+    method: 'POST',
+    body: JSON.stringify({ network: 'ethereum', address: '0x0000000000000000000000000000000000000000' })
+  }, 401);
 }
 
 if (failures > 0) {
