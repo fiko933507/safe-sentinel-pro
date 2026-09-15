@@ -58,24 +58,31 @@ const api = axios.create({
   timeout: 10000,
   headers: {}
 });
-api.interceptors.request.use(async (config) => {
+let cachedAuthToken;
+const setCachedAuthToken = (value) => {
+  cachedAuthToken = value ? String(value) : null;
+};
+const getCachedAuthToken = async () => {
+  if (cachedAuthToken !== undefined) return cachedAuthToken;
   try {
-    let token = null;
-
-    if (Platform.OS === 'web') {
-      token = await AsyncStorage.getItem('user_secure_token');
-    } else {
-      token = await SecureStore.getItemAsync('user_secure_token');
-    }
-
-    if (token) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    const stored = Platform.OS === 'web'
+      ? await AsyncStorage.getItem('user_secure_token')
+      : await SecureStore.getItemAsync('user_secure_token');
+    setCachedAuthToken(stored);
+    return cachedAuthToken;
   } catch (error) {
-    console.warn("Auth token okunamadı:", error);
+    cachedAuthToken = null;
+    console.warn('Auth token okunamadı:', error);
+    return null;
   }
+};
 
+api.interceptors.request.use(async (config) => {
+  const token = await getCachedAuthToken();
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
@@ -1400,15 +1407,17 @@ function App() {
     const centralNotificationPolling = async () => {
       await loadCentralNotifications();
     };
+  const firstPollTimer = setTimeout(centralNotificationPolling, 900);
 
-    centralNotificationPolling();
+  const timer = setInterval(
+    centralNotificationPolling,
+    45000
+  );
 
-    const timer = setInterval(
-      centralNotificationPolling,
-      15000
-    );
-
-    return () => clearInterval(timer);
+  return () => {
+    clearTimeout(firstPollTimer);
+    clearInterval(timer);
+  };
   }, [token]);
 
   useEffect(() => {
@@ -1470,10 +1479,9 @@ function App() {
   }, []);
 
   useEffect(() => {
-    checkBackendHealth();
-    const healthTimer = setInterval(checkBackendHealth, 60000);
-    return () => clearInterval(healthTimer);
-  }, [checkBackendHealth]);
+  const healthTimer = setInterval(checkBackendHealth, 60000);
+  return () => clearInterval(healthTimer);
+}, [checkBackendHealth]);
 
   const fetchLiveExchangeRates = useCallback(async () => {
     try {
@@ -1489,10 +1497,14 @@ function App() {
   }, []);
 
   useEffect(() => {
-    fetchLiveExchangeRates();
-    const timer = setInterval(fetchLiveExchangeRates, 15 * 60 * 1000);
-    return () => clearInterval(timer);
-  }, [fetchLiveExchangeRates]);
+  if (!token) return undefined;
+  const initialTimer = setTimeout(fetchLiveExchangeRates, 1200);
+  const timer = setInterval(fetchLiveExchangeRates, 15 * 60 * 1000);
+  return () => {
+    clearTimeout(initialTimer);
+    clearInterval(timer);
+  };
+}, [token, fetchLiveExchangeRates]);
 
   const [activeModule, setActiveModule] = useState('dashboard');
 
@@ -1560,8 +1572,13 @@ function App() {
   }, [token]);
 
   useEffect(() => {
-    loadPriceAlerts();
-  }, [loadPriceAlerts]);
+  if (!token) {
+    setSavedPriceAlerts([]);
+    return undefined;
+  }
+  const timer = setTimeout(loadPriceAlerts, 1000);
+  return () => clearTimeout(timer);
+}, [token, loadPriceAlerts]);
 
   const priceAlertsMode = "SERVER_MONITORED";
   const emergencyLockMode = "LOCAL_ONLY";
@@ -2105,10 +2122,25 @@ function App() {
     let sessionAuthenticated = false;
 
     try {
-      const savedWhite = await AsyncStorage.getItem('@whitelist');
-      const savedBlack = await AsyncStorage.getItem('@blacklist');
-      const savedVault = await AsyncStorage.getItem('@vault');
-      const savedRecentTransactions = await AsyncStorage.getItem('@safe_sentinel_recent_transactions');
+    const localDataPromise = AsyncStorage.multiGet([
+      '@whitelist',
+      '@blacklist',
+      '@vault',
+      '@safe_sentinel_recent_transactions'
+    ]);
+    const secureTokenPromise = Platform.OS === 'web'
+      ? AsyncStorage.getItem('user_secure_token')
+      : SecureStore.getItemAsync('user_secure_token');
+    const [localPairs, secureApiKey] = await Promise.all([
+      localDataPromise,
+      secureTokenPromise
+    ]);
+    const localData = Object.fromEntries(localPairs);
+    const savedWhite = localData['@whitelist'];
+    const savedBlack = localData['@blacklist'];
+    const savedVault = localData['@vault'];
+    const savedRecentTransactions = localData['@safe_sentinel_recent_transactions'];
+    setCachedAuthToken(secureApiKey);
 
       if (savedRecentTransactions) {
         try {
@@ -2120,11 +2152,6 @@ function App() {
           console.warn('[RECENT TRANSACTIONS] restore failed:', recentTransactionsError?.message || recentTransactionsError);
         }
       }
-
-      const secureApiKey =
-      Platform.OS === 'web' ?
-      await AsyncStorage.getItem('user_secure_token') :
-      await SecureStore.getItemAsync('user_secure_token');
 
       if (savedWhite) {
         setWhitelist(JSON.parse(savedWhite));
@@ -2168,8 +2195,9 @@ function App() {
 
           if (isExplicitlyInvalidSession) {
             sessionAuthenticated = false;
-            setToken(null);
-            setCurrentScreen('login');
+          setCachedAuthToken(null);
+          setToken(null);
+          setCurrentScreen('login');
 
             if (Platform.OS === 'web') {
               await AsyncStorage.removeItem('user_secure_token');
@@ -2253,32 +2281,14 @@ function App() {
   }, [handleIsolatedError]);
 
   useEffect(() => {
-    if (!(Platform.OS === 'android' && __DEV__)) {
-      Notifications.requestPermissionsAsync().catch((e) =>
-      handleIsolatedError("Bildirim İzni", e)
-      );
-    }
+  loadSecureAndLocalData();
+}, [loadSecureAndLocalData]);
 
-    const initializeApp = async () => {
-      // Wake the backend in parallel; never block local session restoration.
-      const backendWakeup = checkBackendHealth();
-      const authenticated = await loadSecureAndLocalData();
-
-      await Promise.allSettled([
-        backendWakeup,
-        authenticated ? fetchLiveGasFees() : Promise.resolve(),
-        fetchLiveCoinGeckoPrices()
-      ]);
-    };
-
-    initializeApp();
-  }, [
-  loadSecureAndLocalData,
-  checkBackendHealth,
-  fetchLiveCoinGeckoPrices,
-  fetchLiveGasFees,
-  handleIsolatedError]
-  );
+useEffect(() => {
+  if (!token) return undefined;
+  const timer = setTimeout(fetchLiveCoinGeckoPrices, 900);
+  return () => clearTimeout(timer);
+}, [token, fetchLiveCoinGeckoPrices]);
   const syncSecurityAddressLists = async () => {
     try {
       const [whiteResponse, blackResponse] =
@@ -2322,34 +2332,7 @@ function App() {
         whitelist: whiteData,
         blacklist: blackData
       };
-      const removeSecurityAddress = async (type, id) => {
-        try {
-          if (!id) {
-            throw new Error("Silinecek güvenlik adresi ID bulunamadı.");
-          }
-
-          const endpoint =
-          type === "whitelist" ?
-          `/api/whitelist/${id}` :
-          `/api/blacklist/${id}`;
-
-          await api.delete(endpoint);
-
-          await syncSecurityAddressLists();
-
-          return true;
-        } catch (e) {
-          handleIsolatedError(
-            type === "whitelist" ?
-            "Whitelist adres silme" :
-            "Blacklist adres silme",
-            e
-          );
-          return false;
-        }
-      };
-
-    } catch (error) {
+} catch (error) {
       console.error(
         '[SECURITY LIST SYNC]',
         error
@@ -3265,7 +3248,7 @@ function App() {
     } catch (error) {
       console.warn("Logout token temizleme hatası:", error);
     }
-
+    setCachedAuthToken(null);
     setToken(null);
     setCurrentScreen('login');
     setActiveModule('dashboard');
@@ -3292,7 +3275,7 @@ function App() {
               await SecureStore.deleteItemAsync('user_secure_token');
               await AsyncStorage.removeItem('@safe_sentinel_user');
             }
-
+            setCachedAuthToken(null);
             setToken(null);
             setName('');
             setEmail('');
@@ -3369,21 +3352,22 @@ function App() {
       if (!sessionToken || !user) {
         throw new Error('INVALID_LOGIN_RESPONSE');
       }
+    setCachedAuthToken(sessionToken);
+    setToken(sessionToken);
+    setName(user.name || '');
+    setEmail(user.email || cleanEmail);
+    setUserStatus(user.status || 'free');
+    setQueryCount(0);
+    setApiOnline(true);
+    setCurrentScreen('dashboard');
+    setActiveModule('dashboard');
 
-      if (Platform.OS === 'web') {
-        await AsyncStorage.setItem('user_secure_token', sessionToken);
-      } else {
-        await SecureStore.setItemAsync('user_secure_token', sessionToken);
-      }
-
-      setToken(sessionToken);
-      setName(user.name || '');
-      setEmail(user.email || cleanEmail);
-      setUserStatus(user.status || 'free');
-      setQueryCount(0);
-      setApiOnline(true);
-      setCurrentScreen('dashboard');
-      setActiveModule('dashboard');
+    const persistSession = Platform.OS === 'web'
+      ? AsyncStorage.setItem('user_secure_token', sessionToken)
+      : SecureStore.setItemAsync('user_secure_token', sessionToken);
+    persistSession.catch((storageError) =>
+      console.warn('Session token kalıcılaştırılamadı:', storageError?.message || storageError)
+    );
     } catch (error) {
       console.error('Login error:', error);
       const status = error?.response?.status;
@@ -3461,8 +3445,9 @@ function App() {
       setToken(token);
 
       if (!token || !user) {
-        throw new Error(t("runtimeInvalidRegisterResponse"));
-      }
+      throw new Error(t("runtimeInvalidRegisterResponse"));
+    }
+    setCachedAuthToken(token);
 
       if (Platform.OS === 'web') {
         await AsyncStorage.setItem('user_secure_token', token);
@@ -4577,7 +4562,7 @@ function App() {
       const response = await api.post(
         '/api/guardian/evaluate',
         {
-          network: selectedNetwork === 'eth' ? 'ethereum' : selectedNetwork === 'arb' ? 'arbitrum' : selectedNetwork === 'avax' ? 'avalanche' : selectedNetwork,
+          network: normalizeBackendNetwork(selectedNetwork),
           address: cleanAddr,
           ...(guardianAmountUsd !== null ? { amountUsd: guardianAmountUsd } : {})
         },
@@ -7096,11 +7081,6 @@ function App() {
                     setGuardianAlertThreshold(String(profile.alertThresholdUsd ?? threshold));
                     setGuardianProfileLoaded(true);
                   }
-
-                  Alert.alert(
-                    'Guardian',
-                    t('guardianUpdated')
-                  );
                 } catch (error) {
                   Alert.alert(
                     'Guardian',
@@ -7135,8 +7115,6 @@ function App() {
                   setGuardianEnabled(Boolean(profile.enabled));
                   setGuardianAlertThreshold(String(profile.alertThresholdUsd ?? 500));
                   setGuardianProfileLoaded(true);
-
-                  Alert.alert('Guardian', t('guardianProfileRefreshed'));
                 } catch (error) {
                   Alert.alert(
                     'Guardian',
@@ -7168,7 +7146,7 @@ function App() {
           }}>
 
             <Text style={{
-              color: theme.text,
+              color: theme.textMain,
               fontWeight: '700',
               fontSize: 15,
               marginBottom: 8
@@ -7177,11 +7155,11 @@ function App() {
             </Text>
 
             <Text style={{
-              color: theme.subText,
+              color: theme.textSub,
               fontSize: 12,
               marginBottom: 10
             }}>
-              {t('guardianRiskDescription1')}
+              {t('guardianRiskDescription1')}{' '}
               {t('guardianRiskDescription2')}
             </Text>
 
@@ -7220,10 +7198,10 @@ function App() {
             null}
 
             {guardianEvaluationResult?.decision ?
-            <View style={{ marginTop: 12 }}>
+            <View style={{ marginTop: 12, padding: 10, borderRadius: 8, backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.borderCol }}>
 
                 <Text style={{
-                color: theme.text,
+                color: theme.textMain,
                 fontWeight: '700',
                 marginBottom: 6
               }}>
@@ -7231,14 +7209,14 @@ function App() {
                 </Text>
 
                 <Text style={{
-                color: theme.text,
+                color: theme.textMain,
                 marginBottom: 4
               }}>
                   {t('guardianRiskScore')}: {guardianEvaluationResult.decision.riskScore ?? 0}/100
                 </Text>
 
                 <Text style={{
-                color: theme.text,
+                color: theme.textMain,
                 marginBottom: 8
               }}>
                   {t('guardianRiskLevel')}: {guardianEvaluationResult.decision.riskLevel || 'UNKNOWN'}
@@ -7253,7 +7231,7 @@ function App() {
                   <Text
                     key={`guardian-reason-${index}`}
                     style={{
-                      color: theme.subText,
+                      color: theme.textSub,
                       fontSize: 12,
                       marginBottom: 3
                     }}>
@@ -7282,20 +7260,20 @@ function App() {
                       const score = Number(component?.score);
                       const hasMeasuredScore = Number.isFinite(score) && component?.measured !== false && component?.available !== false;
                       return (
-                        <Text key={label} style={{ color: theme.text, marginBottom: 4 }}>
+                        <Text key={label} style={{ color: theme.textMain, marginBottom: 4 }}>
                           {label}: {hasMeasuredScore ? `${score}/100 · ${component?.level || 'UNKNOWN'}` : (selectedLanguage === 'tr' ? 'Veri yok' : 'Not available')}
                         </Text>
                       );
                     })}
 
-                    <Text style={{ color: theme.subText, fontSize: 10, lineHeight: 14, marginTop: 4, marginBottom: 4 }}>
+                    <Text style={{ color: theme.textSub, fontSize: 10, lineHeight: 14, marginTop: 4, marginBottom: 4 }}>
                       {selectedLanguage === 'tr'
                         ? 'Guardian yalnızca backend tarafından gerçekten ölçülen sinyalleri puan olarak gösterir; eksik sinyaller 0 risk olarak yorumlanmaz.'
                         : 'Guardian shows numeric scores only for signals actually measured by the backend; unavailable signals are not treated as zero risk.'}
                     </Text>
 
                     <Text style={{
-                  color: theme.subText,
+                  color: theme.textSub,
                   fontSize: 11,
                   marginTop: 6
                 }}>
