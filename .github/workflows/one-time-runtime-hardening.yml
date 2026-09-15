@@ -1,0 +1,233 @@
+name: One-time Runtime Hardening
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Harden login recovery and price alerts
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new, label):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8-sig')
+              if new in text:
+                  print(f'{label}: already patched')
+                  return
+              if old not in text:
+                  raise SystemExit(f'{label}: expected source block not found')
+              p.write_text(text.replace(old, new, 1), encoding='utf-8')
+              print(f'{label}: patched')
+
+          app = 'frontend/App.js'
+
+          old_recovery = """  const requestWithBackendRecovery = async (requestFactory) => {
+    try {
+      return await requestFactory();
+    } catch (firstError) {
+      const status = firstError?.response?.status;
+      const retryable =
+        !firstError?.response ||
+        firstError?.code === 'ECONNABORTED' ||
+        [502, 503, 504].includes(status);
+
+      if (!retryable) throw firstError;
+
+      try {
+        await axios.get(`${API_BASE_URL}/health`, { timeout: 20000 });
+      } catch (_) {}
+
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      return await requestFactory();
+    }
+  };
+"""
+
+          new_recovery = """  const requestWithBackendRecovery = async (requestFactory, { attempts = 3 } = {}) => {
+    let lastError = null;
+
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      try {
+        return await requestFactory();
+      } catch (error) {
+        lastError = error;
+        const status = error?.response?.status;
+        const retryable =
+          !error?.response ||
+          error?.code === 'ECONNABORTED' ||
+          error?.code === 'ERR_NETWORK' ||
+          [502, 503, 504].includes(status);
+
+        if (!retryable || attempt >= attempts) {
+          throw error;
+        }
+
+        try {
+          await axios.get(`${API_BASE_URL}/health`, { timeout: 12000 });
+        } catch (_) {}
+
+        const delayMs = Math.min(900 * (2 ** (attempt - 1)), 3000);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+
+    throw lastError || new Error('Backend request failed');
+  };
+"""
+          replace_once(app, old_recovery, new_recovery, 'frontend backend recovery')
+
+          old_login = """      const response = await axios.post(
+        `${API_BASE_URL}/api/auth/login`,
+        { email: cleanEmail, password: cleanPassword },
+        {
+          headers: { ...SecurityScannerMiddleware.auditHeaders },
+          timeout: 15000
+        }
+      );
+"""
+
+          new_login = """      const response = await requestWithBackendRecovery(() =>
+        axios.post(
+          `${API_BASE_URL}/api/auth/login`,
+          { email: cleanEmail, password: cleanPassword },
+          {
+            headers: { ...SecurityScannerMiddleware.auditHeaders },
+            timeout: 15000
+          }
+        )
+      );
+"""
+          replace_once(app, old_login, new_login, 'login deploy recovery')
+
+          server = 'backend/src/server.js'
+          old_price = """const PRICE_ALERT_POLL_MS = Math.max(
+  30000,
+  Number(process.env.PRICE_ALERT_POLL_MS || 60000)
+);
+
+let priceAlertPolling = false;
+
+const fetchPriceAlertPrices = async (assets) => {
+  const uniqueAssets = Array.from(new Set(assets));
+
+  if (uniqueAssets.length === 0) {
+    return {};
+  }
+
+  const url =
+    'https://api.coingecko.com/api/v3/simple/price?ids=' +
+    encodeURIComponent(uniqueAssets.join(',')) +
+    '&vs_currencies=usd';
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`CoinGecko price alert HTTP ${response.status}`);
+  }
+
+  return response.json();
+};
+"""
+
+          new_price = """const PRICE_ALERT_POLL_MS = Math.max(
+  60000,
+  Number(process.env.PRICE_ALERT_POLL_MS || 180000)
+);
+
+let priceAlertPolling = false;
+let priceAlertBackoffUntil = 0;
+let priceAlertCachedPrices = {};
+let priceAlertCacheUpdatedAt = 0;
+const PRICE_ALERT_CACHE_MAX_AGE_MS = 15 * 60 * 1000;
+
+const fetchPriceAlertPrices = async (assets) => {
+  const uniqueAssets = Array.from(new Set(assets));
+
+  if (uniqueAssets.length === 0) {
+    return {};
+  }
+
+  const now = Date.now();
+  const cacheIsFresh =
+    Object.keys(priceAlertCachedPrices).length > 0 &&
+    now - priceAlertCacheUpdatedAt <= PRICE_ALERT_CACHE_MAX_AGE_MS;
+
+  if (now < priceAlertBackoffUntil && cacheIsFresh) {
+    return priceAlertCachedPrices;
+  }
+
+  const url =
+    'https://api.coingecko.com/api/v3/simple/price?ids=' +
+    encodeURIComponent(uniqueAssets.join(',')) +
+    '&vs_currencies=usd';
+
+  const response = await fetch(url, {
+    headers: {
+      accept: 'application/json',
+      'user-agent': 'Safe-Sentinel-Pro/1.0'
+    }
+  });
+
+  if (response.status === 429) {
+    const retryAfterSeconds = Number(response.headers.get('retry-after') || 0);
+    const backoffMs = Math.max(
+      120000,
+      Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+        ? retryAfterSeconds * 1000
+        : 0
+    );
+    priceAlertBackoffUntil = now + backoffMs;
+
+    if (cacheIsFresh) {
+      console.warn(`[PRICE ALERT] CoinGecko rate limited; cached prices used for ${Math.round(backoffMs / 1000)}s.`);
+      return priceAlertCachedPrices;
+    }
+
+    throw new Error(`CoinGecko rate limited; retry after ${Math.round(backoffMs / 1000)}s`);
+  }
+
+  if (!response.ok) {
+    if (cacheIsFresh) {
+      console.warn(`[PRICE ALERT] CoinGecko HTTP ${response.status}; cached prices used.`);
+      return priceAlertCachedPrices;
+    }
+    throw new Error(`CoinGecko price alert HTTP ${response.status}`);
+  }
+
+  const payload = await response.json();
+  priceAlertCachedPrices = payload && typeof payload === 'object' ? payload : {};
+  priceAlertCacheUpdatedAt = now;
+  priceAlertBackoffUntil = 0;
+  return priceAlertCachedPrices;
+};
+"""
+          replace_once(server, old_price, new_price, 'CoinGecko price alert backoff')
+          PY
+
+          node --check backend/src/server.js
+
+      - name: Commit runtime fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/App.js backend/src/server.js
+          if git diff --cached --quiet; then
+            echo "No runtime hardening changes to commit."
+            exit 0
+          fi
+          git commit -m "fix(runtime): harden login recovery and price alert polling"
+          git push origin HEAD:main
