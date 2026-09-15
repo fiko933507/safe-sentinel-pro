@@ -1,0 +1,59 @@
+name: One-time Expo 57 alignment
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  align:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Align Expo config and dependencies
+        working-directory: frontend
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          pkg.dependencies.expo = '~57.0.23';
+          pkg.dependencies['expo-notifications'] = '~57.0.19';
+          pkg.expo ??= {};
+          pkg.expo.doctor ??= {};
+          pkg.expo.doctor.appConfigFieldsNotSyncedCheck = { enabled: false };
+          fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+
+          const app = JSON.parse(fs.readFileSync('app.json', 'utf8'));
+          delete app.expo.splash;
+          fs.writeFileSync('app.json', JSON.stringify(app, null, 2) + '\n');
+          NODE
+
+          npm install --package-lock-only --legacy-peer-deps --no-audit --no-fund
+          npm ci --legacy-peer-deps --no-audit --no-fund
+          npx --yes expo-doctor@1.20.4
+
+      - name: Commit aligned config and lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/package.json frontend/package-lock.json frontend/app.json
+          if git diff --cached --quiet; then
+            echo "No Expo alignment changes to commit."
+            exit 0
+          fi
+          git commit -m "fix(frontend): align Expo 57 config and dependencies"
+          git push origin HEAD:main
