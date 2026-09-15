@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import fs from 'fs';
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { jwtVerify } from 'jose';
@@ -9,9 +10,142 @@ const adapters = createAdapters();
 const secret = new TextEncoder().encode(process.env.JWT_SECRET || '');
 const SCAN_INTERVAL_MS = Math.max(60000, Number(process.env.GUARDIAN_SCAN_INTERVAL_MS || 60000));
 const VIP_PATHS = new Set(['/api/guardian/profile', '/api/guardian/evaluate']);
+const URLHAUS_JSON_PATH = String(
+  process.env.URLHAUS_JSON_PATH || './urlhaus-recent-unpacked/urlhaus_full.json'
+).trim();
+const URLHAUS_LOCAL_READY = Boolean(URLHAUS_JSON_PATH && fs.existsSync(URLHAUS_JSON_PATH));
 let scanRunning = false;
 let workerStarted = false;
 let routesRegistered = false;
+
+/*
+ * Provider protection is installed before server.js is evaluated because this
+ * module is loaded with Node --import. It prevents every mobile/client request
+ * and the background price-alert worker from independently hammering CoinGecko
+ * after a 429 response. Successful simple-price responses are cached for up to
+ * 30 minutes and can be served during a provider cooldown.
+ */
+const nativeFetch = globalThis.fetch.bind(globalThis);
+let coingeckoBackoffUntil = 0;
+let coingeckoRateLimitStrikes = 0;
+let coingeckoCachedPrices = {};
+let coingeckoCacheUpdatedAt = 0;
+const COINGECKO_CACHE_MAX_AGE_MS = 30 * 60 * 1000;
+
+const makeJsonResponse = (payload, status = 200, extraHeaders = {}) =>
+  new Response(JSON.stringify(payload), {
+    status,
+    headers: {
+      'content-type': 'application/json',
+      ...extraHeaders
+    }
+  });
+
+const isCoinGeckoSimplePriceUrl = value => {
+  try {
+    const url = new URL(String(value || ''));
+    return url.hostname === 'api.coingecko.com' && url.pathname === '/api/v3/simple/price';
+  } catch {
+    return false;
+  }
+};
+
+globalThis.fetch = async (input, init) => {
+  const rawUrl = typeof input === 'string' || input instanceof URL
+    ? String(input)
+    : String(input?.url || '');
+
+  if (!isCoinGeckoSimplePriceUrl(rawUrl)) {
+    return nativeFetch(input, init);
+  }
+
+  const now = Date.now();
+  const hasCache = Object.keys(coingeckoCachedPrices).length > 0;
+  const cacheUsable =
+    hasCache && now - coingeckoCacheUpdatedAt <= COINGECKO_CACHE_MAX_AGE_MS;
+
+  if (now < coingeckoBackoffUntil) {
+    if (cacheUsable) {
+      return makeJsonResponse(coingeckoCachedPrices, 200, {
+        'x-safe-sentinel-cache': 'coingecko-backoff'
+      });
+    }
+
+    const retrySeconds = Math.max(1, Math.ceil((coingeckoBackoffUntil - now) / 1000));
+    return makeJsonResponse(
+      { error: 'CoinGecko temporarily rate limited' },
+      429,
+      { 'retry-after': String(retrySeconds) }
+    );
+  }
+
+  const response = await nativeFetch(input, init);
+
+  if (response.status === 429) {
+    coingeckoRateLimitStrikes = Math.min(coingeckoRateLimitStrikes + 1, 4);
+    const retryAfterSeconds = Number(response.headers.get('retry-after') || 0);
+    const exponentialBackoffMs = Math.min(
+      5 * 60 * 1000 * (2 ** (coingeckoRateLimitStrikes - 1)),
+      30 * 60 * 1000
+    );
+    const retryAfterMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+      ? retryAfterSeconds * 1000
+      : 0;
+    const backoffMs = Math.max(exponentialBackoffMs, retryAfterMs);
+    coingeckoBackoffUntil = now + backoffMs;
+
+    console.warn(
+      `[COINGECKO] Rate limited; external requests paused for ${Math.round(backoffMs / 60000)}m (strike ${coingeckoRateLimitStrikes}).`
+    );
+
+    if (cacheUsable) {
+      return makeJsonResponse(coingeckoCachedPrices, 200, {
+        'x-safe-sentinel-cache': 'coingecko-rate-limit'
+      });
+    }
+
+    return response;
+  }
+
+  if (response.ok) {
+    try {
+      const payload = await response.clone().json();
+      if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+        coingeckoCachedPrices = {
+          ...coingeckoCachedPrices,
+          ...payload
+        };
+        coingeckoCacheUpdatedAt = now;
+        coingeckoBackoffUntil = 0;
+        coingeckoRateLimitStrikes = 0;
+      }
+    } catch {
+      // The original response remains usable even if cache parsing fails.
+    }
+  }
+
+  return response;
+};
+
+// Replace two legacy noisy messages with truthful provider-state messages. The
+// underlying request still receives an UNKNOWN verdict when URLhaus is absent.
+const nativeWarn = console.warn.bind(console);
+const nativeError = console.error.bind(console);
+console.warn = (...args) => {
+  if (String(args[0] || '').includes('[PHISHING] URLhaus file not found')) {
+    console.log('[THREAT INTEL] URLhaus local dataset is not configured; external URLhaus verdicts disabled.');
+    return;
+  }
+  nativeWarn(...args);
+};
+console.error = (...args) => {
+  const prefix = String(args[0] || '');
+  const detail = String(args[1] || '');
+  if (prefix.includes('[PRICE ALERT] Polling error:') && /CoinGecko rate limited/i.test(detail)) {
+    return;
+  }
+  nativeError(...args);
+};
 
 const isVipProtectedPath = path =>
   VIP_PATHS.has(String(path || '')) || String(path || '').startsWith('/api/inheritance');
@@ -71,12 +205,59 @@ const requireVip = async (req, res, next) => {
   }
 };
 
+const urlhausUnavailableHandler = async (req, res) => {
+  const inputUrl = String(req.body?.url || '').trim();
+  if (!inputUrl || inputUrl.length > 4096) {
+    return res.status(400).json({ success: false, error: 'Invalid URL' });
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(inputUrl);
+  } catch {
+    return res.status(400).json({ success: false, error: 'Invalid URL format' });
+  }
+
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    return res.status(400).json({ success: false, error: 'Only HTTP/HTTPS URLs are supported' });
+  }
+
+  return res.json({
+    success: true,
+    url: inputUrl,
+    hostname: parsed.hostname.toLowerCase(),
+    matched: false,
+    matchType: 'PROVIDER_UNAVAILABLE',
+    riskLevel: 'UNKNOWN',
+    status: 'BILINMEYEN',
+    source: 'LOCAL_VALIDATION',
+    providerAvailable: false,
+    providerStatus: 'URLHAUS_NOT_CONFIGURED',
+    phishing: false,
+    malicious: false,
+    summary: 'URLhaus tehdit istihbaratı yapılandırılmamış; harici tehdit eşleşmesi doğrulanamadı. Bu URL güvenli kabul edilmemelidir.',
+    matchedRecord: null
+  });
+};
+
 for (const method of ['get', 'post', 'put', 'patch', 'delete']) {
   const original = express.application[method];
   express.application[method] = function patchedRoute(path, ...handlers) {
     if (typeof path === 'string' && isVipProtectedPath(path)) {
       return original.call(this, path, requireVip, ...handlers);
     }
+
+    if (
+      method === 'post' &&
+      path === '/api/check-phishing' &&
+      !URLHAUS_LOCAL_READY &&
+      handlers.length >= 2
+    ) {
+      // Preserve server.js authentication middleware, replace only the provider
+      // handler so a missing dataset cannot masquerade as a successful no-match.
+      return original.call(this, path, handlers[0], urlhausUnavailableHandler);
+    }
+
     return original.call(this, path, ...handlers);
   };
 }
@@ -343,6 +524,11 @@ const startWorker = () => {
   if (workerStarted || process.env.GUARDIAN_WORKER_ENABLED === 'false') return;
   workerStarted = true;
   console.log(`[GUARDIAN] VIP wallet watcher active; interval=${SCAN_INTERVAL_MS}ms`);
+  console.log(
+    URLHAUS_LOCAL_READY
+      ? `[THREAT INTEL] URLhaus local provider ready: ${URLHAUS_JSON_PATH}`
+      : '[THREAT INTEL] URLhaus provider unavailable; API will return UNKNOWN instead of a false safe verdict.'
+  );
   setTimeout(() => runScan().catch(() => {}), 5000);
   const timer = setInterval(() => runScan().catch(() => {}), SCAN_INTERVAL_MS);
   if (typeof timer.unref === 'function') timer.unref();
