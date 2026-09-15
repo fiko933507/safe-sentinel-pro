@@ -3232,25 +3232,35 @@ function App() {
 
     );
   };
-  const requestWithBackendRecovery = async (requestFactory) => {
-    try {
-      return await requestFactory();
-    } catch (firstError) {
-      const status = firstError?.response?.status;
-      const retryable =
-        !firstError?.response ||
-        firstError?.code === 'ECONNABORTED' ||
-        [502, 503, 504].includes(status);
+  const requestWithBackendRecovery = async (requestFactory, { attempts = 3 } = {}) => {
+    let lastError = null;
 
-      if (!retryable) throw firstError;
-
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
       try {
-        await axios.get(`${API_BASE_URL}/health`, { timeout: 20000 });
-      } catch (_) {}
+        return await requestFactory();
+      } catch (error) {
+        lastError = error;
+        const status = error?.response?.status;
+        const retryable =
+          !error?.response ||
+          error?.code === 'ECONNABORTED' ||
+          error?.code === 'ERR_NETWORK' ||
+          [502, 503, 504].includes(status);
 
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-      return await requestFactory();
+        if (!retryable || attempt >= attempts) {
+          throw error;
+        }
+
+        try {
+          await axios.get(`${API_BASE_URL}/health`, { timeout: 12000 });
+        } catch (_) {}
+
+        const delayMs = Math.min(900 * (2 ** (attempt - 1)), 3000);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
     }
+
+    throw lastError || new Error('Backend request failed');
   };
 
   const handleLogin = async () => {
@@ -3268,13 +3278,15 @@ function App() {
     try {
       setLoading(true);
 
-      const response = await axios.post(
-        `${API_BASE_URL}/api/auth/login`,
-        { email: cleanEmail, password: cleanPassword },
-        {
-          headers: { ...SecurityScannerMiddleware.auditHeaders },
-          timeout: 15000
-        }
+      const response = await requestWithBackendRecovery(() =>
+        axios.post(
+          `${API_BASE_URL}/api/auth/login`,
+          { email: cleanEmail, password: cleanPassword },
+          {
+            headers: { ...SecurityScannerMiddleware.auditHeaders },
+            timeout: 15000
+          }
+        )
       );
 
       const { token: sessionToken, user } = response.data || {};

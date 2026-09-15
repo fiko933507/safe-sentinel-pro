@@ -5820,11 +5820,15 @@ app.patch('/api/notifications/:id/read', auth, async (req, res) => {
 });
 
 const PRICE_ALERT_POLL_MS = Math.max(
-  30000,
-  Number(process.env.PRICE_ALERT_POLL_MS || 60000)
+  60000,
+  Number(process.env.PRICE_ALERT_POLL_MS || 180000)
 );
 
 let priceAlertPolling = false;
+let priceAlertBackoffUntil = 0;
+let priceAlertCachedPrices = {};
+let priceAlertCacheUpdatedAt = 0;
+const PRICE_ALERT_CACHE_MAX_AGE_MS = 15 * 60 * 1000;
 
 const fetchPriceAlertPrices = async (assets) => {
   const uniqueAssets = Array.from(new Set(assets));
@@ -5833,18 +5837,58 @@ const fetchPriceAlertPrices = async (assets) => {
     return {};
   }
 
+  const now = Date.now();
+  const cacheIsFresh =
+    Object.keys(priceAlertCachedPrices).length > 0 &&
+    now - priceAlertCacheUpdatedAt <= PRICE_ALERT_CACHE_MAX_AGE_MS;
+
+  if (now < priceAlertBackoffUntil && cacheIsFresh) {
+    return priceAlertCachedPrices;
+  }
+
   const url =
     'https://api.coingecko.com/api/v3/simple/price?ids=' +
     encodeURIComponent(uniqueAssets.join(',')) +
     '&vs_currencies=usd';
 
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    headers: {
+      accept: 'application/json',
+      'user-agent': 'Safe-Sentinel-Pro/1.0'
+    }
+  });
+
+  if (response.status === 429) {
+    const retryAfterSeconds = Number(response.headers.get('retry-after') || 0);
+    const backoffMs = Math.max(
+      120000,
+      Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+        ? retryAfterSeconds * 1000
+        : 0
+    );
+    priceAlertBackoffUntil = now + backoffMs;
+
+    if (cacheIsFresh) {
+      console.warn(`[PRICE ALERT] CoinGecko rate limited; cached prices used for ${Math.round(backoffMs / 1000)}s.`);
+      return priceAlertCachedPrices;
+    }
+
+    throw new Error(`CoinGecko rate limited; retry after ${Math.round(backoffMs / 1000)}s`);
+  }
 
   if (!response.ok) {
+    if (cacheIsFresh) {
+      console.warn(`[PRICE ALERT] CoinGecko HTTP ${response.status}; cached prices used.`);
+      return priceAlertCachedPrices;
+    }
     throw new Error(`CoinGecko price alert HTTP ${response.status}`);
   }
 
-  return response.json();
+  const payload = await response.json();
+  priceAlertCachedPrices = payload && typeof payload === 'object' ? payload : {};
+  priceAlertCacheUpdatedAt = now;
+  priceAlertBackoffUntil = 0;
+  return priceAlertCachedPrices;
 };
 
 const runPriceAlertPolling = async () => {
