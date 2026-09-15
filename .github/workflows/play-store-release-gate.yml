@@ -152,6 +152,13 @@ jobs:
           cache: gradle
       - name: Install frontend dependencies
         run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - name: Verify runtime resilience fixes
+        shell: bash
+        run: |
+          grep -Fq 'requestWithBackendRecovery(() =>' App.js
+          grep -Fq 'attempts = 3' App.js
+          grep -Fq 'priceAlertBackoffUntil' ../backend/src/server.js
+          echo 'Runtime resilience guards: PASS'
       - name: Verify Expo SDK compatibility
         shell: bash
         run: |
@@ -204,6 +211,7 @@ jobs:
           echo 'DB audit: PASS' >> "$GITHUB_STEP_SUMMARY"
           echo 'Security E2E: PASS' >> "$GITHUB_STEP_SUMMARY"
           echo 'Android API 36: PASS' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Runtime resilience: PASS' >> "$GITHUB_STEP_SUMMARY"
           echo 'Expo compatibility: PASS' >> "$GITHUB_STEP_SUMMARY"
           echo 'AAB generation: DISABLED during APK testing' >> "$GITHUB_STEP_SUMMARY"
           echo "Signed test APK size: ${APK_SIZE_BYTES} bytes" >> "$GITHUB_STEP_SUMMARY"
