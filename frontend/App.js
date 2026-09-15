@@ -1439,6 +1439,15 @@ function App() {
   const [currentBalanceText, setCurrentBalanceText] = useState("Cüzdan adresini girip sorgulayın");
   const [loading, setLoading] = useState(false);
   const [apiOnline, setApiOnline] = useState(false);
+  const loginWarmupStartedRef = useRef(false);
+
+  useEffect(() => {
+    if (loginWarmupStartedRef.current || !API_BASE_URL) return;
+    loginWarmupStartedRef.current = true;
+    axios.get(`${API_BASE_URL}/health`, { timeout: 4500 })
+      .then(() => setApiOnline(true))
+      .catch(() => {});
+  }, []);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   const checkBackendHealth = useCallback(async () => {
@@ -1591,6 +1600,12 @@ function App() {
   const [inheritBeneficiary, setInheritBeneficiary] = useState('');
   const [inheritSourceWallet, setInheritSourceWallet] = useState('');
 
+  useEffect(() => {
+    if (activeModule !== 'inheritView' || inheritSourceWallet) return;
+    const candidate = String(address || vault[0] || '').trim();
+    if (candidate) setInheritSourceWallet(candidate);
+  }, [activeModule, inheritSourceWallet, address, vault]);
+
   const loadInheritanceProtocols = useCallback(async () => {
     try {
       setInheritanceLoading(true);
@@ -1633,7 +1648,7 @@ function App() {
   const createInheritanceProtocol = useCallback(async () => {
     let cleanWalletAddress = String(inheritSourceWallet || '').trim();
     const cleanBeneficiary = inheritBeneficiary.trim();
-    let backendNetwork = selectedNetwork === 'eth' ? 'ethereum' : selectedNetwork;
+    let backendNetwork = selectedNetwork === 'eth' ? 'ethereum' : selectedNetwork === 'arb' ? 'arbitrum' : selectedNetwork === 'avax' ? 'avalanche' : selectedNetwork;
     let ownedWalletId = null;
 
     if (!cleanWalletAddress) {
@@ -1667,18 +1682,59 @@ function App() {
 
       const walletResponse = await api.get('/api/wallets');
       const ownedWallets = Array.isArray(walletResponse.data?.wallets) ? walletResponse.data.wallets : [];
-      const ownedWallet = ownedWallets.find((wallet) =>
+      let ownedWallet = ownedWallets.find((wallet) =>
         String(wallet?.address || '').trim().toLowerCase() === cleanWalletAddress.toLowerCase()
       );
 
       if (!ownedWallet) {
-        Alert.alert(
-          selectedLanguage === 'tr' ? 'Kaynak Cüzdan Gerekli' : 'Source Wallet Required',
-          selectedLanguage === 'tr'
-            ? 'Miras protokolü için önce hesabınıza ait bir cüzdanı Kasa/Vault bölümüne ekleyin ve bu ekrandan seçin.'
-            : 'Add a wallet owned by your account to Vault first, then select it here for the inheritance protocol.'
+        if (!validateAddressFormat(selectedNetwork, cleanWalletAddress)) {
+          Alert.alert(
+            selectedLanguage === 'tr' ? 'Geçersiz Kaynak Cüzdan' : 'Invalid Source Wallet',
+            selectedLanguage === 'tr'
+              ? `${NETWORKS[selectedNetwork]?.name || selectedNetwork} ağına uygun geçerli bir cüzdan adresi girin.`
+              : `Enter a valid wallet address for ${NETWORKS[selectedNetwork]?.name || selectedNetwork}.`
+          );
+          return false;
+        }
+
+        try {
+          await api.post('/api/wallets', {
+            network: backendNetwork,
+            address: cleanWalletAddress,
+            label: 'Safe Sentinel Inheritance Source'
+          });
+        } catch (walletAddError) {
+          if (walletAddError?.response?.status !== 409) {
+            Alert.alert(
+              selectedLanguage === 'tr' ? 'Kasaya Eklenemedi' : 'Could Not Add to Vault',
+              selectedLanguage === 'tr'
+                ? 'Kaynak cüzdan Kasaya eklenemedi. Kasa limitinizi ve ağ/adres bilgisini kontrol edin.'
+                : 'The source wallet could not be added to Vault. Check your Vault limit and network/address.'
+            );
+            return false;
+          }
+        }
+
+        const refreshedWalletResponse = await api.get('/api/wallets');
+        const refreshedWallets = Array.isArray(refreshedWalletResponse.data?.wallets) ? refreshedWalletResponse.data.wallets : [];
+        ownedWallet = refreshedWallets.find((wallet) =>
+          String(wallet?.address || '').trim().toLowerCase() === cleanWalletAddress.toLowerCase() &&
+          String(wallet?.network || '').trim().toLowerCase() === String(backendNetwork).trim().toLowerCase()
         );
-        return false;
+
+        if (!ownedWallet) {
+          Alert.alert(
+            selectedLanguage === 'tr' ? 'Kasaya Eklenemedi' : 'Could Not Add to Vault',
+            selectedLanguage === 'tr' ? 'Kaynak cüzdan Kasa kaydında doğrulanamadı.' : 'The source wallet could not be verified in Vault.'
+          );
+          return false;
+        }
+
+        const refreshedAddresses = refreshedWallets.map((wallet) => String(wallet.address || '').trim()).filter(Boolean);
+        setVault(refreshedAddresses);
+        await AsyncStorage.setItem('@vault', JSON.stringify(refreshedAddresses));
+        await AutoBackupManager.performBackup('vault', refreshedAddresses);
+        updateDynamicRevokeAndVaultData(refreshedAddresses);
       }
 
       cleanWalletAddress = String(ownedWallet.address || '').trim();
@@ -1819,7 +1875,7 @@ function App() {
     }
   }, []);
 
-  const [guardianEnabled, setGuardianEnabled] = useState(true);
+  const [guardianEnabled, setGuardianEnabled] = useState(false);
   const [guardianAlertThreshold, setGuardianAlertThreshold] = useState('500');
   const [guardianLoading, setGuardianLoading] = useState(false);
   const [guardianProfileLoaded, setGuardianProfileLoaded] = useState(false);
@@ -1827,6 +1883,37 @@ function App() {
   const [guardianEvaluating, setGuardianEvaluating] = useState(false);
   const [guardianEvaluationError, setGuardianEvaluationError] = useState('');
   const [guardianEvaluationAmount, setGuardianEvaluationAmount] = useState('');
+  const [guardianWalletAddress, setGuardianWalletAddress] = useState('');
+
+  useEffect(() => {
+    if (activeModule !== 'guardianView' || guardianWalletAddress) return;
+    const candidate = String(address || vault[0] || '').trim();
+    if (candidate) setGuardianWalletAddress(candidate);
+  }, [activeModule, guardianWalletAddress, address, vault]);
+
+  useEffect(() => {
+    if (activeModule !== 'guardianView' || guardianProfileLoaded) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        setGuardianLoading(true);
+        const response = await api.get('/api/guardian/profile');
+        const profile = response.data?.profile;
+        if (!cancelled && profile) {
+          setGuardianEnabled(Boolean(profile.enabled));
+          setGuardianAlertThreshold(String(profile.alertThresholdUsd ?? 500));
+          setGuardianProfileLoaded(true);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.warn('[GUARDIAN] automatic profile load failed:', error?.response?.status || error?.message || error);
+        }
+      } finally {
+        if (!cancelled) setGuardianLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [activeModule, guardianProfileLoaded]);
 
   const [revokeList, setRevokeList] = useState([]);
   const [revokingIndex, setRevokingIndex] = useState(null);
@@ -3232,7 +3319,7 @@ function App() {
 
     );
   };
-  const requestWithBackendRecovery = async (requestFactory, { attempts = 3 } = {}) => {
+  const requestWithBackendRecovery = async (requestFactory, { attempts = 2 } = {}) => {
     let lastError = null;
 
     for (let attempt = 1; attempt <= attempts; attempt += 1) {
@@ -3252,10 +3339,10 @@ function App() {
         }
 
         try {
-          await axios.get(`${API_BASE_URL}/health`, { timeout: 12000 });
+          await axios.get(`${API_BASE_URL}/health`, { timeout: 4500 });
         } catch (_) {}
 
-        const delayMs = Math.min(900 * (2 ** (attempt - 1)), 3000);
+        const delayMs = Math.min(400 * (2 ** (attempt - 1)), 1200);
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
     }
@@ -3947,6 +4034,50 @@ function App() {
     addToBlacklist(universalScanResult.target, universalResultNetwork());
   };
 
+  const addUniversalResultToVault = async () => {
+    const target = String(universalScanResult?.target || '').trim();
+    if (!target || universalScanResult?.type === 'URL / DApp') return;
+    const detectedNetwork = String(universalResultNetwork() || selectedNetwork || 'tron').trim().toLowerCase();
+    const backendNetwork = detectedNetwork === 'eth' ? 'ethereum' : detectedNetwork === 'arb' ? 'arbitrum' : detectedNetwork === 'avax' ? 'avalanche' : detectedNetwork;
+
+    try {
+      const currentResponse = await api.get('/api/wallets');
+      const currentWallets = Array.isArray(currentResponse.data?.wallets) ? currentResponse.data.wallets : [];
+      const existing = currentWallets.find((wallet) =>
+        String(wallet?.address || '').trim().toLowerCase() === target.toLowerCase() &&
+        String(wallet?.network || '').trim().toLowerCase() === backendNetwork
+      );
+
+      if (!existing) {
+        try {
+          await api.post('/api/wallets', { network: backendNetwork, address: target, label: 'Safe Sentinel Vault' });
+        } catch (walletAddError) {
+          if (walletAddError?.response?.status !== 409) throw walletAddError;
+        }
+      }
+
+      const finalResponse = await api.get('/api/wallets');
+      const finalWallets = Array.isArray(finalResponse.data?.wallets) ? finalResponse.data.wallets : [];
+      const finalAddresses = finalWallets.map((wallet) => String(wallet.address || '').trim()).filter(Boolean);
+      setVault(finalAddresses);
+      await AsyncStorage.setItem('@vault', JSON.stringify(finalAddresses));
+      await AutoBackupManager.performBackup('vault', finalAddresses);
+      updateDynamicRevokeAndVaultData(finalAddresses);
+      Alert.alert(
+        selectedLanguage === 'tr' ? 'Kasa Güncellendi' : 'Vault Updated',
+        existing
+          ? (selectedLanguage === 'tr' ? 'Bu cüzdan zaten Kasada izleniyor.' : 'This wallet is already monitored in Vault.')
+          : (selectedLanguage === 'tr' ? 'Cüzdan Kasaya eklendi ve Guardian izlemesine hazır.' : 'Wallet added to Vault and ready for Guardian monitoring.')
+      );
+    } catch (error) {
+      const status = error?.response?.status;
+      const message = status === 403
+        ? (selectedLanguage === 'tr' ? 'Bu Kasa işlemi için hesabınızın erişim yetkisini kontrol edin.' : 'Check your account access for this Vault action.')
+        : (selectedLanguage === 'tr' ? 'Cüzdan Kasaya eklenemedi. Bağlantınızı ve Kasa limitinizi kontrol edin.' : 'Wallet could not be added to Vault. Check your connection and Vault limit.');
+      Alert.alert(selectedLanguage === 'tr' ? 'Kasaya Eklenemedi' : 'Could Not Add to Vault', message);
+    }
+  };
+
   const getSentinelTwinScenarios = (result) => {
     if (!result) return [];
     const scenarios = [];
@@ -4424,9 +4555,11 @@ function App() {
   }, [handleIsolatedError]);
 
   const handleGuardianEvaluate = async () => {
-    const cleanAddr = address ?
-    SecurityScannerMiddleware.sanitizeInput(address).trim() :
+    const guardianCandidate = String(guardianWalletAddress || address || vault[0] || '').trim();
+    const cleanAddr = guardianCandidate ?
+    SecurityScannerMiddleware.sanitizeInput(guardianCandidate).trim() :
     '';
+    if (cleanAddr && cleanAddr !== guardianWalletAddress) setGuardianWalletAddress(cleanAddr);
 
     if (!cleanAddr || !validateAddressFormat(selectedNetwork, cleanAddr)) {
       Alert.alert(
@@ -4457,7 +4590,7 @@ function App() {
       const response = await api.post(
         '/api/guardian/evaluate',
         {
-          network: selectedNetwork === 'eth' ? 'ethereum' : selectedNetwork,
+          network: selectedNetwork === 'eth' ? 'ethereum' : selectedNetwork === 'arb' ? 'arbitrum' : selectedNetwork === 'avax' ? 'avalanche' : selectedNetwork,
           address: cleanAddr,
           ...(guardianAmountUsd !== null ? { amountUsd: guardianAmountUsd } : {})
         },
@@ -5432,8 +5565,9 @@ function App() {
                 elevation: 8
               }}
               activeOpacity={0.86}
+              disabled={loading}
               onPress={handleLogin}>
-              <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '900' }}>{t('secureLogin')}</Text>
+              <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '900' }}>{loading ? (selectedLanguage === 'tr' ? 'Giriş yapılıyor...' : 'Signing in...') : t('secureLogin')}</Text>
               <Text style={{ position: 'absolute', right: 22, color: '#FFFFFF', fontSize: 28, fontWeight: '300' }}>→</Text>
             </TouchableOpacity>
 
@@ -6877,6 +7011,49 @@ function App() {
                 {t('guardianDescription')}
               </Text>
 
+              <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.borderCol, marginBottom: 10 }]}>
+                <Text style={{ color: theme.textMain, fontWeight: '900', fontSize: 12, marginBottom: 6 }}>
+                  {selectedLanguage === 'tr' ? 'Guardian Cüzdanı' : 'Guardian Wallet'}
+                </Text>
+                <TextInput
+                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, height: 38, fontSize: 10, marginBottom: 8 }]}
+                  value={guardianWalletAddress}
+                  onChangeText={setGuardianWalletAddress}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  placeholder={selectedLanguage === 'tr' ? 'Analiz edilecek cüzdan adresi' : 'Wallet address to analyze'}
+                  placeholderTextColor="#888" />
+                <Text style={{ color: theme.textSub, fontSize: 8, marginBottom: 5 }}>
+                  {selectedLanguage === 'tr' ? 'Ağ seçimi' : 'Network'}
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingBottom: 7 }}>
+                  {['tron','sol','btc','avax','arb','polygon','eth','bsc','base','optimism'].map((networkKey) =>
+                    <TouchableOpacity key={`guardian-net-${networkKey}`} onPress={() => setSelectedNetwork(networkKey)} style={{ paddingHorizontal: 9, paddingVertical: 6, borderRadius: 7, borderWidth: 1, borderColor: selectedNetwork === networkKey ? theme.primary : theme.borderCol, backgroundColor: selectedNetwork === networkKey ? theme.primary : theme.inputBg }}>
+                      <Text style={{ color: selectedNetwork === networkKey ? '#FFF' : theme.textMain, fontSize: 8, fontWeight: '900' }}>{NETWORKS[networkKey]?.symbol || networkKey.toUpperCase()}</Text>
+                    </TouchableOpacity>
+                  )}
+                </ScrollView>
+                {vault.length > 0 ?
+                  <>
+                    <Text style={{ color: theme.textSub, fontSize: 8, marginBottom: 5 }}>{selectedLanguage === 'tr' ? 'Kasadan hızlı seç' : 'Quick select from Vault'}</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+                      {vault.map((wallet, index) =>
+                        <TouchableOpacity key={`guardian-vault-${index}`} onPress={() => {
+                          const walletText = String(wallet || '').trim();
+                          setGuardianWalletAddress(walletText);
+                          const detected = detectUniversalTarget(walletText);
+                          if (detected?.network) setSelectedNetwork(detected.network);
+                        }} style={{ maxWidth: 230, paddingHorizontal: 9, paddingVertical: 6, borderRadius: 7, borderWidth: 1, borderColor: theme.primary, backgroundColor: theme.cardBg }}>
+                          <Text numberOfLines={1} style={{ color: theme.primary, fontSize: 8, fontWeight: '800' }}>{String(wallet)}</Text>
+                        </TouchableOpacity>
+                      )}
+                    </ScrollView>
+                  </> :
+                  <Text style={{ color: '#F59E0B', fontSize: 8, lineHeight: 12 }}>
+                    {selectedLanguage === 'tr' ? 'Sürekli Guardian izlemesi için cüzdanı Kasaya ekleyin. Tek seferlik analiz için adresi yukarıya girebilirsiniz.' : 'Add the wallet to Vault for continuous Guardian monitoring. You can still enter an address above for a one-time analysis.'}
+                  </Text>}
+              </View>
+
               <View style={[styles.prefCard, { backgroundColor: theme.itemBg, borderColor: theme.primary }]}>
                 <View style={styles.prefCardHeader}>
                   <View style={{ flex: 1, marginRight: 10 }}>
@@ -7185,10 +7362,30 @@ function App() {
                 </Text>
                 <TextInput
                   style={[styles.input, { backgroundColor: theme.inputBg, color: theme.inputTextColor, borderColor: theme.borderCol, marginBottom: 8, height: 36, fontSize: 11 }]}
-                  placeholder={selectedLanguage === 'tr' ? 'Hesabınıza kayıtlı cüzdan adresi' : 'Wallet address registered to your account'}
+                  placeholder={selectedLanguage === 'tr' ? 'Kaynak cüzdan adresi (kasada değilse otomatik eklenir)' : 'Source wallet address (auto-added if not in Vault)'}
                   placeholderTextColor="#888"
                   value={inheritSourceWallet}
                   onChangeText={setInheritSourceWallet} />
+
+                {vault.length > 0 ?
+                  <>
+                    <Text style={{ color: theme.textSub, fontSize: 8, marginBottom: 5 }}>{selectedLanguage === 'tr' ? 'Kasadan seç' : 'Select from Vault'}</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingBottom: 7 }}>
+                      {vault.map((wallet, index) =>
+                        <TouchableOpacity key={`inherit-vault-${index}`} onPress={() => {
+                          const walletText = String(wallet || '').trim();
+                          setInheritSourceWallet(walletText);
+                          const detected = detectUniversalTarget(walletText);
+                          if (detected?.network) setSelectedNetwork(detected.network);
+                        }} style={{ maxWidth: 230, paddingHorizontal: 9, paddingVertical: 6, borderRadius: 7, borderWidth: 1, borderColor: inheritSourceWallet === String(wallet) ? theme.primary : theme.borderCol, backgroundColor: theme.cardBg }}>
+                          <Text numberOfLines={1} style={{ color: inheritSourceWallet === String(wallet) ? theme.primary : theme.textMain, fontSize: 8, fontWeight: '800' }}>{String(wallet)}</Text>
+                        </TouchableOpacity>
+                      )}
+                    </ScrollView>
+                  </> :
+                  <Text style={{ color: '#F59E0B', fontSize: 8, lineHeight: 12, marginBottom: 7 }}>
+                    {selectedLanguage === 'tr' ? 'Kasada cüzdan yok. Geçerli kaynak adresini girin; protokol oluşturulurken Kasaya otomatik eklenecek.' : 'Vault is empty. Enter a valid source address; it will be added to Vault automatically when the protocol is created.'}
+                  </Text>}
 
                 <Text style={{ color: theme.textSub, fontSize: 9, marginBottom: 8 }}>
                   {(selectedLanguage === 'tr' ? 'Ağ' : 'Network')}: {NETWORKS[selectedNetwork]?.name || String(selectedNetwork).toUpperCase()}
@@ -8736,6 +8933,10 @@ function App() {
                 {universalScanResult.type !== 'URL / DApp' && universalScanResult.score !== null ?
                 <TouchableOpacity onPress={addUniversalResultToBlacklist} style={{ flex: 1, minWidth: 125, backgroundColor: theme.cardBg, borderColor: '#EF4444', borderWidth: 1, borderRadius: 7, paddingVertical: 8, alignItems: 'center' }}>
                   <Text style={{ color: '#EF4444', fontSize: 8, fontWeight: '900' }}>+ BLACKLIST</Text>
+                </TouchableOpacity> : null}
+                {universalScanResult.type !== 'URL / DApp' && universalScanResult.score !== null ?
+                <TouchableOpacity onPress={addUniversalResultToVault} style={{ flex: 1, minWidth: 125, backgroundColor: theme.cardBg, borderColor: '#8B5CF6', borderWidth: 1, borderRadius: 7, paddingVertical: 8, alignItems: 'center' }}>
+                  <Text style={{ color: '#8B5CF6', fontSize: 8, fontWeight: '900' }}>{selectedLanguage === 'tr' ? '+ KASAYA EKLE' : '+ ADD TO VAULT'}</Text>
                 </TouchableOpacity> : null}
                 {universalScanResult.type !== 'URL / DApp' && universalScanResult.score !== null ?
                 <TouchableOpacity onPress={openUniversalSafeSend} style={{ flex: 1, minWidth: 125, backgroundColor: '#10B981', borderRadius: 7, paddingVertical: 8, alignItems: 'center' }}>
