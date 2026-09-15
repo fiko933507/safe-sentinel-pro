@@ -1,0 +1,62 @@
+name: Export Play Store Assets
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/export-play-store-assets.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare icon and feature graphic
+        shell: bash
+        run: |
+          python -m pip install --quiet pillow
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+
+          out = Path('play-store-assets')
+          out.mkdir(exist_ok=True)
+
+          src = Image.open('frontend/assets/yenilogo.png').convert('RGB')
+          print('source icon:', src.size)
+          # Play Store listing icon must be exactly 512x512. Preserve aspect ratio
+          # and place the artwork on the app's dark brand background if needed.
+          canvas = Image.new('RGB', (512, 512), '#07111F')
+          fitted = src.copy()
+          fitted.thumbnail((512, 512), Image.Resampling.LANCZOS)
+          x = (512 - fitted.width) // 2
+          y = (512 - fitted.height) // 2
+          canvas.paste(fitted, (x, y))
+          canvas.save(out / 'safe-sentinel-play-icon-512.png', optimize=True)
+
+          feature = Image.open('store-assets/rendered/feature-graphic-1024x500.png').convert('RGB')
+          if feature.size != (1024, 500):
+              raise SystemExit(f'Feature graphic must be 1024x500, got {feature.size}')
+          feature.save(out / 'safe-sentinel-feature-graphic-1024x500.png', optimize=True)
+
+          icon = Image.open(out / 'safe-sentinel-play-icon-512.png')
+          if icon.size != (512, 512):
+              raise SystemExit(f'Play icon must be 512x512, got {icon.size}')
+
+          for p in sorted(out.iterdir()):
+              print(p.name, p.stat().st_size)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: safe-sentinel-play-store-graphics
+          path: play-store-assets/
+          if-no-files-found: error
+          retention-days: 30
