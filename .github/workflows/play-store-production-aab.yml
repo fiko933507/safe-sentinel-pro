@@ -1,0 +1,197 @@
+name: Safe Sentinel Play Store AAB
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/play-store-production-aab.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: safe-sentinel-play-store-aab
+  cancel-in-progress: true
+
+jobs:
+  production-gate:
+    name: Production release gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      DATABASE_URL: ${{ secrets.SCAM_DATABASE_URL || secrets.DATABASE_URL }}
+      SMOKE_BASE_URL: https://safe-sentinel-pro-1.onrender.com
+      PORT: '3000'
+      JWT_SECRET: safe-sentinel-ci-only-jwt-secret-2026-09-10-strong-value
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Verify Android Play Store configuration
+        shell: bash
+        run: |
+          grep -Eq 'compileSdk[[:space:]]+36' frontend/android/app/build.gradle
+          grep -Eq 'targetSdkVersion[[:space:]]+36' frontend/android/app/build.gradle
+          grep -Eq 'versionCode[[:space:]]+6' frontend/android/app/build.gradle
+          grep -Fq "applicationId 'com.fiko93.safesentinel'" frontend/android/app/build.gradle
+          if awk '/release \{/{f=1} f&&/signingConfig signingConfigs\.debug/{exit 0} f&&/^        \}/{f=0} END{exit 1}' frontend/android/app/build.gradle; then
+            echo '::error::Release build uses debug signing'
+            exit 1
+          fi
+          echo 'Play Store Android configuration: PASS'
+
+      - name: Backend security regression and production smoke
+        working-directory: backend
+        shell: bash
+        run: |
+          npm ci
+          npx prisma generate --schema ./schema.prisma
+          test -n "$DATABASE_URL" || (echo '::error::Production database secret missing' && exit 1)
+          node scripts/audit-scam-addresses.mjs
+          nohup node --import ./src/guardian-bootstrap.js src/server.js > /tmp/safe-sentinel-backend.log 2>&1 &
+          echo $! > /tmp/safe-sentinel-backend.pid
+          for i in {1..45}; do
+            if curl --fail --silent http://127.0.0.1:3000/health >/dev/null; then
+              break
+            fi
+            if ! kill -0 "$(cat /tmp/safe-sentinel-backend.pid)" 2>/dev/null; then
+              cat /tmp/safe-sentinel-backend.log || true
+              exit 1
+            fi
+            sleep 2
+          done
+          TEST_API_BASE_URL=http://127.0.0.1:3000 npm test
+          npm run smoke:local
+
+  build-aab:
+    name: Signed production AAB
+    needs: production-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      EXPO_PUBLIC_BACKEND_URL: https://safe-sentinel-pro-1.onrender.com
+      EXPO_PUBLIC_PLAY_STORE_BUILD: 'true'
+      EXPO_PUBLIC_REOWN_PROJECT_ID: ${{ secrets.EXPO_PUBLIC_REOWN_PROJECT_ID }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      ANDROID_KEYSTORE_PATH: release.keystore
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Require Android release signing secrets
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64" || (echo '::error::ANDROID_KEYSTORE_BASE64 missing' && exit 1)
+          test -n "$ANDROID_KEYSTORE_PASSWORD" || (echo '::error::ANDROID_KEYSTORE_PASSWORD missing' && exit 1)
+          test -n "$ANDROID_KEY_ALIAS" || (echo '::error::ANDROID_KEY_ALIAS missing' && exit 1)
+          test -n "$ANDROID_KEY_PASSWORD" || (echo '::error::ANDROID_KEY_PASSWORD missing' && exit 1)
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.4'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Install frontend dependencies
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
+
+      - name: Verify Expo and release hardening
+        shell: bash
+        run: |
+          npx expo install --check
+          npx --yes expo-doctor@1.20.4
+          grep -Fq 'setCachedAuthToken' App.js
+          grep -Fq 'AsyncStorage.multiGet' App.js
+          grep -Fq "api.get('/api/live-prices'" App.js
+          grep -Fq 'normalizeBackendNetwork' App.js
+          grep -Fq 'requestWithBackendRecovery' App.js
+          grep -Fq 'android:windowBackground' android/app/src/main/res/values/styles.xml
+          if grep -Eq '\btheme\.text\b|\btheme\.subText\b' App.js; then
+            echo '::error::Undefined Guardian theme text key remains'
+            exit 1
+          fi
+          echo 'Frontend production hardening: PASS'
+
+      - name: Restore release keystore
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/release.keystore
+          test -s android/app/release.keystore
+          chmod 600 android/app/release.keystore
+          keytool -list -keystore android/app/release.keystore -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null
+
+      - name: Build production Android App Bundle
+        shell: bash
+        run: |
+          chmod +x android/gradlew
+          cd android
+          ./gradlew --no-daemon clean bundleRelease
+
+      - name: Verify signed AAB and release metadata
+        shell: bash
+        run: |
+          AAB='android/app/build/outputs/bundle/release/app-release.aab'
+          test -s "$AAB"
+          jarsigner -verify -verbose -certs "$AAB" >/tmp/aab-signature.txt
+          grep -Eq 'jar verified|s = signature was verified' /tmp/aab-signature.txt
+          mkdir -p play-store-release
+          cp "$AAB" play-store-release/Safe-Sentinel-v1.0.0-vc6.aab
+          if [ -f android/app/build/outputs/mapping/release/mapping.txt ]; then
+            cp android/app/build/outputs/mapping/release/mapping.txt play-store-release/mapping.txt
+          fi
+          cat > play-store-release/release-info.txt <<EOF
+          App: Safe Sentinel
+          Package: com.fiko93.safesentinel
+          Version name: 1.0.0
+          Version code: 6
+          Target SDK: 36
+          Build type: signed release AAB
+          Commit: $GITHUB_SHA
+          Backend: https://safe-sentinel-pro-1.onrender.com
+          EOF
+          sha256sum play-store-release/Safe-Sentinel-v1.0.0-vc6.aab | tee play-store-release/SHA256.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: safe-sentinel-play-store-v1.0.0-vc6-${{ github.sha }}
+          path: frontend/play-store-release/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Remove restored keystore
+        if: always()
+        shell: bash
+        run: rm -f android/app/release.keystore
+
+      - name: Play Store build summary
+        if: success()
+        shell: bash
+        run: |
+          echo '## Safe Sentinel Play Store Production Bundle' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Production DB/security gate: PASS' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Target/compile SDK 36: PASS' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Expo compatibility: PASS' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Release signing: PASS' >> "$GITHUB_STEP_SUMMARY"
+          echo 'AAB signature verification: PASS' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Package: com.fiko93.safesentinel' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Version: 1.0.0 (6)' >> "$GITHUB_STEP_SUMMARY"
