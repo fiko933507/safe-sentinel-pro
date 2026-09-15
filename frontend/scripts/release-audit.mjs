@@ -30,7 +30,7 @@ check(manifest.includes('android:allowBackup="false"'), 'Android yedekleme kapat
 check(manifest.includes('android:usesCleartextTraffic="false"'), 'Cleartext HTTP kapatılmamış.');
 check(manifest.includes('android:dataExtractionRules="@xml/secure_store_data_extraction_rules"'), 'SecureStore data extraction rule manifestte bağlı değil.');
 check(secureStoreRules.includes('<exclude domain="sharedpref" path="SecureStore"/>'), 'SecureStore backup/device-transfer dışlaması eksik.');
-check(manifest.includes('android:icon="@mipmap/ic_launcher"'), 'Native launcher icon kaynağı tanımlı değil.');
+check(/android:icon="@(mipmap|drawable)\/[A-Za-z0-9_]+"/.test(manifest), 'Native launcher icon kaynağı tanımlı değil.');
 
 // Only inspect the release buildType body. The old regex started at signingConfigs.release
 // and could span forward into buildTypes.debug, causing a false "debug signing" failure.
