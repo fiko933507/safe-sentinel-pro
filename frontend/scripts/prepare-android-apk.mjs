@@ -5,21 +5,16 @@ const root = process.cwd();
 const appPath = path.join(root, 'App.js');
 let app = fs.readFileSync(appPath, 'utf8');
 
-// Login: wake the production service before sending credentials. This avoids
-// failing the auth request while Render is still cold-starting.
-const loginMarker = `    try {\n      setLoading(true);\n\n      const response = await axios.post(\n        \`${'${API_BASE_URL}'}/api/auth/login\`,`;
-const loginReplacement = `    try {\n      setLoading(true);\n\n      // Warm the production API first. A sleeping instance can take longer\n      // than the auth timeout to become ready. No credentials are sent here.\n      try {\n        await axios.get(\`${'${API_BASE_URL}'}/health\`, { timeout: 45000 });\n      } catch (warmupError) {\n        console.warn('[LOGIN WARMUP]', warmupError?.message || warmupError);\n      }\n\n      const response = await axios.post(\n        \`${'${API_BASE_URL}'}/api/auth/login\`,`;
+// Login resilience is part of the application source now. Do not rewrite the
+// auth flow during npm install; only verify the production-safe markers exist.
+const hasLoginEndpoint = app.includes('`${API_BASE_URL}/api/auth/login`');
+const hasBackendRecovery =
+  app.includes('requestWithBackendRecovery(() =>') &&
+  app.includes('attempts = 3');
 
-if (app.includes(loginMarker)) {
-  app = app.replace(loginMarker, loginReplacement);
-} else if (!app.includes('[LOGIN WARMUP]')) {
-  throw new Error('Login flow marker not found');
+if (!hasLoginEndpoint || !hasBackendRecovery) {
+  throw new Error('Resilient login flow marker not found');
 }
-
-app = app.replace(
-  `          timeout: 15000\n        }\n      );\n\n      const { token: sessionToken, user } = response.data || {};`,
-  `          timeout: 30000\n        }\n      );\n\n      const { token: sessionToken, user } = response.data || {};`
-);
 
 // Registration: replace the temporary private-test lock with the real flow.
 // Keep this patch independent from styling so UI refactors do not break npm ci.
