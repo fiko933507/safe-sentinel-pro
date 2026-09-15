@@ -117,3 +117,5 @@ jobs:
           git diff --cached --check
           git commit -m 'fix(app): connect Vault inheritance and Guardian wallet flows'
           git push origin HEAD:main
+
+# Retry after aligning Android postinstall with the two-attempt login recovery policy.
