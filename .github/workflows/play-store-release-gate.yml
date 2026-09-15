@@ -1,4 +1,4 @@
-﻿name: Safe Sentinel Play Store Release Gate
+﻿name: Safe Sentinel APK Test Gate
 
 on:
   workflow_dispatch:
@@ -6,16 +6,15 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/play-store-release-gate.yml'
-      - 'frontend/android/**'
-      - 'frontend/package.json'
-      - 'frontend/package-lock.json'
+      - 'frontend/**'
+      - 'backend/**'
 
 permissions:
   contents: read
 
 concurrency:
-  group: safe-sentinel-play-store-release-gate
-  cancel-in-progress: false
+  group: safe-sentinel-apk-test-gate
+  cancel-in-progress: true
 
 jobs:
   db-audit:
@@ -70,7 +69,7 @@ jobs:
       - name: Start local backend for regression tests
         shell: bash
         run: |
-          nohup npm start > /tmp/safe-sentinel-backend.log 2>&1 &
+          nohup node --import ./src/guardian-bootstrap.js src/server.js > /tmp/safe-sentinel-backend.log 2>&1 &
           echo $! > /tmp/safe-sentinel-backend.pid
           for i in {1..45}; do
             if curl --fail --silent http://127.0.0.1:3000/health >/dev/null; then
@@ -103,26 +102,26 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Verify Play target/compile SDK and release signing policy
+      - name: Verify target/compile SDK and release signing policy
         shell: bash
         run: |
           grep -Eq 'compileSdk[[:space:]]+36' frontend/android/app/build.gradle
           grep -Eq 'targetSdkVersion[[:space:]]+36' frontend/android/app/build.gradle
-          grep -Eq 'buildType"?:?[[:space:]]*"app-bundle"|"buildType"[[:space:]]*:[[:space:]]*"app-bundle"' frontend/eas.json
           if awk '/release \{/{f=1} f&&/signingConfig signingConfigs\.debug/{exit 0} f&&/^        \}/{f=0} END{exit 1}' frontend/android/app/build.gradle; then
             echo '::error::Release build uses debug signing'
             exit 1
           fi
-          echo 'Android API 36 and release AAB policy: PASS'
+          echo 'Android API 36 and release signing policy: PASS'
 
-  release-aab:
-    name: Signed Play Store AAB (GitHub Gradle)
+  test-apk:
+    name: Signed Test APK (GitHub Gradle)
     needs: [db-audit, security-e2e, android-api36]
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
       EXPO_PUBLIC_BACKEND_URL: https://safe-sentinel-pro-1.onrender.com
-      EXPO_PUBLIC_PLAY_STORE_BUILD: 'true'
+      EXPO_PUBLIC_PLAY_STORE_BUILD: 'false'
+      EXPO_PUBLIC_REOWN_PROJECT_ID: ${{ secrets.EXPO_PUBLIC_REOWN_PROJECT_ID }}
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
@@ -164,44 +163,42 @@ jobs:
       - name: Verify keystore credentials
         shell: bash
         run: |
-          keytool -list \
-            -keystore android/app/release.keystore \
-            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
-            -alias "$ANDROID_KEY_ALIAS" >/dev/null
+          keytool -list -keystore android/app/release.keystore -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null
           echo 'Release keystore credentials: PASS'
-      - name: Build signed production AAB with Gradle
+      - name: Build signed test APK with Gradle
         shell: bash
         run: |
           chmod +x android/gradlew
           cd android
-          ./gradlew --no-daemon clean bundleRelease
-      - name: Verify signed AAB
+          ./gradlew --no-daemon clean assembleRelease
+      - name: Verify signed APK
         shell: bash
         run: |
-          AAB='android/app/build/outputs/bundle/release/app-release.aab'
-          test -s "$AAB"
-          jarsigner -verify "$AAB" >/dev/null
-          cp "$AAB" safe-sentinel-production.aab
-          echo "AAB_SIZE_BYTES=$(wc -c < safe-sentinel-production.aab)" >> "$GITHUB_ENV"
-          echo 'AAB signature verification: PASS'
+          APK='android/app/build/outputs/apk/release/app-release.apk'
+          test -s "$APK"
+          SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          APKSIGNER="$(find "$SDK_ROOT/build-tools" -type f -name apksigner | sort -V | tail -1)"
+          test -x "$APKSIGNER"
+          "$APKSIGNER" verify --verbose "$APK"
+          cp "$APK" safe-sentinel-test.apk
+          echo "APK_SIZE_BYTES=$(wc -c < safe-sentinel-test.apk)" >> "$GITHUB_ENV"
       - uses: actions/upload-artifact@v4
         with:
-          name: safe-sentinel-play-store-aab-${{ github.sha }}
-          path: frontend/safe-sentinel-production.aab
+          name: safe-sentinel-test-apk-${{ github.sha }}
+          path: frontend/safe-sentinel-test.apk
           if-no-files-found: error
           retention-days: 30
       - name: Remove restored keystore
         if: always()
         shell: bash
         run: rm -f android/app/release.keystore
-      - name: Release summary
+      - name: Test build summary
         if: success()
         run: |
-          echo '## Safe Sentinel Play Store release gate' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Safe Sentinel APK test gate' >> "$GITHUB_STEP_SUMMARY"
           echo 'DB audit: PASS' >> "$GITHUB_STEP_SUMMARY"
           echo 'Security E2E: PASS' >> "$GITHUB_STEP_SUMMARY"
           echo 'Android API 36: PASS' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Signing: GitHub-hosted Gradle + production EAS keystore' >> "$GITHUB_STEP_SUMMARY"
-          echo "Signed AAB size: ${AAB_SIZE_BYTES} bytes" >> "$GITHUB_STEP_SUMMARY"
-
+          echo 'AAB generation: DISABLED during APK testing' >> "$GITHUB_STEP_SUMMARY"
+          echo "Signed test APK size: ${APK_SIZE_BYTES} bytes" >> "$GITHUB_STEP_SUMMARY"
 
