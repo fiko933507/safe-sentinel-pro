@@ -1,0 +1,70 @@
+name: One-time Auth UI Hardening
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/one-time-auth-ui-hardening.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-auth-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Patch login and registration error UX
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('frontend/App.js')
+          text = path.read_text(encoding='utf-8')
+
+          text = text.replace('timeout: 15000\n          }\n        )\n      );\n\n      const { token: sessionToken, user } = response.data || {};',
+                              'timeout: 30000\n          }\n        )\n      );\n\n      const { token: sessionToken, user } = response.data || {};')
+
+          old_login = '''      const status = error?.response?.status;\n      const serverMessage = error?.response?.data?.error || error?.response?.data?.message;\n\n      const message = status === 401\n        ? (selectedLanguage === 'tr' ? 'E-posta veya şifre hatalı.' : 'Incorrect email or password.')\n        : status === 403\n        ? (selectedLanguage === 'tr' ? 'Bu özel test sürümüne erişim yetkiniz yok.' : 'You do not have access to this private test build.')\n        : status === 429\n        ? (selectedLanguage === 'tr' ? 'Çok fazla giriş denemesi yapıldı. Kısa bir süre sonra tekrar deneyin.' : 'Too many login attempts. Please try again shortly.')\n        : selectedLanguage === 'tr'\n        ? 'Sunucu yanıt vermedi. Lütfen birkaç saniye sonra tekrar deneyin.'\n        : 'The server did not respond. Please try again in a few seconds.';\n\n      Alert.alert(t('runtimeLoginFailedTitle'), serverMessage || message);'''
+
+          new_login = '''      const status = error?.response?.status;\n\n      const message = status === 400\n        ? (selectedLanguage === 'tr' ? 'E-posta veya şifre bilgisi geçersiz.' : 'The email or password input is invalid.')\n        : status === 401\n        ? (selectedLanguage === 'tr' ? 'E-posta veya şifre hatalı.' : 'Incorrect email or password.')\n        : status === 403\n        ? (selectedLanguage === 'tr' ? 'Bu hesap için giriş yetkisi bulunmuyor.' : 'This account is not authorized to sign in.')\n        : status === 429\n        ? (selectedLanguage === 'tr' ? 'Çok fazla giriş denemesi yapıldı. Kısa bir süre sonra tekrar deneyin.' : 'Too many login attempts. Please try again shortly.')\n        : status && status >= 500\n        ? (selectedLanguage === 'tr' ? 'Giriş servisi geçici olarak kullanılamıyor. Lütfen birkaç saniye sonra tekrar deneyin.' : 'The sign-in service is temporarily unavailable. Please try again in a few seconds.')\n        : (selectedLanguage === 'tr'\n          ? 'Sunucuya ulaşılamıyor. Bağlantınızı kontrol edip tekrar deneyin.'\n          : 'The server cannot be reached. Check your connection and try again.');\n\n      Alert.alert(t('runtimeLoginFailedTitle'), message);'''
+
+          if old_login not in text:
+              raise SystemExit('login error block not found')
+          text = text.replace(old_login, new_login, 1)
+
+          old_register = '''      const status = error?.response?.status;\n      const serverMessage = error?.response?.data?.error || error?.response?.data?.message;\n      const duplicateEmail = /already registered|already exists/i.test(String(serverMessage || ''));\n      const message = (status === 409 || duplicateEmail)\n        ? (selectedLanguage === 'tr' ? 'Bu e-posta adresi zaten kayıtlı.' : 'This email address is already registered.')\n        : !error?.response\n        ? (selectedLanguage === 'tr' ? 'Sunucuya ulaşılamıyor. Lütfen tekrar deneyin.' : 'Cannot reach the server. Please try again.')\n        : serverMessage || t(\"runtimeRegisterFailedGeneric\");'''
+
+          new_register = '''      const status = error?.response?.status;\n      const serverMessage = error?.response?.data?.error || error?.response?.data?.message;\n      const duplicateEmail = /already registered|already exists/i.test(String(serverMessage || ''));\n      const message = (status === 409 || duplicateEmail)\n        ? (selectedLanguage === 'tr' ? 'Bu e-posta adresi zaten kayıtlı.' : 'This email address is already registered.')\n        : status === 400\n        ? (selectedLanguage === 'tr' ? 'Kayıt bilgilerini kontrol edin. Şifre en az 10 karakter olmalıdır.' : 'Check your registration details. The password must be at least 10 characters.')\n        : status === 429\n        ? (selectedLanguage === 'tr' ? 'Çok fazla kayıt denemesi yapıldı. Kısa bir süre sonra tekrar deneyin.' : 'Too many registration attempts. Please try again shortly.')\n        : status && status >= 500\n        ? (selectedLanguage === 'tr' ? 'Kayıt servisi geçici olarak kullanılamıyor. Lütfen birkaç saniye sonra tekrar deneyin.' : 'The registration service is temporarily unavailable. Please try again in a few seconds.')\n        : !error?.response\n        ? (selectedLanguage === 'tr' ? 'Sunucuya ulaşılamıyor. Lütfen tekrar deneyin.' : 'Cannot reach the server. Please try again.')\n        : t(\"runtimeRegisterFailedGeneric\");'''
+
+          if old_register not in text:
+              raise SystemExit('registration error block not found')
+          text = text.replace(old_register, new_register, 1)
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Validate frontend source
+        working-directory: frontend
+        run: |
+          npm ci --legacy-peer-deps --no-audit --no-fund
+          node --check scripts/prepare-android-apk.mjs
+          npx expo install --check
+
+      - name: Commit patch
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add frontend/App.js
+          if git diff --cached --quiet; then
+            echo 'No changes to commit.'
+            exit 0
+          fi
+          git commit -m 'fix(auth): localize service failures and extend login timeout'
+          git push origin main
