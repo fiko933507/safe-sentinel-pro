@@ -1,4 +1,4 @@
-﻿name: Safe Sentinel APK Test Gate
+name: Safe Sentinel APK Test Gate
 
 on:
   workflow_dispatch:
@@ -152,23 +152,30 @@ jobs:
           cache: gradle
       - name: Install frontend dependencies
         run: npm ci --legacy-peer-deps --no-audit --no-fund
-      - name: Verify runtime and auth resilience fixes
+      - name: Verify final runtime hardening
         shell: bash
         run: |
           grep -Fq 'requestWithBackendRecovery(() =>' App.js
-          grep -Fq 'attempts = 3' App.js
-          grep -Fq 'timeout: 30000' App.js
-          grep -Fq 'Giriş servisi geçici olarak kullanılamıyor.' App.js
-          if grep -Fq "Alert.alert(t('runtimeLoginFailedTitle'), serverMessage || message);" App.js; then
-            echo '::error::Login UI still exposes raw backend errors'
+          grep -Fq 'attempts = 2' App.js
+          grep -Fq 'timeout: 12000' App.js
+          grep -Fq 'loginWarmupStartedRef' App.js
+          grep -Fq 'normalizeBackendNetwork' App.js
+          grep -Fq 'EXPO_PUBLIC_VIP_MONTHLY_USDT || 100' App.js
+          grep -Fq 'EXPO_PUBLIC_VIP_YEARLY_USDT || 1000' App.js
+          grep -Fq "api.get('/api/live-prices'" App.js
+          if grep -Fq "axios.get('https://api.coingecko.com/api/v3/simple/price'" App.js; then
+            echo '::error::APK still performs direct CoinGecko simple-price calls'
             exit 1
           fi
+          grep -Fq 'coingeckoBackoffUntil' ../backend/src/guardian-bootstrap.js
+          grep -Fq 'URLHAUS_NOT_CONFIGURED' ../backend/src/guardian-bootstrap.js
+          grep -Fq 'providerAvailable: false' ../backend/src/guardian-bootstrap.js
           grep -Fq 'priceAlertBackoffUntil' ../backend/src/server.js
           AUTH_MIGRATION='../backend/migrations/20260915172500_remove_private_beta_owner_session_guard/migration.sql'
           test -s "$AUTH_MIGRATION"
           grep -Fq 'DROP TRIGGER IF EXISTS private_beta_owner_session_guard_trigger' "$AUTH_MIGRATION"
           grep -Fq 'DROP FUNCTION IF EXISTS public.private_beta_owner_session_guard()' "$AUTH_MIGRATION"
-          echo 'Runtime and auth resilience guards: PASS'
+          echo 'Final runtime hardening guards: PASS'
       - name: Verify Expo SDK compatibility
         shell: bash
         run: |
@@ -221,9 +228,11 @@ jobs:
           echo 'DB audit: PASS' >> "$GITHUB_STEP_SUMMARY"
           echo 'Security E2E: PASS' >> "$GITHUB_STEP_SUMMARY"
           echo 'Android API 36: PASS' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Runtime resilience: PASS' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Auth session guard removal: PASS' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Localized auth failures: PASS' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Fast resilient login: PASS' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Vault/Guardian/Inheritance network mapping: PASS' >> "$GITHUB_STEP_SUMMARY"
+          echo 'CoinGecko shared provider protection: PASS' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Threat-intelligence provider truthfulness: PASS' >> "$GITHUB_STEP_SUMMARY"
+          echo 'VIP price alignment: PASS' >> "$GITHUB_STEP_SUMMARY"
           echo 'Expo compatibility: PASS' >> "$GITHUB_STEP_SUMMARY"
           echo 'AAB generation: DISABLED during APK testing' >> "$GITHUB_STEP_SUMMARY"
           echo "Signed test APK size: ${APK_SIZE_BYTES} bytes" >> "$GITHUB_STEP_SUMMARY"
