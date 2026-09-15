@@ -44,10 +44,10 @@ process.env.EXPO_PUBLIC_VIP_PAYMENT_USDT_ADDRESS ||
 'TY8UwgeCoEog8Lz6BseBXfaBRoZMG28QNn';
 
 const VIP_MONTHLY_USDT =
-Number(process.env.EXPO_PUBLIC_VIP_MONTHLY_USDT || 15);
+Number(process.env.EXPO_PUBLIC_VIP_MONTHLY_USDT || 100);
 
 const VIP_YEARLY_USDT =
-Number(process.env.EXPO_PUBLIC_VIP_YEARLY_USDT || 150);
+Number(process.env.EXPO_PUBLIC_VIP_YEARLY_USDT || 1000);
 const API_BASE_URL = BACKEND_URL;
 const IS_PLAY_STORE_BUILD = process.env.EXPO_PUBLIC_PLAY_STORE_BUILD === 'true';
 const PRIVACY_POLICY_URL = 'https://fiko933507.github.io/safe-sentinel-pro/privacy-policy.html';
@@ -125,6 +125,14 @@ const ensureBackendConfigured = () => {
   if (!BACKEND_URL) {
     throw new Error('Backend URL yapılandırılmamış. EXPO_PUBLIC_BACKEND_URL tanımlayın.');
   }
+};
+
+const normalizeBackendNetwork = (value) => {
+  const network = String(value || '').trim().toLowerCase();
+  if (network === 'eth') return 'ethereum';
+  if (network === 'arb') return 'arbitrum';
+  if (network === 'avax') return 'avalanche';
+  return network;
 };
 
 const AutoBackupManager = {
@@ -1619,7 +1627,7 @@ function App() {
       setInheritanceProtocols(protocols);
 
       const backendNetwork =
-      selectedNetwork === 'eth' ? 'ethereum' : selectedNetwork;
+      normalizeBackendNetwork(selectedNetwork);
 
       const activeProtocol = protocols.find(
         (protocol) =>
@@ -1648,7 +1656,7 @@ function App() {
   const createInheritanceProtocol = useCallback(async () => {
     let cleanWalletAddress = String(inheritSourceWallet || '').trim();
     const cleanBeneficiary = inheritBeneficiary.trim();
-    let backendNetwork = selectedNetwork === 'eth' ? 'ethereum' : selectedNetwork === 'arb' ? 'arbitrum' : selectedNetwork === 'avax' ? 'avalanche' : selectedNetwork;
+    let backendNetwork = normalizeBackendNetwork(selectedNetwork);
     let ownedWalletId = null;
 
     if (!cleanWalletAddress) {
@@ -2035,35 +2043,28 @@ function App() {
     const startTime = Date.now();
     try {
       RateLimiterGuard.checkLimit('coingecko-prices');
-      const response = await axios.get('https://api.coingecko.com/api/v3/simple/price', {
-        params: {
-          ids: 'tron,solana,bitcoin,avalanche-2,arbitrum,polygon-ecosystem-token,ethereum,binancecoin,pi-network,nft,tether,usd-coin',
-          vs_currencies: 'usd'
-        },
-        headers: {
-          ...SecurityScannerMiddleware.auditHeaders
-        },
-        timeout: 6000
-      });
-      if (response.data) {
+      const response = await api.get('/api/live-prices', { timeout: 10000 });
+      const prices = response?.data?.prices;
+
+      if (response?.data?.success && prices) {
         setLiveCryptoPrices({
-          TRX: response.data.tron?.usd ? String(response.data.tron.usd) : null,
-          SOL: response.data.solana?.usd ? String(response.data.solana.usd) : null,
-          BTC: response.data.bitcoin?.usd ? String(response.data.bitcoin.usd) : null,
-          AVAX: response.data['avalanche-2']?.usd ? String(response.data['avalanche-2'].usd) : null,
-          ARB: response.data.arbitrum?.usd ? String(response.data.arbitrum.usd) : null,
-          POL: response.data['polygon-ecosystem-token']?.usd ? String(response.data['polygon-ecosystem-token'].usd) : null,
-          ETH: response.data.ethereum?.usd ? String(response.data.ethereum.usd) : null,
-          USDT: response.data.tether?.usd ? String(response.data.tether.usd) : null,
-          USDC: response.data['usd-coin']?.usd ? String(response.data['usd-coin'].usd) : null,
-          BNB: response.data.binancecoin?.usd ? String(response.data.binancecoin.usd) : null,
-          PI: response.data['pi-network']?.usd ? String(response.data['pi-network'].usd) : null,
+          TRX: prices.tron?.usd ? String(prices.tron.usd) : null,
+          SOL: prices.solana?.usd ? String(prices.solana.usd) : null,
+          BTC: prices.bitcoin?.usd ? String(prices.bitcoin.usd) : null,
+          AVAX: prices['avalanche-2']?.usd ? String(prices['avalanche-2'].usd) : null,
+          ARB: prices.arbitrum?.usd ? String(prices.arbitrum.usd) : null,
+          POL: prices['polygon-ecosystem-token']?.usd ? String(prices['polygon-ecosystem-token'].usd) : null,
+          ETH: prices.ethereum?.usd ? String(prices.ethereum.usd) : null,
+          USDT: prices.tether?.usd ? String(prices.tether.usd) : null,
+          USDC: prices['usd-coin']?.usd ? String(prices['usd-coin'].usd) : null,
+          BNB: prices.binancecoin?.usd ? String(prices.binancecoin.usd) : null,
+          PI: prices['pi-network']?.usd ? String(prices['pi-network'].usd) : null,
           NFT: null
         });
       }
-      PerformanceMonitor.logLoadTest('CoinGecko API', Date.now() - startTime);
+      PerformanceMonitor.logLoadTest('Backend Live Prices', Date.now() - startTime);
     } catch (e) {
-      handleIsolatedError("CoinGecko Canlı Fiyatlar", e);
+      handleIsolatedError('Canlı Fiyatlar', e);
     }
   }, [handleIsolatedError]);
 
@@ -2411,7 +2412,7 @@ function App() {
 
   const securityListContains = (list, targetAddress, targetNetwork = selectedNetwork) => {
     const normalizedAddress = String(targetAddress || '').trim().toLowerCase();
-    const normalizedNetwork = String(targetNetwork === 'eth' ? 'ethereum' : targetNetwork || '').trim().toLowerCase();
+    const normalizedNetwork = normalizeBackendNetwork(targetNetwork || selectedNetwork);
 
     return Array.isArray(list) && list.some((entry) => {
       const entryAddress = String(entry?.address || entry || '').trim().toLowerCase();
@@ -2428,9 +2429,7 @@ function App() {
         return {
           address: item.trim(),
           network:
-          selectedNetwork === 'eth' ?
-          'ethereum' :
-          selectedNetwork
+          normalizeBackendNetwork(selectedNetwork)
         };
       }
 
@@ -2440,9 +2439,7 @@ function App() {
         network:
         item?.network || (
 
-        selectedNetwork === 'eth' ?
-        'ethereum' :
-        selectedNetwork)
+        normalizeBackendNetwork(selectedNetwork))
 
       };
     }).
@@ -2469,12 +2466,11 @@ function App() {
     }
 
     for (const item of normalized) {
-      const alreadyExists =
-      previous.some((existing) =>
-      String(existing?.address || existing).
-      trim().
-      toLowerCase() === item.address.toLowerCase()
-      );
+      const alreadyExists = previous.some((existing) => {
+        const existingAddress = String(existing?.address || existing).trim().toLowerCase();
+        const existingNetwork = normalizeBackendNetwork(existing?.network || item.network);
+        return existingAddress === item.address.toLowerCase() && existingNetwork === normalizeBackendNetwork(item.network);
+      });
 
       if (!alreadyExists) {
         await api.post('/api/whitelist', {
@@ -2507,9 +2503,7 @@ function App() {
         return {
           address: item.trim(),
           network:
-          selectedNetwork === 'eth' ?
-          'ethereum' :
-          selectedNetwork
+          normalizeBackendNetwork(selectedNetwork)
         };
       }
 
@@ -2519,9 +2513,7 @@ function App() {
         network:
         item?.network || (
 
-        selectedNetwork === 'eth' ?
-        'ethereum' :
-        selectedNetwork)
+        normalizeBackendNetwork(selectedNetwork))
 
       };
     }).
@@ -2548,12 +2540,11 @@ function App() {
     }
 
     for (const item of normalized) {
-      const alreadyExists =
-      previous.some((existing) =>
-      String(existing?.address || existing).
-      trim().
-      toLowerCase() === item.address.toLowerCase()
-      );
+      const alreadyExists = previous.some((existing) => {
+        const existingAddress = String(existing?.address || existing).trim().toLowerCase();
+        const existingNetwork = normalizeBackendNetwork(existing?.network || item.network);
+        return existingAddress === item.address.toLowerCase() && existingNetwork === normalizeBackendNetwork(item.network);
+      });
 
       if (!alreadyExists) {
         await api.post('/api/blacklist', {
@@ -2622,7 +2613,7 @@ function App() {
   };
 
   const saveVault = async (newList) => {
-    const backendNetwork = selectedNetwork === "eth" ? "ethereum" : selectedNetwork;
+    const backendNetwork = normalizeBackendNetwork(selectedNetwork);
 
     try {
       if (!Array.isArray(newList)) {
@@ -2735,9 +2726,7 @@ function App() {
       try {
         if (/^0x[a-fA-F0-9]{40}$/.test(cleanAddr)) {
           const network =
-          selectedNetwork === 'eth' ?
-          'ethereum' :
-          selectedNetwork;
+          normalizeBackendNetwork(selectedNetwork);
 
           const response = await api.post(
             '/api/check-allowances',
@@ -3371,7 +3360,7 @@ function App() {
           { email: cleanEmail, password: cleanPassword },
           {
             headers: { ...SecurityScannerMiddleware.auditHeaders },
-            timeout: 30000
+            timeout: 12000
           }
         )
       );
@@ -3620,9 +3609,7 @@ function App() {
 
     try {
       const response = await api.post('/api/portfolio', {
-        network: selectedNetwork === 'eth' ?
-        'ethereum' :
-        selectedNetwork,
+        network: normalizeBackendNetwork(selectedNetwork),
         address: addressValue
       });
 
@@ -4160,7 +4147,7 @@ function App() {
 
     try {
       RateLimiterGuard.checkLimit('check-wallet');
-      const backendNetwork = selectedNetwork === "eth" ? "ethereum" : selectedNetwork;
+      const backendNetwork = normalizeBackendNetwork(selectedNetwork);
       const response = await requestWithBackendRecovery(() => api.post(`/api/check-wallet`, {
         network: backendNetwork,
         address: cleanAddr
@@ -4641,9 +4628,7 @@ function App() {
     }
 
     const backendNetwork =
-    selectedNetwork === "eth" ?
-    "ethereum" :
-    selectedNetwork;
+    normalizeBackendNetwork(selectedNetwork);
 
     setAnalyzingBehavior(true);
     setBehavioralAnalysisResult(null);
@@ -5084,9 +5069,7 @@ function App() {
 
     try {
       const backendNetwork =
-      selectedNetwork === "eth" ?
-      "ethereum" :
-      selectedNetwork;
+      normalizeBackendNetwork(selectedNetwork);
 
       const response = await api.post(
         "/api/check-transfer-recipient",
