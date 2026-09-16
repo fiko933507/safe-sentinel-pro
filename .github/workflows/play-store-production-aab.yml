@@ -38,7 +38,7 @@ jobs:
         run: |
           grep -Eq 'compileSdk[[:space:]]+36' frontend/android/app/build.gradle
           grep -Eq 'targetSdkVersion[[:space:]]+36' frontend/android/app/build.gradle
-          grep -Eq 'versionCode[[:space:]]+6' frontend/android/app/build.gradle
+          grep -Eq 'versionCode[[:space:]]+7' frontend/android/app/build.gradle
           grep -Fq "applicationId 'com.fiko93.safesentinel'" frontend/android/app/build.gradle
           if awk '/release \{/{f=1} f&&/signingConfig signingConfigs\.debug/{exit 0} f&&/^        \}/{f=0} END{exit 1}' frontend/android/app/build.gradle; then
             echo '::error::Release build uses debug signing'
@@ -155,7 +155,7 @@ jobs:
           jarsigner -verify -verbose -certs "$AAB" >/tmp/aab-signature.txt
           grep -Eq 'jar verified|s = signature was verified' /tmp/aab-signature.txt
           mkdir -p play-store-release
-          cp "$AAB" play-store-release/Safe-Sentinel-v1.0.0-vc6.aab
+          cp "$AAB" play-store-release/Safe-Sentinel-v1.0.0-vc7.aab
           if [ -f android/app/build/outputs/mapping/release/mapping.txt ]; then
             cp android/app/build/outputs/mapping/release/mapping.txt play-store-release/mapping.txt
           fi
@@ -163,17 +163,17 @@ jobs:
           App: Safe Sentinel
           Package: com.fiko93.safesentinel
           Version name: 1.0.0
-          Version code: 6
+          Version code: 7
           Target SDK: 36
           Build type: signed release AAB
           Commit: $GITHUB_SHA
           Backend: https://safe-sentinel-pro-1.onrender.com
           EOF
-          sha256sum play-store-release/Safe-Sentinel-v1.0.0-vc6.aab | tee play-store-release/SHA256.txt
+          sha256sum play-store-release/Safe-Sentinel-v1.0.0-vc7.aab | tee play-store-release/SHA256.txt
 
       - uses: actions/upload-artifact@v4
         with:
-          name: safe-sentinel-play-store-v1.0.0-vc6-${{ github.sha }}
+          name: safe-sentinel-play-store-v1.0.0-vc7-${{ github.sha }}
           path: frontend/play-store-release/
           if-no-files-found: error
           retention-days: 30
@@ -194,4 +194,4 @@ jobs:
           echo 'Release signing: PASS' >> "$GITHUB_STEP_SUMMARY"
           echo 'AAB signature verification: PASS' >> "$GITHUB_STEP_SUMMARY"
           echo 'Package: com.fiko93.safesentinel' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Version: 1.0.0 (6)' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Version: 1.0.0 (7)' >> "$GITHUB_STEP_SUMMARY"
